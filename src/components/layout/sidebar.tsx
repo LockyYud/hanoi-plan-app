@@ -93,15 +93,26 @@ export function Sidebar() {
             console.log("🌐 API URL:", url);
 
             const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const result = await response.json();
             console.log("📍 Places response:", result);
 
             if (result.data) {
                 setPlaces(result.data);
                 console.log("✅ Places loaded:", result.data.length, "places");
+            } else if (result.error) {
+                console.error("API Error:", result.error);
+                // Set empty places array as fallback
+                setPlaces([]);
             }
         } catch (error) {
             console.error("❌ Error fetching places:", error);
+            // Set empty places array as fallback
+            setPlaces([]);
         }
     }, [filter, setPlaces]);
 
