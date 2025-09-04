@@ -79,7 +79,8 @@ export default function RootLayout({
                     content="default"
                 />
                 <meta name="apple-mobile-web-app-title" content="Hanoi Plan" />
-                <link rel="apple-touch-icon" href="/icon-192x192.png" />
+                <link rel="apple-touch-icon" href="/icon.svg" />
+                <link rel="icon" href="/icon.svg" type="image/svg+xml" />
             </head>
             <body
                 className={`${inter.variable} font-sans antialiased`}

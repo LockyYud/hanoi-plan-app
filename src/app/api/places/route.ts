@@ -32,6 +32,16 @@ const PlaceFilterSchema = z.object({
 
 export async function GET(request: NextRequest) {
     try {
+        // Check if database is available
+        if (!process.env.DATABASE_URL) {
+            return NextResponse.json({
+                error: "Database not configured",
+                data: [],
+                total: 0,
+                hasMore: false
+            }, { status: 500 });
+        }
+
         const { searchParams } = new URL(request.url)
         const params = Object.fromEntries(searchParams.entries())
 

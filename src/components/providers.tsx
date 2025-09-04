@@ -17,6 +17,10 @@ export function Providers({ children }: ProvidersProps) {
                     queries: {
                         staleTime: 60 * 1000, // 1 minute
                         retry: 1,
+                        refetchOnWindowFocus: false,
+                    },
+                    mutations: {
+                        retry: 1,
                     },
                 },
             })
@@ -26,12 +30,23 @@ export function Providers({ children }: ProvidersProps) {
         setMounted(true);
     }, []);
 
+    // Show loading placeholder on server/initial render
     if (!mounted) {
-        return <div suppressHydrationWarning>{children}</div>;
+        return (
+            <div suppressHydrationWarning className="min-h-screen bg-gray-50">
+                <div className="flex items-center justify-center h-screen">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <SessionProvider>
+        <SessionProvider
+            session={null}
+            refetchInterval={0}
+            refetchOnWindowFocus={false}
+        >
             <QueryClientProvider client={queryClient}>
                 {children}
             </QueryClientProvider>
