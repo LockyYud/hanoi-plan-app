@@ -5,6 +5,8 @@ import mapboxgl from "mapbox-gl";
 import { useMapStore, usePlaceStore } from "@/lib/store";
 import { PlacePopup } from "./place-popup";
 import { MapControls } from "./map-controls";
+import { LocationNoteForm } from "./location-note-form";
+import { NoteDetailsView } from "./note-details-view";
 import { cn } from "@/lib/utils";
 import { MapPin } from "lucide-react"; // Added for error UI
 
@@ -20,9 +22,57 @@ export function MapContainer({ className }: MapContainerProps) {
     const map = useRef<mapboxgl.Map | null>(null);
     const [mapLoaded, setMapLoaded] = useState(false);
     const [mapError, setMapError] = useState<string | null>(null);
+    const [clickedLocation, setClickedLocation] = useState<{
+        lng: number;
+        lat: number;
+        address?: string;
+    } | null>(null);
+    const [showLocationForm, setShowLocationForm] = useState(false);
 
     const { center, zoom, setCenter, setZoom, setBounds } = useMapStore();
-    const { places, selectedPlace, setSelectedPlace } = usePlaceStore();
+    const { places, selectedPlace, setSelectedPlace, setPlaces } =
+        usePlaceStore();
+
+    // State for location notes
+    const [locationNotes, setLocationNotes] = useState<
+        Array<{
+            id: string;
+            lng: number;
+            lat: number;
+            address: string;
+            content: string;
+            mood?: string;
+            timestamp: Date;
+            images?: string[];
+        }>
+    >([]);
+
+    // Load location notes from API
+    const loadLocationNotes = async () => {
+        try {
+            const response = await fetch("/api/location-notes");
+            if (response.ok) {
+                const notes = await response.json();
+                setLocationNotes(notes);
+                console.log("📍 Loaded", notes.length, "location notes");
+            }
+        } catch (error) {
+            console.error("Error loading location notes:", error);
+        }
+    };
+
+    // State for selected note and views
+    const [selectedNote, setSelectedNote] = useState<{
+        id: string;
+        lng: number;
+        lat: number;
+        address: string;
+        content: string;
+        mood?: string;
+        timestamp: Date;
+        images?: string[];
+    } | null>(null);
+    const [showNoteDetails, setShowNoteDetails] = useState(false);
 
     // Check if Mapbox token is available
     const hasMapboxToken =
@@ -73,7 +123,7 @@ export function MapContainer({ className }: MapContainerProps) {
         });
 
         map.current.on("moveend", () => {
-            if (!map.current) return;
+            if (!map.current || isUserInteracting.current) return;
 
             const newCenter = map.current.getCenter();
             const newZoom = map.current.getZoom();
@@ -94,16 +144,46 @@ export function MapContainer({ className }: MapContainerProps) {
             setMapError("Lỗi tải bản đồ. Vui lòng kiểm tra kết nối internet.");
         });
 
-        // Add click handler to test map interaction
-        map.current.on("click", (e) => {
-            console.log("Map clicked at:", e.lngLat);
+        // Add click handler to add new places
+        map.current.on("click", async (e) => {
+            const { lng, lat } = e.lngLat;
+            console.log("Map clicked at:", { lng, lat });
+
+            // Get address using reverse geocoding
+            try {
+                const response = await fetch(
+                    `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`
+                );
+                const data = await response.json();
+                const address =
+                    data.features?.[0]?.place_name ||
+                    `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+                setClickedLocation({ lng, lat, address });
+                setShowLocationForm(false); // Reset form visibility on new click
+            } catch (error) {
+                console.error("Reverse geocoding failed:", error);
+                setClickedLocation({
+                    lng,
+                    lat,
+                    address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+                });
+                setShowLocationForm(false); // Reset form visibility on new click
+            }
         });
 
         return () => {
             map.current?.remove();
             map.current = null;
         };
-    }, [hasMapboxToken, center, zoom]); // Include initial center and zoom
+    }, [hasMapboxToken]); // Only depend on token for initial setup
+
+    // Load location notes on component mount
+    useEffect(() => {
+        if (mapLoaded) {
+            loadLocationNotes();
+        }
+    }, [mapLoaded]);
 
     // Add place markers
     useEffect(() => {
@@ -205,31 +285,110 @@ export function MapContainer({ className }: MapContainerProps) {
         }
     }, [places, mapLoaded, setSelectedPlace]);
 
-    // Track last programmatic center to avoid loops
-    const lastProgrammaticCenter = useRef<[number, number] | null>(null);
-
-    // Update map when center/zoom changes from search
+    // Add location note markers
     useEffect(() => {
         if (!map.current || !mapLoaded) return;
 
+        console.log(
+            "🗺️ Adding markers for",
+            locationNotes.length,
+            "location notes"
+        );
+
+        // Remove existing note markers
+        const existingNoteMarkers = document.querySelectorAll(
+            ".location-note-marker"
+        );
+        existingNoteMarkers.forEach((marker) => marker.remove());
+
+        locationNotes.forEach((note) => {
+            console.log(
+                "📝 Creating note marker for:",
+                note.content.substring(0, 30) + "..."
+            );
+
+            const markerElement = document.createElement("div");
+            markerElement.className = "location-note-marker";
+            markerElement.innerHTML = `
+                <div style="
+                    width: 28px;
+                    height: 28px;
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: bold;
+                ">
+                    ${note.mood || "📝"}
+                </div>
+            `;
+
+            const innerDiv = markerElement.querySelector("div");
+
+            markerElement.addEventListener("mouseenter", () => {
+                if (innerDiv) {
+                    innerDiv.style.transform = "scale(1.15)";
+                    innerDiv.style.boxShadow =
+                        "0 4px 12px rgba(16, 185, 129, 0.6)";
+                }
+            });
+
+            markerElement.addEventListener("mouseleave", () => {
+                if (innerDiv) {
+                    innerDiv.style.transform = "scale(1)";
+                    innerDiv.style.boxShadow =
+                        "0 2px 8px rgba(16, 185, 129, 0.4)";
+                }
+            });
+
+            new mapboxgl.Marker(markerElement)
+                .setLngLat([note.lng, note.lat])
+                .addTo(map.current!);
+
+            markerElement.addEventListener("click", (e) => {
+                e.stopPropagation();
+                setSelectedNote(note);
+                console.log("Clicked note:", note.content);
+            });
+        });
+    }, [locationNotes, mapLoaded]);
+
+    // Track last programmatic center to avoid loops
+    const lastProgrammaticCenter = useRef<[number, number] | null>(null);
+    const isUserInteracting = useRef(false);
+
+    // Update map when center/zoom changes from search (with better loop prevention)
+    useEffect(() => {
+        if (!map.current || !mapLoaded || isUserInteracting.current) return;
+
         // Check if this is a new programmatic change
         const currentCenter = map.current.getCenter();
-        const isNewLocation =
-            !lastProgrammaticCenter.current ||
-            Math.abs(center[0] - lastProgrammaticCenter.current[0]) > 0.001 ||
-            Math.abs(center[1] - lastProgrammaticCenter.current[1]) > 0.001;
-
-        const isDifferentFromCurrent =
+        const centerChanged =
             Math.abs(center[0] - currentCenter.lng) > 0.001 ||
             Math.abs(center[1] - currentCenter.lat) > 0.001;
 
-        if (isNewLocation && isDifferentFromCurrent) {
+        // Only fly if center actually changed and it's not from user interaction
+        if (centerChanged) {
             lastProgrammaticCenter.current = center;
+            isUserInteracting.current = true; // Prevent loop
+
             map.current.flyTo({
                 center: center,
                 zoom: zoom,
                 duration: 1000,
             });
+
+            // Reset flag after animation
+            setTimeout(() => {
+                isUserInteracting.current = false;
+            }, 1100);
         }
     }, [center, zoom, mapLoaded]);
 
@@ -243,6 +402,74 @@ export function MapContainer({ className }: MapContainerProps) {
             duration: 1000,
         });
     }, [selectedPlace]);
+
+    // Handle adding location note
+    const handleAddLocationNote = async (noteData: any) => {
+        try {
+            console.log("Adding location note:", noteData);
+
+            // Save to database via API
+            const response = await fetch("/api/location-notes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    lng: noteData.lng,
+                    lat: noteData.lat,
+                    address: noteData.address,
+                    content: noteData.content,
+                    mood: noteData.mood,
+                    images: noteData.images || [],
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to save note");
+            }
+
+            const savedNote = await response.json();
+
+            // Add to local state
+            setLocationNotes((prev) => [...prev, savedNote]);
+            setClickedLocation(null);
+            setShowLocationForm(false);
+
+            console.log("✅ Location note saved to database successfully");
+        } catch (error) {
+            console.error("Error adding location note:", error);
+            alert(`Có lỗi xảy ra khi lưu ghi chú: ${error.message}`);
+        }
+    };
+
+    // Handle note actions
+    const handleViewNoteDetails = () => {
+        setShowNoteDetails(true);
+    };
+
+    const handleEditNote = () => {
+        // TODO: Implement edit functionality
+        setShowNoteDetails(false);
+        setSelectedNote(null);
+        console.log("Edit note:", selectedNote?.id);
+    };
+
+    const handleDeleteNote = () => {
+        if (selectedNote && confirm("Bạn có chắc muốn xóa ghi chú này?")) {
+            setLocationNotes((prev) =>
+                prev.filter((note) => note.id !== selectedNote.id)
+            );
+            setShowNoteDetails(false);
+            setSelectedNote(null);
+            console.log("Deleted note:", selectedNote.id);
+        }
+    };
+
+    // Handle opening location form from preview
+    const handleOpenLocationForm = () => {
+        setShowLocationForm(true);
+    };
 
     // Show error state if map error or no token
     if (mapError || !hasMapboxToken) {
@@ -305,6 +532,50 @@ export function MapContainer({ className }: MapContainerProps) {
                 <PlacePopup
                     place={selectedPlace}
                     onClose={() => setSelectedPlace(null)}
+                    mapRef={map}
+                />
+            )}
+
+            {selectedNote && !showNoteDetails && (
+                <PlacePopup
+                    note={selectedNote}
+                    onClose={() => setSelectedNote(null)}
+                    onViewDetails={handleViewNoteDetails}
+                    mapRef={map}
+                />
+            )}
+
+            {clickedLocation && !showLocationForm && (
+                <PlacePopup
+                    location={clickedLocation}
+                    onClose={() => setClickedLocation(null)}
+                    onAddNote={handleOpenLocationForm}
+                    mapRef={map}
+                />
+            )}
+
+            {clickedLocation && showLocationForm && (
+                <LocationNoteForm
+                    isOpen={showLocationForm}
+                    onClose={() => {
+                        setShowLocationForm(false);
+                        setClickedLocation(null);
+                    }}
+                    location={clickedLocation}
+                    onSubmit={handleAddLocationNote}
+                />
+            )}
+
+            {selectedNote && showNoteDetails && (
+                <NoteDetailsView
+                    isOpen={showNoteDetails}
+                    onClose={() => {
+                        setShowNoteDetails(false);
+                        setSelectedNote(null);
+                    }}
+                    note={selectedNote}
+                    onEdit={handleEditNote}
+                    onDelete={handleDeleteNote}
                 />
             )}
         </div>

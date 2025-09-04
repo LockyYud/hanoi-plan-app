@@ -10,10 +10,10 @@ let prisma: PrismaClient | null = null;
 try {
     if (!globalForPrisma.prisma) {
         // Only create client if DATABASE_URL exists and looks valid
-        if (process.env.DATABASE_URL && 
-            process.env.DATABASE_URL !== 'file:./dev.db' && 
+        if (process.env.DATABASE_URL &&
+            process.env.DATABASE_URL !== 'file:./dev.db' &&
             process.env.DATABASE_URL.includes('://')) {
-            
+
             globalForPrisma.prisma = new PrismaClient({
                 log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
                 errorFormat: 'pretty',
@@ -36,7 +36,7 @@ export { prisma }
 // Helper function to check if database is available
 export async function isDatabaseAvailable(): Promise<boolean> {
     if (!prisma) return false;
-    
+
     try {
         await prisma.$queryRaw`SELECT 1`;
         return true;

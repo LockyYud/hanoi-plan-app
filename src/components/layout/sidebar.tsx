@@ -48,20 +48,7 @@ export function Sidebar() {
     const [showRouteGenerator, setShowRouteGenerator] = useState(false);
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
-    useEffect(() => {
-        setMounted(true);
-        // Load data
-        fetchGroups();
-        fetchPlaces();
-    }, [fetchPlaces]);
-
-    // Refetch places when filter changes
-    useEffect(() => {
-        if (mounted) {
-            fetchPlaces();
-        }
-    }, [filter, mounted, fetchPlaces]);
-
+    // Define fetchGroups function
     const fetchGroups = async () => {
         try {
             const response = await fetch("/api/groups");
@@ -74,6 +61,7 @@ export function Sidebar() {
         }
     };
 
+    // Define fetchPlaces function with useCallback
     const fetchPlaces = useCallback(async () => {
         try {
             console.log("🔍 Fetching places with filter:", filter);
@@ -115,6 +103,20 @@ export function Sidebar() {
             setPlaces([]);
         }
     }, [filter, setPlaces]);
+
+    // Load initial data
+    useEffect(() => {
+        setMounted(true);
+        fetchGroups();
+        fetchPlaces();
+    }, [fetchPlaces]);
+
+    // Refetch places when filter changes
+    useEffect(() => {
+        if (mounted) {
+            fetchPlaces();
+        }
+    }, [filter, mounted, fetchPlaces]);
 
     const handleCreateGroup = async (data: {
         name: string;
