@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database with PostGIS
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    container_name: hanoi-plan-db
+    environment:
+      POSTGRES_DB: hanoi_plan_db
+      POSTGRES_USER: hanoi_user
+      POSTGRES_PASSWORD: hanoi_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - hanoi-plan-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hanoi_user -d hanoi_plan_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: hanoi-plan-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hanoi-plan-network
+    command: redis-server --appendonly yes
+
+  # Next.js application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hanoi-plan-app
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://hanoi_user:hanoi_password@db:5432/hanoi_plan_db
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=your-secret-key-change-in-production
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hanoi-plan-network
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  # OSRM routing server for Hanoi
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: hanoi-plan-osrm
+    ports:
+      - "5000:5000"
+    volumes:
+      - osrm_data:/data
+    networks:
+      - hanoi-plan-network
+    command: osrm-routed --algorithm mld /data/vietnam-latest.osrm
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  osrm_data:
+
+networks:
+  hanoi-plan-network:
+    driver: bridge

@@ -1,0 +1,272 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum CategoryType {
+  cafe
+  food
+  bar
+  rooftop
+  activity
+  landmark
+}
+
+enum SourceType {
+  manual
+  osm
+  gmaps
+}
+
+enum VisibilityType {
+  private
+  group
+}
+
+enum GroupRole {
+  owner
+  member
+}
+
+enum ItineraryStatus {
+  draft
+  final
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  createdPlaces   Place[]
+  favorites       Favorite[]
+  media           Media[]
+  ownedGroups     Group[]         @relation("GroupOwner")
+  groupMemberships GroupMember[]
+  votes           GroupVote[]
+  accounts        Account[]
+  sessions        Session[]
+
+  @@map("users")
+}
+
+model Place {
+  id         String       @id @default(cuid())
+  name       String
+  address    String
+  ward       String?
+  district   String?
+  lat        Float
+  lng        Float
+  priceLevel Int?         @map("price_level")
+  category   CategoryType
+  openHours  Json?        @map("open_hours")
+  phone      String?
+  website    String?
+  source     SourceType   @default(manual)
+  osmId      String?      @map("osm_id")
+  createdBy  String       @map("created_by")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  creator         User              @relation(fields: [createdBy], references: [id])
+  tags            PlaceTag[]
+  favorites       Favorite[]
+  media           Media[]
+  votes           GroupVote[]
+  itineraryStops  ItineraryStop[]
+
+  @@index([lat, lng])
+  @@index([district, category])
+  @@map("places")
+}
+
+model PlaceTag {
+  id      String @id @default(cuid())
+  placeId String @map("place_id")
+  tag     String
+
+  // Relations
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@unique([placeId, tag])
+  @@map("place_tags")
+}
+
+model Favorite {
+  userId    String   @map("user_id")
+  placeId   String   @map("place_id")
+  rating    Int?
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, placeId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+model Media {
+  id         String          @id @default(cuid())
+  placeId    String?         @map("place_id")
+  userId     String          @map("user_id")
+  groupId    String?         @map("group_id")
+  url        String
+  visibility VisibilityType  @default(private)
+  createdAt  DateTime        @default(now()) @map("created_at")
+
+  // Relations
+  place Place? @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("media")
+}
+
+model Group {
+  id         String   @id @default(cuid())
+  name       String
+  ownerId    String   @map("owner_id")
+  startTime  DateTime @map("start_time")
+  endTime    DateTime @map("end_time")
+  budgetMin  Int?     @map("budget_min")
+  budgetMax  Int?     @map("budget_max")
+  vibeTags   String   @map("vibe_tags")
+  areaPref   String   @map("area_pref")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  members     GroupMember[]
+  votes       GroupVote[]
+  itineraries Itinerary[]
+  media       Media[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  groupId String    @map("group_id")
+  userId  String    @map("user_id")
+  role    GroupRole @default(member)
+
+  // Relations
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@map("group_members")
+}
+
+model GroupVote {
+  groupId String @map("group_id")
+  placeId String @map("place_id")
+  userId  String @map("user_id")
+  vote    Int    // -1, 0, 1
+
+  // Relations
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, placeId, userId])
+  @@map("group_votes")
+}
+
+model Itinerary {
+  id        String            @id @default(cuid())
+  groupId   String            @map("group_id")
+  title     String
+  status    ItineraryStatus   @default(draft)
+  score     Float?
+  createdAt DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  group Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  stops ItineraryStop[]
+  share Share?
+
+  @@map("itineraries")
+}
+
+model ItineraryStop {
+  id           String    @id @default(cuid())
+  itineraryId  String    @map("itinerary_id")
+  seq          Int
+  placeId      String    @map("place_id")
+  arriveTime   DateTime? @map("arrive_time")
+  departTime   DateTime? @map("depart_time")
+  travelMinutes Int?     @map("travel_minutes")
+
+  // Relations
+  itinerary Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  place     Place     @relation(fields: [placeId], references: [id])
+
+  @@unique([itineraryId, seq])
+  @@map("itinerary_stops")
+}
+
+model Share {
+  id          String    @id @default(cuid())
+  itineraryId String    @unique @map("itinerary_id")
+  publicSlug  String    @unique @map("public_slug")
+  expiresAt   DateTime? @map("expires_at")
+
+  // Relations
+  itinerary Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+
+  @@map("shares")
+}
+
+// NextAuth.js tables
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
