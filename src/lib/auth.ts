@@ -4,12 +4,13 @@ import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 
-// Check if we have required environment variables
+// Check if we have required environment variables and database
 const hasRequiredEnvVars = process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_URL;
+const hasDatabaseConnection = prisma !== null;
 
 export const authOptions: NextAuthOptions = {
     // Only use PrismaAdapter if we have database connection
-    ...(hasRequiredEnvVars ? { adapter: PrismaAdapter(prisma) } : {}),
+    ...(hasRequiredEnvVars && hasDatabaseConnection ? { adapter: PrismaAdapter(prisma) } : {}),
 
     providers: [
         ...(process.env.GOOGLE_CLIENT_ID &&
@@ -23,7 +24,7 @@ export const authOptions: NextAuthOptions = {
     ],
 
     session: {
-        strategy: hasRequiredEnvVars ? "database" : "jwt",
+        strategy: (hasRequiredEnvVars && hasDatabaseConnection) ? "database" : "jwt",
     },
 
     callbacks: {

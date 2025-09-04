@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prisma, isDatabaseAvailable } from "@/lib/prisma"
 import { z } from "zod"
 
 const PlaceCreateSchema = z.object({
@@ -33,13 +33,13 @@ const PlaceFilterSchema = z.object({
 export async function GET(request: NextRequest) {
     try {
         // Check if database is available
-        if (!process.env.DATABASE_URL) {
+        if (!prisma || !(await isDatabaseAvailable())) {
             return NextResponse.json({
-                error: "Database not configured",
+                error: "Database not available",
                 data: [],
                 total: 0,
                 hasMore: false
-            }, { status: 500 });
+            }, { status: 200 }); // Return 200 with empty data instead of 500
         }
 
         const { searchParams } = new URL(request.url)
