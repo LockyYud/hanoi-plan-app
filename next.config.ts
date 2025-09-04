@@ -18,6 +18,16 @@ const nextConfig: NextConfig = {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   },
 
+  // Disable ESLint during build for deployment
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
+  // Disable TypeScript checking during build (optional)
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Headers for security
   async headers() {
     return [

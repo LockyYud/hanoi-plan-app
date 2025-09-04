@@ -6,6 +6,7 @@ import { useMapStore, usePlaceStore } from "@/lib/store";
 import { PlacePopup } from "./place-popup";
 import { MapControls } from "./map-controls";
 import { cn } from "@/lib/utils";
+import { MapPin } from "lucide-react"; // Added for error UI
 
 // Set the Mapbox access token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
@@ -102,7 +103,7 @@ export function MapContainer({ className }: MapContainerProps) {
             map.current?.remove();
             map.current = null;
         };
-    }, [hasMapboxToken]); // Chỉ khởi tạo map một lần
+    }, [hasMapboxToken, center, zoom]); // Include initial center and zoom
 
     // Add place markers
     useEffect(() => {
@@ -169,7 +170,7 @@ export function MapContainer({ className }: MapContainerProps) {
                 }
             });
 
-            const marker = new mapboxgl.Marker(markerElement)
+            new mapboxgl.Marker(markerElement)
                 .setLngLat([place.lng, place.lat])
                 .addTo(map.current!);
 

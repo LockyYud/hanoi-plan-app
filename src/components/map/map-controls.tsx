@@ -20,7 +20,13 @@ export function MapControls() {
     const { setCenter, setZoom } = useMapStore();
     const [searchValue, setSearchValue] = useState("");
     const [isSearching, setIsSearching] = useState(false);
-    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [searchResults, setSearchResults] = useState<
+        Array<{
+            text: string;
+            place_name: string;
+            center: [number, number];
+        }>
+    >([]);
 
     // Search địa điểm thật qua Mapbox Geocoding API
     const searchPlaces = async (query: string) => {
@@ -50,7 +56,10 @@ export function MapControls() {
     };
 
     // Debounced search to avoid too many API calls
-    const debouncedSearch = useCallback(debounce(searchPlaces, 500), []);
+    const debouncedSearch = useCallback((query: string) => {
+        const debouncedFn = debounce(searchPlaces, 500);
+        debouncedFn(query);
+    }, []);
 
     const handleSearch = (value: string) => {
         setSearchValue(value);
@@ -62,7 +71,11 @@ export function MapControls() {
         }
     };
 
-    const handleSelectPlace = (place: any) => {
+    const handleSelectPlace = (place: {
+        text: string;
+        place_name: string;
+        center: [number, number];
+    }) => {
         const [lng, lat] = place.center;
 
         // Trigger programmatic map movement

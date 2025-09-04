@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,14 +18,12 @@ import {
     Search,
     Filter,
     Plus,
-    Clock,
-    Star,
     LogOut,
     X,
 } from "lucide-react";
 import { useUIStore, usePlaceStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { CATEGORIES, DISTRICTS } from "@/lib/types";
+import { CATEGORIES } from "@/lib/types";
 
 export function Sidebar() {
     const { data: session, status } = useSession();
@@ -37,7 +35,16 @@ export function Sidebar() {
     );
     const [mounted, setMounted] = useState(false);
     const [showGroupForm, setShowGroupForm] = useState(false);
-    const [groups, setGroups] = useState<any[]>([]);
+    const [groups, setGroups] = useState<
+        Array<{
+            id: string;
+            name: string;
+            description?: string;
+            startTime: Date;
+            endTime: Date;
+            createdAt: Date;
+        }>
+    >([]);
     const [showRouteGenerator, setShowRouteGenerator] = useState(false);
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
@@ -46,14 +53,14 @@ export function Sidebar() {
         // Load data
         fetchGroups();
         fetchPlaces();
-    }, []);
+    }, [fetchPlaces]);
 
     // Refetch places when filter changes
     useEffect(() => {
         if (mounted) {
             fetchPlaces();
         }
-    }, [filter, mounted]);
+    }, [filter, mounted, fetchPlaces]);
 
     const fetchGroups = async () => {
         try {
@@ -67,7 +74,7 @@ export function Sidebar() {
         }
     };
 
-    const fetchPlaces = async () => {
+    const fetchPlaces = useCallback(async () => {
         try {
             console.log("🔍 Fetching places with filter:", filter);
 
@@ -96,9 +103,14 @@ export function Sidebar() {
         } catch (error) {
             console.error("❌ Error fetching places:", error);
         }
-    };
+    }, [filter, setPlaces]);
 
-    const handleCreateGroup = async (data: any) => {
+    const handleCreateGroup = async (data: {
+        name: string;
+        description?: string;
+        startTime: Date;
+        endTime: Date;
+    }) => {
         try {
             const response = await fetch("/api/groups", {
                 method: "POST",
@@ -460,6 +472,7 @@ export function Sidebar() {
                                 <>
                                     <div className="w-16 h-16 bg-blue-200 rounded-full mx-auto mb-3 flex items-center justify-center overflow-hidden">
                                         {session.user?.image ? (
+                                            /* eslint-disable-next-line @next/next/no-img-element */
                                             <img
                                                 src={session.user.image}
                                                 alt="Avatar"
