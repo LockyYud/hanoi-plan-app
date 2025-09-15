@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -18,6 +19,7 @@ interface LocationNote {
     mood?: string;
     timestamp: Date;
     images?: string[];
+    hasImages?: boolean;
 }
 
 interface NoteDetailsViewProps {
@@ -35,6 +37,73 @@ export function NoteDetailsView({
     onEdit,
     onDelete,
 }: NoteDetailsViewProps) {
+    const [fullNote, setFullNote] = useState<LocationNote | null>(null);
+    const [isLoadingImages, setIsLoadingImages] = useState(false);
+
+    // Load full note with images when dialog opens
+    useEffect(() => {
+        console.log("🔍 Note details useEffect:", {
+            isOpen,
+            noteId: note.id,
+            hasImages: note.hasImages,
+            fullNoteExists: !!fullNote?.images?.length,
+            shouldLoad:
+                isOpen &&
+                note.id &&
+                note.hasImages &&
+                !fullNote?.images?.length,
+        });
+
+        if (isOpen && note.id && note.hasImages && !fullNote?.images?.length) {
+            console.log("✅ Conditions met, loading full note...");
+            loadFullNote();
+        } else if (!isOpen) {
+            // Reset fullNote when dialog closes
+            setFullNote(null);
+        } else if (isOpen) {
+            console.log("❌ Conditions not met for loading images");
+        }
+    }, [isOpen, note.id, note.hasImages]);
+
+    const loadFullNote = async () => {
+        setIsLoadingImages(true);
+        try {
+            console.log(`🔄 Loading images for note ${note.id}...`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+            const response = await fetch(`/api/location-notes/${note.id}`, {
+                signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                const noteWithImages = await response.json();
+                console.log(
+                    `✅ Loaded note with ${noteWithImages.images?.length || 0} images`
+                );
+                setFullNote(noteWithImages);
+            } else {
+                console.error(`❌ Failed to load note: ${response.status}`);
+            }
+        } catch (error) {
+            if (error.name === "AbortError") {
+                console.error("❌ Request timeout loading note images (60s)");
+                console.log(
+                    "💡 Tip: Images are very large. Consider using compression."
+                );
+            } else {
+                console.error("❌ Error loading note images:", error);
+            }
+        } finally {
+            setIsLoadingImages(false);
+        }
+    };
+
+    // Use fullNote if available, otherwise use the basic note
+    const displayNote = fullNote || note;
+
     const formatDateTime = (date: Date) => {
         return new Date(date).toLocaleString("vi-VN", {
             weekday: "long",
@@ -100,34 +169,75 @@ export function NoteDetailsView({
 
                     {/* Content */}
                     <div>
-                        <h3 className="font-medium text-gray-900 mb-2">Nội dung ghi chú</h3>
+                        <h3 className="font-medium text-gray-900 mb-2">
+                            Nội dung ghi chú
+                        </h3>
                         <div className="bg-gray-50 p-3 rounded-lg">
                             <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                {note.content}
+                                {displayNote.content}
                             </p>
                         </div>
                     </div>
 
                     {/* Images */}
-                    {note.images && note.images.length > 0 && (
+                    {(displayNote.hasImages ||
+                        displayNote.images?.length > 0) && (
                         <div>
                             <h3 className="font-medium text-gray-900 mb-2">
-                                Hình ảnh ({note.images.length})
+                                Hình ảnh{" "}
+                                {displayNote.images?.length
+                                    ? `(${displayNote.images.length})`
+                                    : ""}
                             </h3>
-                            <div className="grid grid-cols-2 gap-2">
-                                {note.images.map((image, index) => (
-                                    <div
-                                        key={index}
-                                        className="aspect-square bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center"
-                                    >
-                                        {/* Placeholder for images */}
-                                        <div className="text-center text-gray-500">
-                                            <div className="text-2xl mb-1">📷</div>
-                                            <div className="text-xs">Ảnh {index + 1}</div>
+                            {isLoadingImages ? (
+                                <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                                    <div className="animate-spin h-6 w-6 mb-3 border-2 border-blue-600 border-t-transparent rounded-full" />
+                                    <span className="text-sm text-center">
+                                        Đang tải ảnh...
+                                        <br />
+                                        <span className="text-xs text-gray-400">
+                                            Có thể mất vài giây do ảnh lớn
+                                        </span>
+                                    </span>
+                                </div>
+                            ) : displayNote.images &&
+                              displayNote.images.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                    {displayNote.images.map((image, index) => (
+                                        <div
+                                            key={index}
+                                            className="aspect-square bg-gray-100 rounded-lg border border-gray-200 overflow-hidden"
+                                        >
+                                            {typeof image === "string" &&
+                                            image.startsWith("data:image") ? (
+                                                <img
+                                                    src={image}
+                                                    alt={`Ảnh ${index + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                /* Fallback for invalid images */
+                                                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                                    <div className="text-center">
+                                                        <div className="text-2xl mb-1">
+                                                            📷
+                                                        </div>
+                                                        <div className="text-xs">
+                                                            Ảnh lỗi
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
+                                    ))}
+                                </div>
+                            ) : displayNote.hasImages ? (
+                                <div className="text-center py-4 text-gray-500">
+                                    <div className="text-sm">
+                                        Có ảnh nhưng chưa tải được
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            ) : null}
                         </div>
                     )}
 

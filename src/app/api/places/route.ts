@@ -56,6 +56,14 @@ export async function GET(request: NextRequest) {
             params.priceLevel = params.priceLevel.split(',').map(Number)
         }
 
+        // Parse numeric parameters
+        if (params.limit) {
+            params.limit = Number(params.limit)
+        }
+        if (params.offset) {
+            params.offset = Number(params.offset)
+        }
+
         const filter = PlaceFilterSchema.parse(params)
 
         const where: any = {}

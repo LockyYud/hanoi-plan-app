@@ -32,23 +32,94 @@ export function MapControls() {
     const searchPlaces = async (query: string) => {
         if (!query.trim()) {
             setSearchResults([]);
+            setIsSearching(false);
             return;
         }
 
         setIsSearching(true);
         try {
-            const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
-                    `access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}&` +
-                    `country=VN&` + // Chỉ tìm ở Việt Nam
-                    `proximity=105.8542,21.0285&` + // Ưu tiên Hà Nội
-                    `limit=5`
-            );
+            const accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-            const data = await response.json();
-            setSearchResults(data.features || []);
+            // Try multiple search strategies
+            const searches = [
+                // 1. POI-focused search
+                {
+                    params: new URLSearchParams({
+                        access_token: accessToken || "",
+                        country: "vn",
+                        language: "vi,en",
+                        limit: "5",
+                        proximity: "105.8542,21.0285",
+                        types: "poi",
+                        autocomplete: "true",
+                        bbox: "105.0,20.5,106.5,21.5",
+                    }),
+                    label: "POI search",
+                },
+                // 2. Place search (broader)
+                {
+                    params: new URLSearchParams({
+                        access_token: accessToken || "",
+                        country: "vn",
+                        language: "vi,en",
+                        limit: "5",
+                        proximity: "105.8542,21.0285",
+                        types: "place",
+                        autocomplete: "true",
+                    }),
+                    label: "Place search",
+                },
+                // 3. General search
+                {
+                    params: new URLSearchParams({
+                        access_token: accessToken || "",
+                        country: "vn",
+                        language: "vi,en",
+                        limit: "3",
+                        proximity: "105.8542,21.0285",
+                        autocomplete: "true",
+                    }),
+                    label: "General search",
+                },
+            ];
+
+            let allResults: any[] = [];
+
+            // Try each search strategy
+            for (const search of searches) {
+                const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${search.params}`;
+                console.log(`🔍 ${search.label}:`, url);
+
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.features && data.features.length > 0) {
+                            console.log(
+                                `✅ ${search.label} found ${data.features.length} results`
+                            );
+                            allResults.push(...data.features);
+                        }
+                    }
+                } catch (searchError) {
+                    console.warn(`⚠️ ${search.label} failed:`, searchError);
+                }
+            }
+
+            // Remove duplicates and limit results
+            const uniqueResults = allResults
+                .filter(
+                    (item, index, arr) =>
+                        arr.findIndex(
+                            (other) => other.place_name === item.place_name
+                        ) === index
+                )
+                .slice(0, 8);
+
+            console.log("🔍 Final search results:", uniqueResults);
+            setSearchResults(uniqueResults);
         } catch (error) {
-            console.error("Search error:", error);
+            console.error("Error searching places:", error);
             setSearchResults([]);
         } finally {
             setIsSearching(false);
@@ -101,7 +172,7 @@ export function MapControls() {
             </div>
 
             {/* Search control */}
-            <div className="absolute top-4 left-16 right-4 z-10 pointer-events-none">
+            <div className="absolute top-4 left-16 right-20 z-10 pointer-events-none">
                 <div className="relative pointer-events-auto">
                     <Card className="p-3 bg-white shadow-lg border border-gray-200">
                         <div className="flex items-center gap-3">

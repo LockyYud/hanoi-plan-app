@@ -1,6 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import {
+    getCurrentLocation,
+    openExternalNavigation,
+    getRoute,
+    addRouteToMap,
+    formatDuration,
+    formatDistance,
+    UserLocation,
+} from "@/lib/geolocation";
 import { Place } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +28,7 @@ import {
     BookOpen,
     Plus,
     PenTool,
+    Trash2,
 } from "lucide-react";
 
 interface LocationNote {
@@ -41,8 +53,9 @@ interface PlacePopupProps {
     note?: LocationNote;
     location?: LocationPreview; // For location preview
     onClose: () => void;
-    onViewDetails?: () => void; // For notes
+    onViewDetails?: () => void; // For notes and places
     onAddNote?: () => void; // For locations
+    onDelete?: () => void; // For deleting places/notes
     mapRef?: React.RefObject<mapboxgl.Map>; // Pass map reference for dynamic positioning
 }
 
@@ -53,8 +66,19 @@ export function PlacePopup({
     onClose,
     onViewDetails,
     onAddNote,
+    onDelete,
     mapRef,
 }: PlacePopupProps) {
+    const { data: session } = useSession();
+    const [isAddingToFavorites, setIsAddingToFavorites] = useState(false);
+    const [isGettingDirections, setIsGettingDirections] = useState(false);
+    const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+    const [showRouteOptions, setShowRouteOptions] = useState(false);
+    const [routeInfo, setRouteInfo] = useState<{
+        duration: number;
+        distance: number;
+    } | null>(null);
+
     // Determine popup type
     const isNote = !!note;
     const isPlace = !!place;
@@ -98,6 +122,157 @@ export function PlacePopup({
             : text;
     };
 
+    const handleGetDirections = async (
+        destination: {
+            lat: number;
+            lng: number;
+        },
+        showOnMap: boolean = false
+    ) => {
+        console.log(
+            "🧭 Getting directions to:",
+            destination,
+            "Show on map:",
+            showOnMap
+        );
+        setIsGettingDirections(true);
+
+        try {
+            toast.loading("Đang lấy vị trí hiện tại...", { id: "directions" });
+
+            const currentLocation = await getCurrentLocation();
+            console.log("📍 Current location:", currentLocation);
+            setUserLocation(currentLocation);
+
+            toast.success("Đã tìm thấy vị trí của bạn!", { id: "directions" });
+
+            if (showOnMap && mapRef) {
+                // Show route on Mapbox map
+                console.log("🗺️ Map reference:", mapRef);
+                toast.loading("Đang tính toán đường đi...", {
+                    id: "directions",
+                });
+
+                try {
+                    const route = await getRoute(currentLocation, destination);
+                    console.log("🗺️ Route calculated:", route);
+
+                    // Try to add route to map
+                    try {
+                        addRouteToMap(mapRef, route);
+
+                        // Store route info
+                        setRouteInfo({
+                            duration: route.duration,
+                            distance: route.distance,
+                        });
+
+                        toast.success(
+                            `Đường đi: ${formatDistance(route.distance)} • ${formatDuration(route.duration)}`,
+                            {
+                                id: "directions",
+                            }
+                        );
+                    } catch (mapError) {
+                        console.error(
+                            "❌ Error adding route to map:",
+                            mapError
+                        );
+
+                        // Still show route info even if map display fails
+                        setRouteInfo({
+                            duration: route.duration,
+                            distance: route.distance,
+                        });
+
+                        toast.success(
+                            `Đường đi: ${formatDistance(route.distance)} • ${formatDuration(route.duration)} (Không hiển thị được trên bản đồ)`,
+                            {
+                                id: "directions",
+                            }
+                        );
+                    }
+                } catch (routeError) {
+                    console.error("❌ Error calculating route:", routeError);
+                    toast.error("Không thể tính toán đường đi", {
+                        id: "directions",
+                    });
+
+                    // Fallback to external navigation
+                    openExternalNavigation(destination, currentLocation);
+                }
+            } else {
+                // Open external navigation app
+                console.log(
+                    "🗺️ Opening external navigation from",
+                    currentLocation,
+                    "to",
+                    destination
+                );
+                openExternalNavigation(destination, currentLocation);
+
+                // Close popup after successful navigation
+                setTimeout(() => {
+                    onClose();
+                }, 1000);
+            }
+        } catch (error) {
+            console.error("❌ Error getting directions:", error);
+            toast.error("Không thể lấy vị trí hiện tại", {
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "Vui lòng thử lại sau",
+                id: "directions",
+            });
+
+            // Fallback: open without current location
+            console.log(
+                "🔄 Fallback: Opening navigation without current location"
+            );
+            openExternalNavigation(destination);
+        } finally {
+            setIsGettingDirections(false);
+        }
+    };
+
+    const handleAddToFavorites = async () => {
+        if (!session?.user || !place) return;
+
+        setIsAddingToFavorites(true);
+        try {
+            const response = await fetch("/api/favorites", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    placeId: place.id,
+                }),
+            });
+
+            if (response.ok) {
+                toast.success("Đã thêm vào danh sách yêu thích!", {
+                    description: place.name,
+                });
+                // Trigger refresh of places list in sidebar
+                window.dispatchEvent(new CustomEvent("favoritesUpdated"));
+            } else {
+                const error = await response.json();
+                toast.error("Không thể thêm vào yêu thích", {
+                    description: error.error || "Vui lòng thử lại sau",
+                });
+            }
+        } catch (error) {
+            console.error("Error adding to favorites:", error);
+            toast.error("Lỗi kết nối", {
+                description: "Không thể kết nối đến server",
+            });
+        } finally {
+            setIsAddingToFavorites(false);
+        }
+    };
+
     // Dynamic positioning with smart arrow placement
     const [popupStyle, setPopupStyle] = useState<React.CSSProperties>({});
     const [arrowPosition, setArrowPosition] = useState<"top" | "bottom">(
@@ -132,7 +307,7 @@ export function PlacePopup({
 
                 // Calculate optimal positioning
                 let left = point.x - popupWidth / 2;
-                let top = point.y - popupHeight - arrowSize - 10; // Above point by default
+                let top = point.y - popupHeight - arrowSize - 80; // Above point with much more space for marker
                 let newArrowPosition: "top" | "bottom" = "bottom"; // Arrow points down by default
 
                 // Adjust horizontal position and calculate arrow offset
@@ -157,7 +332,7 @@ export function PlacePopup({
 
                 // Check if popup should be below the point instead
                 if (top < margin) {
-                    top = point.y + arrowSize + 10; // Below point
+                    top = point.y + arrowSize + 80; // Below point with much more space for marker
                     newArrowPosition = "top"; // Arrow points up
 
                     // Double check if it fits below
@@ -207,15 +382,7 @@ export function PlacePopup({
                     className="absolute top-full transform -translate-x-1/2"
                     style={{ left: `${arrowOffset}%` }}
                 >
-                    <div
-                        className={`w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent ${
-                            isNote
-                                ? "border-t-green-500"
-                                : isLocation
-                                  ? "border-t-orange-500"
-                                  : "border-t-white"
-                        } filter drop-shadow-sm`}
-                    ></div>
+                    <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-blue-500 filter drop-shadow-sm"></div>
                 </div>
             ) : (
                 // Arrow pointing up (popup below point)
@@ -223,27 +390,11 @@ export function PlacePopup({
                     className="absolute bottom-full transform -translate-x-1/2"
                     style={{ left: `${arrowOffset}%` }}
                 >
-                    <div
-                        className={`w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent ${
-                            isNote
-                                ? "border-b-green-500"
-                                : isLocation
-                                  ? "border-b-orange-500"
-                                  : "border-b-white"
-                        } filter drop-shadow-sm`}
-                    ></div>
+                    <div className="w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-blue-500 filter drop-shadow-sm"></div>
                 </div>
             )}
 
-            <Card
-                className={`shadow-2xl border-0 rounded-xl overflow-hidden ${
-                    isNote
-                        ? "bg-green-500 text-white"
-                        : isLocation
-                          ? "bg-orange-500 text-white"
-                          : "bg-white"
-                }`}
-            >
+            <Card className="shadow-2xl border-0 rounded-xl overflow-hidden bg-white">
                 {/* Header */}
                 {isPlace && place?.media && place.media.length > 0 ? (
                     <div className="h-36 bg-gradient-to-r from-blue-400 to-blue-600 relative overflow-hidden">
@@ -263,15 +414,7 @@ export function PlacePopup({
                         </Button>
                     </div>
                 ) : (
-                    <div
-                        className={`h-20 relative ${
-                            isNote
-                                ? "bg-gradient-to-r from-green-400 to-green-600"
-                                : isLocation
-                                  ? "bg-gradient-to-r from-orange-400 to-orange-600"
-                                  : "bg-gradient-to-r from-blue-400 to-blue-600"
-                        }`}
-                    >
+                    <div className="h-20 relative bg-gradient-to-r from-blue-400 to-blue-600">
                         <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-4xl">
                                 {isNote
@@ -297,11 +440,11 @@ export function PlacePopup({
                         /* Note Header */
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <BookOpen className="h-4 w-4 text-green-100" />
-                                <span className="text-sm text-green-100">
+                                <BookOpen className="h-4 w-4 text-blue-100" />
+                                <span className="text-sm text-blue-100">
                                     Ghi chú địa điểm
                                 </span>
-                                <div className="flex items-center gap-1 text-green-100 text-xs ml-auto">
+                                <div className="flex items-center gap-1 text-blue-100 text-xs ml-auto">
                                     <Clock className="h-3 w-3" />
                                     {note && formatTime(note.timestamp)}
                                 </div>
@@ -311,8 +454,8 @@ export function PlacePopup({
                         /* Location Header */
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4 text-orange-100" />
-                                <span className="text-sm text-orange-100">
+                                <MapPin className="h-4 w-4 text-blue-100" />
+                                <span className="text-sm text-blue-100">
                                     Địa điểm mới
                                 </span>
                             </div>
@@ -357,14 +500,14 @@ export function PlacePopup({
                         <>
                             {/* Location */}
                             <div className="flex items-start gap-2">
-                                <MapPin className="h-4 w-4 text-green-100 mt-0.5 flex-shrink-0" />
-                                <span className="text-sm text-green-100 break-words">
+                                <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm text-gray-600 break-words">
                                     {note && truncateText(note.address, 45)}
                                 </span>
                             </div>
 
                             {/* Note content preview */}
-                            <div className="text-sm text-green-50 line-clamp-2 leading-tight">
+                            <div className="text-sm text-gray-700 line-clamp-2 leading-tight">
                                 {note && truncateText(note.content, 80)}
                             </div>
 
@@ -376,15 +519,28 @@ export function PlacePopup({
                                         .map((image, index) => (
                                             <div
                                                 key={index}
-                                                className="w-8 h-8 bg-white/20 rounded border border-white/30 flex items-center justify-center"
+                                                className="w-8 h-8 bg-gray-100 rounded border border-gray-200 overflow-hidden"
                                             >
-                                                <span className="text-xs">
-                                                    📷
-                                                </span>
+                                                {typeof image === "string" &&
+                                                image.startsWith(
+                                                    "data:image"
+                                                ) ? (
+                                                    <img
+                                                        src={image}
+                                                        alt={`Ảnh ${index + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <span className="text-xs">
+                                                            📷
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     {note.images.length > 3 && (
-                                        <div className="w-8 h-8 bg-white/20 rounded border border-white/30 flex items-center justify-center">
+                                        <div className="w-8 h-8 bg-gray-100 rounded border border-gray-200 flex items-center justify-center">
                                             <span className="text-xs">
                                                 +{note.images.length - 3}
                                             </span>
@@ -393,40 +549,199 @@ export function PlacePopup({
                                 </div>
                             )}
 
-                            {/* View details button */}
-                            <Button
-                                onClick={onViewDetails}
-                                className="w-full bg-white text-green-600 hover:bg-green-50 text-sm h-8"
-                            >
-                                <Eye className="h-3 w-3 mr-1" />
-                                Xem chi tiết
-                            </Button>
+                            {/* Action buttons for notes */}
+                            <div className="flex gap-2 pt-2">
+                                {!showRouteOptions ? (
+                                    <Button
+                                        size="sm"
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                        onClick={() =>
+                                            setShowRouteOptions(true)
+                                        }
+                                        disabled={isGettingDirections}
+                                    >
+                                        <Navigation className="h-4 w-4 mr-1" />
+                                        Chỉ đường
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button
+                                            size="sm"
+                                            className="flex-1 bg-green-600 hover:bg-green-700"
+                                            onClick={() =>
+                                                note &&
+                                                handleGetDirections(
+                                                    {
+                                                        lat: note.lat,
+                                                        lng: note.lng,
+                                                    },
+                                                    true
+                                                )
+                                            }
+                                            disabled={isGettingDirections}
+                                        >
+                                            <Navigation
+                                                className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                                            />
+                                            {isGettingDirections
+                                                ? "Đang tìm..."
+                                                : "Trên bản đồ"}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                            onClick={() =>
+                                                note &&
+                                                handleGetDirections(
+                                                    {
+                                                        lat: note.lat,
+                                                        lng: note.lng,
+                                                    },
+                                                    false
+                                                )
+                                            }
+                                            disabled={isGettingDirections}
+                                        >
+                                            <Navigation
+                                                className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                                            />
+                                            {isGettingDirections
+                                                ? "Đang tìm..."
+                                                : "Mở app"}
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                            {routeInfo && (
+                                <div className="text-xs text-blue-600 text-center mt-1">
+                                    📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
+                                    {formatDuration(routeInfo.duration)}
+                                </div>
+                            )}
+
+                            {/* Additional action buttons */}
+                            <div className="flex gap-2 pt-2">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={onViewDetails}
+                                >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Xem chi tiết
+                                </Button>
+                                {onDelete && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="px-3"
+                                        onClick={onDelete}
+                                        title="Xóa ghi chú"
+                                    >
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                )}
+                            </div>
                         </>
                     ) : isLocation ? (
                         /* Location Content */
                         <>
                             {/* Location address */}
                             <div className="flex items-start gap-2">
-                                <MapPin className="h-4 w-4 text-orange-100 mt-0.5 flex-shrink-0" />
-                                <span className="text-sm text-orange-100 break-words leading-relaxed">
+                                <MapPin className="h-4 w-4 text-blue-100 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm text-blue-100 break-words leading-relaxed">
                                     {location?.address}
                                 </span>
                             </div>
 
                             {/* Coordinates */}
-                            <div className="text-xs text-orange-200">
+                            <div className="text-xs text-blue-200">
                                 {location?.lat.toFixed(6)},{" "}
                                 {location?.lng.toFixed(6)}
                             </div>
 
+                            {/* Action buttons for locations */}
+                            <div className="flex gap-2 pt-2">
+                                {!showRouteOptions ? (
+                                    <Button
+                                        size="sm"
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                        onClick={() =>
+                                            setShowRouteOptions(true)
+                                        }
+                                        disabled={isGettingDirections}
+                                    >
+                                        <Navigation className="h-4 w-4 mr-1" />
+                                        Chỉ đường
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button
+                                            size="sm"
+                                            className="flex-1 bg-green-600 hover:bg-green-700"
+                                            onClick={() =>
+                                                location &&
+                                                handleGetDirections(
+                                                    {
+                                                        lat: location.lat,
+                                                        lng: location.lng,
+                                                    },
+                                                    true
+                                                )
+                                            }
+                                            disabled={isGettingDirections}
+                                        >
+                                            <Navigation
+                                                className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                                            />
+                                            {isGettingDirections
+                                                ? "Đang tìm..."
+                                                : "Trên bản đồ"}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                            onClick={() =>
+                                                location &&
+                                                handleGetDirections(
+                                                    {
+                                                        lat: location.lat,
+                                                        lng: location.lng,
+                                                    },
+                                                    false
+                                                )
+                                            }
+                                            disabled={isGettingDirections}
+                                        >
+                                            <Navigation
+                                                className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                                            />
+                                            {isGettingDirections
+                                                ? "Đang tìm..."
+                                                : "Mở app"}
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                            {routeInfo && (
+                                <div className="text-xs text-blue-600 text-center mt-1">
+                                    📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
+                                    {formatDuration(routeInfo.duration)}
+                                </div>
+                            )}
+
                             {/* Add note button */}
-                            <Button
-                                onClick={onAddNote}
-                                className="w-full bg-white text-orange-600 hover:bg-orange-50 text-sm h-9"
-                            >
-                                <PenTool className="h-4 w-4 mr-2" />
-                                Thêm ghi chú tại đây
-                            </Button>
+                            <div className="flex gap-2 pt-2">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={onAddNote}
+                                >
+                                    <PenTool className="h-4 w-4 mr-1" />
+                                    Thêm ghi chú
+                                </Button>
+                            </div>
                         </>
                     ) : (
                         /* Place Content */
@@ -513,27 +828,103 @@ export function PlacePopup({
 
                             {/* Action buttons */}
                             <div className="flex gap-2 pt-3">
-                                <Button
-                                    size="sm"
-                                    className="flex-1 bg-blue-600 hover:bg-blue-700"
-                                    onClick={() =>
-                                        place &&
-                                        window.open(
-                                            `https://maps.google.com/dir/?api=1&destination=${place.lat},${place.lng}`,
-                                            "_blank"
-                                        )
-                                    }
-                                >
-                                    <Navigation className="h-4 w-4 mr-1" />
-                                    Chỉ đường
-                                </Button>
+                                {!showRouteOptions ? (
+                                    <Button
+                                        size="sm"
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                        onClick={() =>
+                                            setShowRouteOptions(true)
+                                        }
+                                        disabled={isGettingDirections}
+                                    >
+                                        <Navigation className="h-4 w-4 mr-1" />
+                                        Chỉ đường
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button
+                                            size="sm"
+                                            className="flex-1 bg-green-600 hover:bg-green-700"
+                                            onClick={() =>
+                                                place &&
+                                                handleGetDirections(
+                                                    {
+                                                        lat: place.lat,
+                                                        lng: place.lng,
+                                                    },
+                                                    true
+                                                )
+                                            }
+                                            disabled={isGettingDirections}
+                                        >
+                                            <Navigation
+                                                className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                                            />
+                                            {isGettingDirections
+                                                ? "Đang tìm..."
+                                                : "Trên bản đồ"}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                            onClick={() =>
+                                                place &&
+                                                handleGetDirections(
+                                                    {
+                                                        lat: place.lat,
+                                                        lng: place.lng,
+                                                    },
+                                                    false
+                                                )
+                                            }
+                                            disabled={isGettingDirections}
+                                        >
+                                            <Navigation
+                                                className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                                            />
+                                            {isGettingDirections
+                                                ? "Đang tìm..."
+                                                : "Mở app"}
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                            {routeInfo && (
+                                <div className="text-xs text-blue-600 text-center mt-1">
+                                    📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
+                                    {formatDuration(routeInfo.duration)}
+                                </div>
+                            )}
+
+                            {/* Additional action buttons */}
+                            <div className="flex gap-2 pt-2">
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="px-3"
+                                    className="flex-1"
+                                    onClick={
+                                        onViewDetails ||
+                                        (() =>
+                                            console.log(
+                                                "View details for place:",
+                                                place?.name
+                                            ))
+                                    }
                                 >
-                                    <Heart className="h-4 w-4" />
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Xem chi tiết
                                 </Button>
+                                {onDelete && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="px-3"
+                                        onClick={onDelete}
+                                        title="Xóa khỏi danh sách"
+                                    >
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                )}
                             </div>
                         </>
                     )}

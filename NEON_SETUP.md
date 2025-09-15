@@ -74,3 +74,5 @@ postgresql://username:password@ep-cool-name-123456.us-east-1.aws.neon.tech/neond
 - ✅ Branching for dev/staging
 
 Once connected, your app will have a reliable PostgreSQL database! 🚀
+
+

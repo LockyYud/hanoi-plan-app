@@ -9,7 +9,7 @@ const hasRequiredEnvVars = process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_U
 const hasDatabaseConnection = prisma !== null;
 
 export const authOptions: NextAuthOptions = {
-    // Only use PrismaAdapter if we have database connection
+    // Enable PrismaAdapter now that schema is fixed
     ...(hasRequiredEnvVars && hasDatabaseConnection ? { adapter: PrismaAdapter(prisma) } : {}),
 
     providers: [
@@ -40,6 +40,21 @@ export const authOptions: NextAuthOptions = {
                 token.uid = user.id
             }
             return token
+        },
+        // Map Google profile fields to Prisma schema
+        signIn: async ({ user, account, profile }) => {
+            if (account?.provider === "google" && profile) {
+                console.log("SignIn callback - original user:", user);
+                console.log("SignIn callback - profile:", profile);
+
+                // Map Google's 'picture' field to our 'avatarUrl' field
+                user.avatarUrl = (profile as any).picture || user.image;
+                // Remove the image field to avoid Prisma validation error
+                delete user.image;
+
+                console.log("SignIn callback - modified user:", user);
+            }
+            return true;
         },
     },
 

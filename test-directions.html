@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Directions</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            margin: 40px; 
+            background: #f5f5f5; 
+        }
+        .container {
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        button:hover { background: #2563eb; }
+        .log { 
+            background: #f1f5f9; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧭 Test Directions</h1>
+        
+        <button onclick="testDirections()">Test Directions to Hoan Kiem Lake</button>
+        <button onclick="testDirectionsDesktop()">Test Desktop Google Maps</button>
+        <button onclick="clearLog()">Clear Log</button>
+        
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        function getCurrentLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error("Geolocation is not supported"));
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            accuracy: position.coords.accuracy,
+                        });
+                    },
+                    (error) => {
+                        let message = "Unable to get location";
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                message = "Location access denied by user";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                message = "Location information unavailable";
+                                break;
+                            case error.TIMEOUT:
+                                message = "Location request timed out";
+                                break;
+                        }
+                        reject(new Error(message));
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000,
+                    }
+                );
+            });
+        }
+
+        function openExternalNavigation(destination, userLocation) {
+            const destCoords = `${destination.lng},${destination.lat}`; // Mapbox format
+            
+            // Try to detect mobile platform
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            
+            log('🗺️ Mapbox navigation coordinates: ' + destCoords);
+            log('📱 Platform: ' + JSON.stringify({ isMobile, isIOS, isAndroid }));
+            
+            if (isMobile) {
+                if (isIOS) {
+                    // iOS - Apple Maps
+                    const appleUrl = userLocation 
+                        ? `maps://maps.apple.com/?saddr=${userLocation.lat},${userLocation.lng}&daddr=${destination.lat},${destination.lng}&dirflg=d`
+                        : `maps://maps.apple.com/?daddr=${destination.lat},${destination.lng}&dirflg=d`;
+                    
+                    log('📱 iOS Apple Maps URL: ' + appleUrl);
+                    window.location.href = appleUrl;
+                    
+                    // Fallback
+                    setTimeout(() => {
+                        const googleFallback = userLocation
+                            ? `https://maps.google.com/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destination.lat},${destination.lng}&travelmode=driving`
+                            : `https://maps.google.com/dir/?api=1&destination=${destination.lat},${destination.lng}&travelmode=driving`;
+                        log('🔄 iOS Fallback Google Maps: ' + googleFallback);
+                        window.open(googleFallback, '_blank');
+                    }, 1000);
+                    
+                } else if (isAndroid) {
+                    // Android - geo intent
+                    const geoUrl = userLocation
+                        ? `geo:${destination.lat},${destination.lng}?q=${destination.lat},${destination.lng}&mode=d&origin=${userLocation.lat},${userLocation.lng}`
+                        : `geo:${destination.lat},${destination.lng}?q=${destination.lat},${destination.lng}&mode=d`;
+                    
+                    log('📱 Android geo URL: ' + geoUrl);
+                    window.location.href = geoUrl;
+                } else {
+                    // Other mobile
+                    const googleUrl = userLocation
+                        ? `https://maps.google.com/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destination.lat},${destination.lng}&travelmode=driving`
+                        : `https://maps.google.com/dir/?api=1&destination=${destination.lat},${destination.lng}&travelmode=driving`;
+                    log('📱 Other mobile Google Maps: ' + googleUrl);
+                    window.open(googleUrl, '_blank');
+                }
+            } else {
+                // Desktop
+                const googleUrl = userLocation
+                    ? `https://maps.google.com/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destination.lat},${destination.lng}&travelmode=driving`
+                    : `https://maps.google.com/dir/?api=1&destination=${destination.lat},${destination.lng}&travelmode=driving`;
+                log('🖥️ Desktop Google Maps: ' + googleUrl);
+                window.open(googleUrl, '_blank');
+            }
+        }
+
+        async function testDirections() {
+            log('🧭 Testing directions...');
+            
+            try {
+                log('📍 Getting current location...');
+                const currentLocation = await getCurrentLocation();
+                log('✅ Current location: ' + JSON.stringify(currentLocation));
+                
+                const destination = { lat: 21.0285, lng: 105.8542 }; // Hoan Kiem Lake
+                log('🗺️ Destination: ' + JSON.stringify(destination));
+                
+                const url = openExternalNavigation(destination, currentLocation);
+                log('✅ Navigation opened successfully!');
+                
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+                
+                // Fallback
+                log('🔄 Trying fallback without current location...');
+                const destination = { lat: 21.0285, lng: 105.8542 };
+                openExternalNavigation(destination);
+            }
+        }
+
+        function testDirectionsDesktop() {
+            log('🖥️ Testing desktop directions (no geolocation)...');
+            
+            const destination = { lat: 21.0285, lng: 105.8542 }; // Hoan Kiem Lake
+            log('🗺️ Destination: ' + JSON.stringify(destination));
+            
+            const url = openExternalNavigation(destination);
+            log('✅ Desktop navigation opened!');
+        }
+
+        // Auto-log platform info
+        log('Platform: ' + navigator.userAgent);
+        log('Geolocation supported: ' + !!navigator.geolocation);
+    </script>
+</body>
+</html>

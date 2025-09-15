@@ -4,36 +4,78 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 // GET /api/location-notes - Get all location notes
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        // CRITICAL: Require authentication for security
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return NextResponse.json(
+                { error: "Authentication required" },
+                { status: 401 }
+            );
+        }
+
         if (!prisma) {
             return NextResponse.json({ error: "Database not available" }, { status: 503 });
         }
 
-        // For development: Get all location notes (stored as places with isLocationNote flag)
+        // Get only current user's location notes
+        console.log(`🔍 Fetching location notes for user: ${session.user.email}`);
+        const startTime = Date.now();
+
         const notes = await prisma.place.findMany({
             where: {
-                openHours: {
-                    path: ["isLocationNote"],
-                    equals: true,
-                },
+                AND: [
+                    {
+                        openHours: {
+                            path: ["isLocationNote"],
+                            equals: true,
+                        },
+                    },
+                    {
+                        createdBy: session.user.id, // CRITICAL: Filter by current user
+                    },
+                ],
             },
             orderBy: {
                 createdAt: "desc",
             },
+            take: 50, // Limit to recent 50 notes for performance
         });
 
+        console.log(`⚡ Query took ${Date.now() - startTime}ms, found ${notes.length} notes`);
+
+        // Check if images should be included (for detail view)
+        const { searchParams } = new URL(request.url);
+        const includeImages = searchParams.get("includeImages") === "true";
+
         // Transform to location note format
-        const locationNotes = notes.map(note => ({
-            id: note.id,
-            lng: note.lng,
-            lat: note.lat,
-            address: note.address,
-            content: (note.openHours as any)?.content || "",
-            mood: (note.openHours as any)?.mood || "📝",
-            timestamp: (note.openHours as any)?.timestamp ? new Date((note.openHours as any).timestamp) : note.createdAt,
-            images: (note.openHours as any)?.images || [],
-        }));
+        console.log("🔄 Processing notes data...");
+        const processStartTime = Date.now();
+
+        const locationNotes = notes.map(note => {
+            const baseNote = {
+                id: note.id,
+                lng: note.lng,
+                lat: note.lat,
+                address: note.address,
+                content: (note.openHours as any)?.content || "",
+                mood: (note.openHours as any)?.mood || "📝",
+                timestamp: (note.openHours as any)?.timestamp ? new Date((note.openHours as any).timestamp) : note.createdAt,
+                hasImages: Boolean((note.openHours as any)?.images?.length > 0), // Indicate if images exist
+            };
+
+            // Only include images if explicitly requested
+            if (includeImages) {
+                console.log(`📸 Including images for note ${note.id}`);
+                baseNote.images = (note.openHours as any)?.images || [];
+            }
+
+            return baseNote;
+        });
+
+        console.log(`⚡ Processing took ${Date.now() - processStartTime}ms`);
 
         return NextResponse.json(locationNotes);
 
@@ -50,8 +92,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
+        console.log("🔐 Session check:", session ? "✅ Authenticated" : "❌ Not authenticated");
+
         if (!session?.user?.email) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ error: "Unauthorized - Please sign in" }, { status: 401 });
         }
 
         if (!prisma) {
@@ -116,6 +160,58 @@ export async function POST(request: NextRequest) {
         console.error("Error creating location note:", error);
         return NextResponse.json(
             { error: "Failed to create location note" },
+            { status: 500 }
+        );
+    }
+}
+
+// DELETE /api/location-notes - Delete a location note
+export async function DELETE(request: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return NextResponse.json(
+                { error: "Authentication required" },
+                { status: 401 }
+            );
+        }
+
+        const { searchParams } = new URL(request.url);
+        const noteId = searchParams.get("id");
+
+        if (!noteId) {
+            return NextResponse.json(
+                { error: "Note ID is required" },
+                { status: 400 }
+            );
+        }
+
+        if (!prisma) {
+            return NextResponse.json(
+                { error: "Database not available" },
+                { status: 503 }
+            );
+        }
+
+        // Delete the location note (stored as place with isLocationNote flag)
+        await prisma.place.delete({
+            where: {
+                id: noteId,
+                createdBy: session.user.id, // Ensure user owns the note
+                openHours: {
+                    path: ["isLocationNote"],
+                    equals: true,
+                },
+            },
+        });
+
+        return NextResponse.json({ success: true });
+
+    } catch (error) {
+        console.error("Error deleting location note:", error);
+        return NextResponse.json(
+            { error: "Failed to delete location note" },
             { status: 500 }
         );
     }

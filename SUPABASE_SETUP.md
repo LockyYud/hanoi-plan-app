@@ -113,3 +113,5 @@ npx prisma studio
 ---
 
 **Once database connection is fixed, the app will work properly with authentication and data persistence! 🚀**
+
+

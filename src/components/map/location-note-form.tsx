@@ -94,7 +94,56 @@ export function LocationNoteForm({
         });
     };
 
-    const onFormSubmit = (data: LocationNoteFormData) => {
+    const compressImage = (
+        file: File,
+        maxWidth: number = 800,
+        quality: number = 0.7
+    ): Promise<string> => {
+        return new Promise((resolve) => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d")!;
+            const img = new Image();
+
+            img.onload = () => {
+                // Calculate new dimensions
+                const ratio = Math.min(
+                    maxWidth / img.width,
+                    maxWidth / img.height
+                );
+                canvas.width = img.width * ratio;
+                canvas.height = img.height * ratio;
+
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const compressedDataUrl = canvas.toDataURL(
+                    "image/jpeg",
+                    quality
+                );
+                resolve(compressedDataUrl);
+            };
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target?.result as string;
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const onFormSubmit = async (data: LocationNoteFormData) => {
+        // Convert and compress images
+        const imageDataUrls: string[] = [];
+        for (const file of images) {
+            console.log(
+                `🗜️ Compressing image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`
+            );
+            const compressedDataUrl = await compressImage(file, 800, 0.7);
+            console.log(
+                `✅ Compressed to: ${((compressedDataUrl.length / 1024 / 1024) * 0.75).toFixed(2)}MB`
+            );
+            imageDataUrls.push(compressedDataUrl);
+        }
+
         onSubmit({
             ...data,
             mood: selectedMood as any,
@@ -102,6 +151,7 @@ export function LocationNoteForm({
             lat: location.lat,
             address: location.address || "",
             timestamp: new Date(),
+            images: imageDataUrls, // Include images
         });
         reset();
         setImages([]);

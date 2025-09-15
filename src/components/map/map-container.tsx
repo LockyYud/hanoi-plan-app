@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import mapboxgl from "mapbox-gl";
 import { useMapStore, usePlaceStore } from "@/lib/store";
 import { PlacePopup } from "./place-popup";
@@ -9,6 +10,7 @@ import { LocationNoteForm } from "./location-note-form";
 import { NoteDetailsView } from "./note-details-view";
 import { cn } from "@/lib/utils";
 import { MapPin } from "lucide-react"; // Added for error UI
+import { getCurrentLocation } from "@/lib/geolocation";
 
 // Set the Mapbox access token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
@@ -18,10 +20,12 @@ interface MapContainerProps {
 }
 
 export function MapContainer({ className }: MapContainerProps) {
+    const { data: session } = useSession();
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<mapboxgl.Map | null>(null);
     const [mapLoaded, setMapLoaded] = useState(false);
     const [mapError, setMapError] = useState<string | null>(null);
+    const userLocationMarker = useRef<mapboxgl.Marker | null>(null);
     const [clickedLocation, setClickedLocation] = useState<{
         lng: number;
         lat: number;
@@ -53,6 +57,14 @@ export function MapContainer({ className }: MapContainerProps) {
             const response = await fetch("/api/location-notes");
             if (response.ok) {
                 const notes = await response.json();
+                console.log(
+                    "🔄 API returned notes:",
+                    notes.map((n) => ({
+                        id: n.id,
+                        mood: n.mood,
+                        content: n.content?.substring(0, 20),
+                    }))
+                );
                 setLocationNotes(notes);
                 console.log("📍 Loaded", notes.length, "location notes");
             }
@@ -61,18 +73,8 @@ export function MapContainer({ className }: MapContainerProps) {
         }
     };
 
-    // State for selected note and views
-    const [selectedNote, setSelectedNote] = useState<{
-        id: string;
-        lng: number;
-        lat: number;
-        address: string;
-        content: string;
-        mood?: string;
-        timestamp: Date;
-        images?: string[];
-    } | null>(null);
-    const [showNoteDetails, setShowNoteDetails] = useState(false);
+    // State for details view (unified with places)
+    const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
     // Check if Mapbox token is available
     const hasMapboxToken =
@@ -151,9 +153,23 @@ export function MapContainer({ className }: MapContainerProps) {
 
             // Get address using reverse geocoding
             try {
+                const accessToken =
+                    mapboxgl.accessToken ||
+                    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+                if (!accessToken) {
+                    throw new Error("Mapbox access token not available");
+                }
+
                 const response = await fetch(
-                    `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`
+                    `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${accessToken}&language=vi,en&country=vn`
                 );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `HTTP ${response.status}: ${response.statusText}`
+                    );
+                }
+
                 const data = await response.json();
                 const address =
                     data.features?.[0]?.place_name ||
@@ -163,10 +179,12 @@ export function MapContainer({ className }: MapContainerProps) {
                 setShowLocationForm(false); // Reset form visibility on new click
             } catch (error) {
                 console.error("Reverse geocoding failed:", error);
+                // Use coordinates as fallback address
+                const fallbackAddress = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                 setClickedLocation({
                     lng,
                     lat,
-                    address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+                    address: fallbackAddress,
                 });
                 setShowLocationForm(false); // Reset form visibility on new click
             }
@@ -207,7 +225,9 @@ export function MapContainer({ className }: MapContainerProps) {
                 place.name,
                 "at",
                 place.lat,
-                place.lng
+                place.lng,
+                "type:",
+                (place as any).placeType || "regular"
             );
             const markerElement = document.createElement("div");
             markerElement.className = "place-marker";
@@ -228,7 +248,7 @@ export function MapContainer({ className }: MapContainerProps) {
                     font-size: 14px;
                     font-weight: bold;
                 ">
-                    ${place.category === "cafe" ? "☕" : place.category === "food" ? "🍜" : place.category === "bar" ? "🍻" : place.category === "rooftop" ? "🏙️" : place.category === "activity" ? "🎯" : "🏛️"}
+                    ${(place as any).placeType === "note" ? (place as any).mood || "📝" : place.category === "cafe" ? "☕" : place.category === "food" ? "🍜" : place.category === "bar" ? "🍻" : place.category === "rooftop" ? "🏙️" : place.category === "activity" ? "🎯" : "🏛️"}
                 </div>
             `;
 
@@ -256,8 +276,14 @@ export function MapContainer({ className }: MapContainerProps) {
 
             markerElement.addEventListener("click", (e) => {
                 e.stopPropagation();
+                // Use unified place state
                 setSelectedPlace(place);
-                console.log("Clicked place:", place.name);
+                console.log(
+                    "Clicked my place:",
+                    place.name,
+                    "type:",
+                    (place as any).placeType || "regular"
+                );
             });
         });
 
@@ -285,79 +311,22 @@ export function MapContainer({ className }: MapContainerProps) {
         }
     }, [places, mapLoaded, setSelectedPlace]);
 
-    // Add location note markers
+    // Location note markers are now unified with place markers
+    // This useEffect is disabled to prevent duplicate markers
     useEffect(() => {
         if (!map.current || !mapLoaded) return;
 
         console.log(
-            "🗺️ Adding markers for",
-            locationNotes.length,
-            "location notes"
+            "🔄 Location notes are now handled via unified places markers"
         );
 
-        // Remove existing note markers
+        // Remove any old location note markers if they exist
         const existingNoteMarkers = document.querySelectorAll(
             ".location-note-marker"
         );
         existingNoteMarkers.forEach((marker) => marker.remove());
 
-        locationNotes.forEach((note) => {
-            console.log(
-                "📝 Creating note marker for:",
-                note.content.substring(0, 30) + "..."
-            );
-
-            const markerElement = document.createElement("div");
-            markerElement.className = "location-note-marker";
-            markerElement.innerHTML = `
-                <div style="
-                    width: 28px;
-                    height: 28px;
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                    border: 2px solid white;
-                    border-radius: 50%;
-                    cursor: pointer;
-                    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-                    transition: all 0.3s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-size: 14px;
-                    font-weight: bold;
-                ">
-                    ${note.mood || "📝"}
-                </div>
-            `;
-
-            const innerDiv = markerElement.querySelector("div");
-
-            markerElement.addEventListener("mouseenter", () => {
-                if (innerDiv) {
-                    innerDiv.style.transform = "scale(1.15)";
-                    innerDiv.style.boxShadow =
-                        "0 4px 12px rgba(16, 185, 129, 0.6)";
-                }
-            });
-
-            markerElement.addEventListener("mouseleave", () => {
-                if (innerDiv) {
-                    innerDiv.style.transform = "scale(1)";
-                    innerDiv.style.boxShadow =
-                        "0 2px 8px rgba(16, 185, 129, 0.4)";
-                }
-            });
-
-            new mapboxgl.Marker(markerElement)
-                .setLngLat([note.lng, note.lat])
-                .addTo(map.current!);
-
-            markerElement.addEventListener("click", (e) => {
-                e.stopPropagation();
-                setSelectedNote(note);
-                console.log("Clicked note:", note.content);
-            });
-        });
+        // Note: locationNotes are now displayed via the places array with placeType="note"
     }, [locationNotes, mapLoaded]);
 
     // Track last programmatic center to avoid loops
@@ -432,44 +401,155 @@ export function MapContainer({ className }: MapContainerProps) {
             const savedNote = await response.json();
 
             // Add to local state
+            console.log("📝 Adding note to local state:", savedNote);
             setLocationNotes((prev) => [...prev, savedNote]);
             setClickedLocation(null);
             setShowLocationForm(false);
 
-            console.log("✅ Location note saved to database successfully");
+            // Dispatch event to update sidebar
+            window.dispatchEvent(new CustomEvent("locationNoteAdded"));
+
+            console.log("✅ Location note saved and sidebar notified");
         } catch (error) {
             console.error("Error adding location note:", error);
             alert(`Có lỗi xảy ra khi lưu ghi chú: ${error.message}`);
         }
     };
 
-    // Handle note actions
-    const handleViewNoteDetails = () => {
-        setShowNoteDetails(true);
-    };
-
-    const handleEditNote = () => {
-        // TODO: Implement edit functionality
-        setShowNoteDetails(false);
-        setSelectedNote(null);
-        console.log("Edit note:", selectedNote?.id);
-    };
-
-    const handleDeleteNote = () => {
-        if (selectedNote && confirm("Bạn có chắc muốn xóa ghi chú này?")) {
-            setLocationNotes((prev) =>
-                prev.filter((note) => note.id !== selectedNote.id)
-            );
-            setShowNoteDetails(false);
-            setSelectedNote(null);
-            console.log("Deleted note:", selectedNote.id);
-        }
-    };
+    // Simplified note actions (unified with places)
 
     // Handle opening location form from preview
     const handleOpenLocationForm = () => {
         setShowLocationForm(true);
     };
+
+    // Create user location marker element
+    const createUserLocationMarker = () => {
+        const markerElement = document.createElement("div");
+        markerElement.className = "user-location-marker";
+        markerElement.style.cssText = `
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 3px solid #3b82f6;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            position: relative;
+            z-index: 1000;
+            pointer-events: auto;
+        `;
+
+        // Create inner content container to prevent layout shifts
+        const innerContainer = document.createElement("div");
+        innerContainer.style.cssText = `
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        `;
+
+        // Use user avatar or default icon
+        if (session?.user?.avatarUrl) {
+            const img = document.createElement("img");
+            img.src = session.user.avatarUrl;
+            img.style.cssText = `
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            `;
+            img.onerror = () => {
+                // Fallback to default icon if image fails
+                innerContainer.innerHTML = "📍";
+                innerContainer.style.fontSize = "20px";
+                innerContainer.style.lineHeight = "1";
+            };
+            innerContainer.appendChild(img);
+        } else {
+            innerContainer.innerHTML = "📍";
+            innerContainer.style.fontSize = "20px";
+            innerContainer.style.lineHeight = "1";
+        }
+
+        markerElement.appendChild(innerContainer);
+
+        // Only handle click events - let CSS handle hover
+        markerElement.addEventListener("click", (e) => {
+            e.stopPropagation();
+            console.log("📍 User location marker clicked");
+        });
+
+        return markerElement;
+    };
+
+    // Add or update user location marker
+    const updateUserLocationMarker = async () => {
+        if (!map.current || !session) return;
+
+        try {
+            const userLocation = await getCurrentLocation();
+            console.log("📍 User location:", userLocation);
+
+            // Check if marker already exists at same location
+            if (userLocationMarker.current) {
+                const currentLngLat = userLocationMarker.current.getLngLat();
+                const distance =
+                    Math.abs(currentLngLat.lng - userLocation.lng) +
+                    Math.abs(currentLngLat.lat - userLocation.lat);
+
+                // Only update if location changed significantly (> 0.0001 degrees ~10m)
+                if (distance < 0.0001) {
+                    console.log(
+                        "📍 User location unchanged, keeping existing marker"
+                    );
+                    return;
+                }
+
+                // Update existing marker position instead of recreating
+                userLocationMarker.current.setLngLat([
+                    userLocation.lng,
+                    userLocation.lat,
+                ]);
+                console.log("📍 User location marker position updated");
+                return;
+            }
+
+            // Create new marker only if none exists
+            const markerElement = createUserLocationMarker();
+            userLocationMarker.current = new mapboxgl.Marker({
+                element: markerElement,
+                anchor: "center",
+                offset: [0, 0],
+                pitchAlignment: "map",
+                rotationAlignment: "map",
+            })
+                .setLngLat([userLocation.lng, userLocation.lat])
+                .addTo(map.current);
+
+            console.log("✅ User location marker created");
+        } catch (error) {
+            console.error("❌ Could not get user location:", error);
+        }
+    };
+
+    // Add user location marker when user logs in
+    useEffect(() => {
+        if (mapLoaded && session) {
+            updateUserLocationMarker();
+        } else if (!session && userLocationMarker.current) {
+            // Remove marker when user logs out
+            userLocationMarker.current.remove();
+            userLocationMarker.current = null;
+        }
+    }, [mapLoaded, session]);
 
     // Show error state if map error or no token
     if (mapError || !hasMapboxToken) {
@@ -528,31 +608,77 @@ export function MapContainer({ className }: MapContainerProps) {
         <div className={cn("relative", className)} suppressHydrationWarning>
             <div ref={mapContainer} className="w-full h-full relative z-0" />
             <MapControls />
-            {selectedPlace && (
+            {/* Unified popup system - only 2 types: My Places or New Location */}
+            {selectedPlace ? (
                 <PlacePopup
                     place={selectedPlace}
                     onClose={() => setSelectedPlace(null)}
+                    onViewDetails={() => {
+                        console.log(
+                            "View details for my place:",
+                            selectedPlace.name || (selectedPlace as any).content
+                        );
+                        setShowDetailsDialog(true);
+                    }}
+                    onDelete={async () => {
+                        if (
+                            confirm(
+                                "Bạn có chắc muốn xóa địa điểm này khỏi danh sách?"
+                            )
+                        ) {
+                            try {
+                                const placeType = (selectedPlace as any)
+                                    .placeType;
+                                let apiUrl = "";
+
+                                if (placeType === "note") {
+                                    // Delete location note
+                                    apiUrl = `/api/location-notes?id=${selectedPlace.id}`;
+                                } else {
+                                    // Delete favorite place
+                                    apiUrl = `/api/favorites?placeId=${selectedPlace.id}`;
+                                }
+
+                                const response = await fetch(apiUrl, {
+                                    method: "DELETE",
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error("Failed to delete");
+                                }
+
+                                console.log(
+                                    "Deleted:",
+                                    selectedPlace.name ||
+                                        (selectedPlace as any).content
+                                );
+
+                                setSelectedPlace(null);
+                                // Trigger refresh of sidebar and map markers
+                                window.dispatchEvent(
+                                    new CustomEvent("favoritesUpdated")
+                                );
+                                window.dispatchEvent(
+                                    new CustomEvent("locationNoteAdded")
+                                );
+                            } catch (error) {
+                                console.error("Error deleting:", error);
+                                alert(
+                                    "Không thể xóa địa điểm. Vui lòng thử lại."
+                                );
+                            }
+                        }
+                    }}
                     mapRef={map}
                 />
-            )}
-
-            {selectedNote && !showNoteDetails && (
-                <PlacePopup
-                    note={selectedNote}
-                    onClose={() => setSelectedNote(null)}
-                    onViewDetails={handleViewNoteDetails}
-                    mapRef={map}
-                />
-            )}
-
-            {clickedLocation && !showLocationForm && (
+            ) : clickedLocation && !showLocationForm ? (
                 <PlacePopup
                     location={clickedLocation}
                     onClose={() => setClickedLocation(null)}
                     onAddNote={handleOpenLocationForm}
                     mapRef={map}
                 />
-            )}
+            ) : null}
 
             {clickedLocation && showLocationForm && (
                 <LocationNoteForm
@@ -566,16 +692,26 @@ export function MapContainer({ className }: MapContainerProps) {
                 />
             )}
 
-            {selectedNote && showNoteDetails && (
+            {selectedPlace && showDetailsDialog && (
                 <NoteDetailsView
-                    isOpen={showNoteDetails}
+                    isOpen={showDetailsDialog}
                     onClose={() => {
-                        setShowNoteDetails(false);
-                        setSelectedNote(null);
+                        setShowDetailsDialog(false);
+                        setSelectedPlace(null);
                     }}
-                    note={selectedNote}
-                    onEdit={handleEditNote}
-                    onDelete={handleDeleteNote}
+                    note={selectedPlace}
+                    onEdit={() =>
+                        console.log(
+                            "Edit place:",
+                            selectedPlace.name || (selectedPlace as any).content
+                        )
+                    }
+                    onDelete={() =>
+                        console.log(
+                            "Delete place:",
+                            selectedPlace.name || (selectedPlace as any).content
+                        )
+                    }
                 />
             )}
         </div>
