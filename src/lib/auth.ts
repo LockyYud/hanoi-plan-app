@@ -63,8 +63,8 @@ export const authOptions: NextAuthOptions = {
         error: "/",
     },
 
-    // Add secret with fallback
-    secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
+    // Add secret - required for production
+    secret: process.env.NEXTAUTH_SECRET,
 
     // Debug mode for production troubleshooting
     debug: process.env.NODE_ENV === "development",
