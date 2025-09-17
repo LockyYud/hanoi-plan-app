@@ -87,14 +87,31 @@ export const authOptions: NextAuthOptions = {
 
         // Sign in callback - control whether sign in is allowed
         signIn: async ({ user, account }) => {
-            console.log("SignIn callback called:", {
+            console.log("🔐 SignIn callback called:", {
                 provider: account?.provider,
                 userId: user?.id,
-                userEmail: user?.email
+                userEmail: user?.email,
+                timestamp: new Date().toISOString()
             });
             
-            console.log("SignIn callback - approved for provider:", account?.provider);
+            // For production debugging - more detailed logging
+            if (process.env.NODE_ENV === 'production') {
+                console.log("🔐 PROD SignIn - User object:", JSON.stringify(user, null, 2));
+                console.log("🔐 PROD SignIn - Account object:", JSON.stringify(account, null, 2));
+            }
+            
+            console.log("✅ SignIn callback - approved for provider:", account?.provider);
             return true;
+        },
+
+        // Redirect callback - control where to redirect after sign in
+        redirect: async ({ url, baseUrl }) => {
+            console.log("🔄 Redirect callback:", { url, baseUrl });
+            
+            // Always redirect to baseUrl (home page) after sign in
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
+            else if (new URL(url).origin === baseUrl) return url;
+            return baseUrl;
         },
     },
 
@@ -106,19 +123,8 @@ export const authOptions: NextAuthOptions = {
     // Add secret with fallback
     secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
 
-    // Explicit cookie configuration for Vercel
-    cookies: {
-        sessionToken: {
-            name: `__Secure-next-auth.session-token`,
-            options: {
-                httpOnly: true,
-                sameSite: 'lax',
-                path: '/',
-                secure: true,
-                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost'
-            }
-        }
-    },
+    // Remove custom cookie config - let NextAuth handle it automatically
+    // Custom cookie config was causing issues with session persistence
 
     // Debug mode for production troubleshooting
     debug: true, // Force debug on production to troubleshoot
