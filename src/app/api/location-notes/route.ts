@@ -1,27 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getUserFromSession } from "@/lib/user-session";
 
 // GET /api/location-notes - Get all location notes
 export async function GET(request: NextRequest) {
     try {
-        // CRITICAL: Require authentication for security
-        const session = await getServerSession(authOptions);
-
-        if (!session?.user?.id) {
+        // Get user from session (creates user if needed for JWT strategy)
+        const { user, error } = await getUserFromSession();
+        
+        if (error || !user) {
             return NextResponse.json(
-                { error: "Authentication required" },
+                { error: error || "Authentication required" },
                 { status: 401 }
             );
         }
 
-        if (!prisma) {
-            return NextResponse.json({ error: "Database not available" }, { status: 503 });
-        }
-
         // Get only current user's location notes
-        console.log(`🔍 Fetching location notes for user: ${session.user.email}`);
+        console.log(`🔍 Fetching location notes for user: ${user.email} (ID: ${user.id})`);
         const startTime = Date.now();
 
         const notes = await prisma.place.findMany({
@@ -34,7 +29,7 @@ export async function GET(request: NextRequest) {
                         },
                     },
                     {
-                        createdBy: session.user.id, // CRITICAL: Filter by current user
+                        createdBy: user.id, // Use database user ID
                     },
                 ],
             },
@@ -102,12 +97,20 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Database not available" }, { status: 503 });
         }
 
-        const user = await prisma.user.findUnique({
+        // Find or create user in database (for JWT strategy compatibility)
+        let user = await prisma.user.findUnique({
             where: { email: session.user.email },
         });
 
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            console.log(`👤 Creating new user for: ${session.user.email}`);
+            user = await prisma.user.create({
+                data: {
+                    email: session.user.email,
+                    name: session.user.name || "Unknown User",
+                    avatarUrl: session.user.image || undefined,
+                },
+            });
         }
 
         const body = await request.json();
@@ -170,7 +173,7 @@ export async function DELETE(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user?.id) {
+        if (!session?.user?.email) {
             return NextResponse.json(
                 { error: "Authentication required" },
                 { status: 401 }
@@ -194,11 +197,23 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
+        // Find user in database
+        const user = await prisma.user.findUnique({
+            where: { email: session.user.email },
+        });
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "User not found" },
+                { status: 404 }
+            );
+        }
+
         // Delete the location note (stored as place with isLocationNote flag)
         await prisma.place.delete({
             where: {
                 id: noteId,
-                createdBy: session.user.id, // Ensure user owns the note
+                createdBy: user.id, // Ensure user owns the note
                 openHours: {
                     path: ["isLocationNote"],
                     equals: true,
