@@ -4,18 +4,26 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 export function DebugSession() {
-  const { data: session, status } = useSession();
-  const [debugInfo, setDebugInfo] = useState<unknown>(null);
+    const { data: session, status } = useSession();
+    const [debugInfo, setDebugInfo] = useState<unknown>(null);
+    const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    // Fetch debug info from API
-    fetch("/api/debug-session")
-      .then((res) => res.json())
-      .then((data) => setDebugInfo(data))
-      .catch((err) => console.error("Debug fetch error:", err));
-  }, []);
+    useEffect(() => {
+        setMounted(true);
+        
+        // Fetch debug info from API
+        fetch("/api/debug-session")
+            .then((res) => res.json())
+            .then((data) => setDebugInfo(data))
+            .catch((err) => console.error("Debug fetch error:", err));
+    }, []);
 
-  return (
+    // Don't render on server-side  
+    if (!mounted) {
+        return null;
+    }
+
+    return (
     <div
       style={{
         position: "fixed",

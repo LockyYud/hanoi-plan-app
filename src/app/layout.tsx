@@ -84,11 +84,13 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
-        <ErrorBoundary>
-          <Providers>{children}</Providers>
-          <Toaster />
-          {process.env.NODE_ENV === "development" && <DebugSession />}
-        </ErrorBoundary>
+                        <ErrorBoundary>
+                    <Providers>
+                        {children}
+                        {process.env.NODE_ENV === "development" && <DebugSession />}
+                    </Providers>
+                    <Toaster />
+                </ErrorBoundary>
       </body>
     </html>
   );
