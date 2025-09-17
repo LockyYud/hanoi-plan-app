@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import ErrorBoundary from "@/components/error-boundary";
+import { DebugSession } from "@/components/debug-session";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -89,6 +90,7 @@ export default function RootLayout({
                 <ErrorBoundary>
                     <Providers>{children}</Providers>
                     <Toaster />
+                    {process.env.NODE_ENV === "development" && <DebugSession />}
                 </ErrorBoundary>
             </body>
         </html>

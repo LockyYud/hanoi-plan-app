@@ -32,6 +32,18 @@ import { toast } from "sonner";
 
 export function Sidebar() {
     const { data: session, status } = useSession();
+    
+    // Debug session changes
+    useEffect(() => {
+        console.log("🔍 Sidebar: Session changed", { 
+            status, 
+            hasSession: !!session,
+            userId: session?.user?.id,
+            userEmail: session?.user?.email,
+            timestamp: new Date().toISOString()
+        });
+    }, [session, status]);
+    
     const { sidebarOpen } = useUIStore();
     const { places, filter, setFilter, setPlaces, setSelectedPlace } =
         usePlaceStore();

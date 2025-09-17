@@ -29,26 +29,50 @@ export const authOptions: NextAuthOptions = {
 
     callbacks: {
         session: async ({ session, user, token }) => {
+            console.log("Session callback called:", { session: !!session, user: !!user, token: !!token });
+            
             if (session?.user) {
-                // Use user.id from database if available, otherwise use token
-                session.user.id = user?.id || token?.sub || "anonymous"
+                // For database strategy, use user.id; for JWT strategy, use token.sub
+                if (user?.id) {
+                    session.user.id = user.id;
+                    console.log("Session callback - using database user ID:", user.id);
+                } else if (token?.sub) {
+                    session.user.id = token.sub;
+                    console.log("Session callback - using JWT token sub:", token.sub);
+                } else {
+                    session.user.id = "anonymous";
+                    console.log("Session callback - fallback to anonymous");
+                }
             }
-            return session
+            
+            console.log("Session callback result:", session);
+            return session;
         },
         jwt: async ({ user, token }) => {
+            console.log("JWT callback called:", { user: !!user, token: !!token });
+            
             if (user) {
-                token.uid = user.id
+                token.uid = user.id;
+                console.log("JWT callback - set token.uid:", user.id);
             }
-            return token
+            
+            console.log("JWT callback result:", token);
+            return token;
         },
         // Map Google profile fields to Prisma schema
         signIn: async ({ user, account, profile }) => {
+            console.log("SignIn callback called:", { 
+                provider: account?.provider, 
+                userId: user?.id,
+                userEmail: user?.email 
+            });
+            
             if (account?.provider === "google" && profile) {
                 console.log("SignIn callback - original user:", user);
                 console.log("SignIn callback - profile:", profile);
 
                 // Map Google's 'picture' field to our 'avatarUrl' field
-                user.avatarUrl = (profile as any).picture || user.image;
+                user.avatarUrl = (profile as { picture?: string }).picture || user.image || undefined;
                 // Remove the image field to avoid Prisma validation error
                 delete user.image;
 
@@ -63,9 +87,9 @@ export const authOptions: NextAuthOptions = {
         error: "/",
     },
 
-    // Add secret - required for production
-    secret: process.env.NEXTAUTH_SECRET,
+    // Add secret with fallback
+    secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
 
     // Debug mode for production troubleshooting
-    debug: process.env.NODE_ENV === "development",
+    debug: process.env.NODE_ENV === "development" || process.env.NEXTAUTH_DEBUG === "true",
 }
