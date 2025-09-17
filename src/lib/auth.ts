@@ -106,6 +106,20 @@ export const authOptions: NextAuthOptions = {
     // Add secret with fallback
     secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
 
+    // Explicit cookie configuration for Vercel
+    cookies: {
+        sessionToken: {
+            name: `__Secure-next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: true,
+                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost'
+            }
+        }
+    },
+
     // Debug mode for production troubleshooting
-    debug: process.env.NODE_ENV === "development" || process.env.NEXTAUTH_DEBUG === "true",
+    debug: true, // Force debug on production to troubleshoot
 }

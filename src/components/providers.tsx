@@ -46,6 +46,7 @@ export function Providers({ children }: ProvidersProps) {
       session={null}
       refetchInterval={5 * 60}
       refetchOnWindowFocus={true}
+      basePath="/api/auth"
     >
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </SessionProvider>
