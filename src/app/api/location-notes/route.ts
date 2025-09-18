@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     try {
         // Get user from session (creates user if needed for JWT strategy)
         const { user, error } = await getUserFromSession();
-        
+
         if (error || !user) {
             return NextResponse.json(
                 { error: error || "Authentication required" },
@@ -86,31 +86,18 @@ export async function GET(request: NextRequest) {
 // POST /api/location-notes - Create new location note
 export async function POST(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        console.log("🔐 Session check:", session ? "✅ Authenticated" : "❌ Not authenticated");
+        // Get user from session (creates user if needed for JWT strategy)
+        const { user, error } = await getUserFromSession();
 
-        if (!session?.user?.email) {
-            return NextResponse.json({ error: "Unauthorized - Please sign in" }, { status: 401 });
+        if (error || !user) {
+            return NextResponse.json(
+                { error: error || "Authentication required" },
+                { status: 401 }
+            );
         }
 
         if (!prisma) {
             return NextResponse.json({ error: "Database not available" }, { status: 503 });
-        }
-
-        // Find or create user in database (for JWT strategy compatibility)
-        let user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-        });
-
-        if (!user) {
-            console.log(`👤 Creating new user for: ${session.user.email}`);
-            user = await prisma.user.create({
-                data: {
-                    email: session.user.email,
-                    name: session.user.name || "Unknown User",
-                    avatarUrl: session.user.image || undefined,
-                },
-            });
         }
 
         const body = await request.json();
@@ -171,11 +158,12 @@ export async function POST(request: NextRequest) {
 // DELETE /api/location-notes - Delete a location note
 export async function DELETE(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
+        // Get user from session (creates user if needed for JWT strategy)
+        const { user, error } = await getUserFromSession();
 
-        if (!session?.user?.email) {
+        if (error || !user) {
             return NextResponse.json(
-                { error: "Authentication required" },
+                { error: error || "Authentication required" },
                 { status: 401 }
             );
         }
@@ -194,18 +182,6 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json(
                 { error: "Database not available" },
                 { status: 503 }
-            );
-        }
-
-        // Find user in database
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { error: "User not found" },
-                { status: 404 }
             );
         }
 
