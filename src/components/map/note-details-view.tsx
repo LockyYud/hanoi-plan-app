@@ -23,11 +23,11 @@ interface LocationNote {
 }
 
 interface NoteDetailsViewProps {
-    isOpen: boolean;
-    onClose: () => void;
-    note: LocationNote;
-    onEdit?: () => void;
-    onDelete?: () => void;
+    readonly isOpen: boolean;
+    readonly onClose: () => void;
+    readonly note: LocationNote;
+    readonly onEdit?: () => void;
+    readonly onDelete?: () => void;
 }
 
 export function NoteDetailsView({
@@ -39,6 +39,7 @@ export function NoteDetailsView({
 }: NoteDetailsViewProps) {
     const [fullNote, setFullNote] = useState<LocationNote | null>(null);
     const [isLoadingImages, setIsLoadingImages] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     // Load full note with images when dialog opens
     useEffect(() => {
@@ -58,8 +59,9 @@ export function NoteDetailsView({
             console.log("✅ Conditions met, loading full note...");
             loadFullNote();
         } else if (!isOpen) {
-            // Reset fullNote when dialog closes
+            // Reset state when dialog closes
             setFullNote(null);
+            setLoadError(null);
         } else if (isOpen) {
             console.log("❌ Conditions not met for loading images");
         }
@@ -67,13 +69,20 @@ export function NoteDetailsView({
 
     const loadFullNote = async () => {
         setIsLoadingImages(true);
+        setLoadError(null);
         try {
             console.log(`🔄 Loading images for note ${note.id}...`);
+            console.log(`🔄 Request URL: /api/location-notes/${note.id}`);
+
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
             const response = await fetch(`/api/location-notes/${note.id}`, {
                 signal: controller.signal,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "same-origin", // Ensure cookies are sent
             });
 
             clearTimeout(timeoutId);
@@ -85,7 +94,26 @@ export function NoteDetailsView({
                 );
                 setFullNote(noteWithImages);
             } else {
-                console.error(`❌ Failed to load note: ${response.status}`);
+                const errorData = await response.text();
+                console.error(
+                    `❌ Failed to load note: ${response.status} ${response.statusText}`
+                );
+                console.error(`❌ Error details:`, errorData);
+
+                // Set user-friendly error message
+                let userError = `Lỗi tải ghi chú (${response.status})`;
+
+                // Try to parse as JSON for better error info
+                try {
+                    const errorJson = JSON.parse(errorData);
+                    console.error(`❌ Parsed error:`, errorJson);
+                    userError = errorJson.error || userError;
+                } catch {
+                    // If parsing fails, use raw error response
+                    console.error(`❌ Raw error response:`, errorData);
+                }
+
+                setLoadError(userError);
             }
         } catch (error) {
             if (error.name === "AbortError") {
@@ -93,8 +121,10 @@ export function NoteDetailsView({
                 console.log(
                     "💡 Tip: Images are very large. Consider using compression."
                 );
+                setLoadError("Hết thời gian chờ tải ảnh. Vui lòng thử lại.");
             } else {
                 console.error("❌ Error loading note images:", error);
+                setLoadError("Lỗi không xác định khi tải ghi chú.");
             }
         } finally {
             setIsLoadingImages(false);
@@ -189,7 +219,21 @@ export function NoteDetailsView({
                                     ? `(${displayNote.images.length})`
                                     : ""}
                             </h3>
-                            {isLoadingImages ? (
+                            {loadError ? (
+                                <div className="flex flex-col items-center justify-center py-8 text-red-500">
+                                    <div className="text-2xl mb-3">⚠️</div>
+                                    <span className="text-sm text-center">
+                                        {loadError}
+                                        <br />
+                                        <button
+                                            onClick={loadFullNote}
+                                            className="text-xs text-blue-600 hover:underline mt-2"
+                                        >
+                                            Thử lại
+                                        </button>
+                                    </span>
+                                </div>
+                            ) : isLoadingImages ? (
                                 <div className="flex flex-col items-center justify-center py-8 text-gray-500">
                                     <div className="animate-spin h-6 w-6 mb-3 border-2 border-blue-600 border-t-transparent rounded-full" />
                                     <span className="text-sm text-center">
