@@ -32,6 +32,17 @@ export function MapContainer({ className }: MapContainerProps) {
         address?: string;
     } | null>(null);
     const [showLocationForm, setShowLocationForm] = useState(false);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [editingNote, setEditingNote] = useState<{
+        id: string;
+        lng: number;
+        lat: number;
+        address: string;
+        content: string;
+        mood?: string;
+        timestamp: Date;
+        images?: string[];
+    } | null>(null);
 
     const { center, zoom, setCenter, setZoom, setBounds } = useMapStore();
     const { places, selectedPlace, setSelectedPlace, setPlaces } =
@@ -383,7 +394,14 @@ export function MapContainer({ className }: MapContainerProps) {
     }, [selectedPlace]);
 
     // Handle adding location note
-    const handleAddLocationNote = async (noteData: any) => {
+    const handleAddLocationNote = async (noteData: {
+        lng: number;
+        lat: number;
+        address: string;
+        content: string;
+        mood?: string;
+        images?: string[];
+    }) => {
         try {
             console.log("Adding location note:", noteData);
 
@@ -420,9 +438,76 @@ export function MapContainer({ className }: MapContainerProps) {
             window.dispatchEvent(new CustomEvent("locationNoteAdded"));
 
             console.log("✅ Location note saved and sidebar notified");
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Error adding location note:", error);
-            alert(`Có lỗi xảy ra khi lưu ghi chú: ${error.message}`);
+            const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
+            alert(`Có lỗi xảy ra khi lưu ghi chú: ${errorMessage}`);
+        }
+    };
+
+    // Handle editing location note
+    const handleEditLocationNote = async (noteData: {
+        id: string;
+        lng: number;
+        lat: number;
+        address: string;
+        content: string;
+        mood?: string;
+        images?: string[];
+    }) => {
+        try {
+            console.log("Editing location note:", noteData);
+
+            // Update via API
+            const response = await fetch("/api/location-notes", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: noteData.id,
+                    lng: noteData.lng,
+                    lat: noteData.lat,
+                    address: noteData.address,
+                    content: noteData.content,
+                    mood: noteData.mood,
+                    images: noteData.images || [],
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to update note");
+            }
+
+            const updatedNote = await response.json();
+
+            // Update local state
+            console.log("📝 Updating note in local state:", updatedNote);
+            setLocationNotes((prev) =>
+                prev.map((note) =>
+                    note.id === updatedNote.id ? updatedNote : note
+                )
+            );
+
+            // Close edit form
+            setShowEditForm(false);
+            setEditingNote(null);
+
+            // Close details dialog and refresh
+            setShowDetailsDialog(false);
+            setSelectedPlace(null);
+
+            // Dispatch event to update sidebar
+            window.dispatchEvent(new CustomEvent("locationNoteUpdated"));
+
+            console.log("✅ Location note updated and sidebar notified");
+        } catch (error: unknown) {
+            console.error("Error updating location note:", error);
+            const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
+            alert(`Có lỗi xảy ra khi cập nhật ghi chú: ${errorMessage}`);
         }
     };
 
@@ -702,6 +787,28 @@ export function MapContainer({ className }: MapContainerProps) {
                 />
             )}
 
+            {editingNote && showEditForm && (
+                <LocationNoteForm
+                    isOpen={showEditForm}
+                    onClose={() => {
+                        setShowEditForm(false);
+                        setEditingNote(null);
+                    }}
+                    location={{
+                        lng: editingNote.lng,
+                        lat: editingNote.lat,
+                        address: editingNote.address,
+                    }}
+                    existingNote={{
+                        id: editingNote.id,
+                        content: editingNote.content,
+                        mood: editingNote.mood,
+                        images: editingNote.images,
+                    }}
+                    onSubmit={handleEditLocationNote}
+                />
+            )}
+
             {selectedPlace && showDetailsDialog && (
                 <NoteDetailsView
                     isOpen={showDetailsDialog}
@@ -710,12 +817,16 @@ export function MapContainer({ className }: MapContainerProps) {
                         setSelectedPlace(null);
                     }}
                     note={selectedPlace}
-                    onEdit={() =>
-                        console.log(
-                            "Edit place:",
-                            selectedPlace.name || (selectedPlace as any).content
-                        )
-                    }
+                    onEdit={() => {
+                        // Check if this is a location note (has content property)
+                        if ((selectedPlace as any).content) {
+                            const locationNote = selectedPlace as any;
+                            setEditingNote(locationNote);
+                            setShowEditForm(true);
+                        } else {
+                            console.log("Edit place:", selectedPlace.name);
+                        }
+                    }}
                     onDelete={() =>
                         console.log(
                             "Delete place:",

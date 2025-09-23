@@ -156,6 +156,90 @@ export async function POST(request: NextRequest) {
     }
 }
 
+// PUT /api/location-notes - Update a location note
+export async function PUT(request: NextRequest) {
+    try {
+        // Get user from session (creates user if needed for JWT strategy)
+        const { user, error } = await getUserFromSession();
+        console.log("🔐 Update note - Session check:", user ? "✅ Authenticated" : "❌ Not authenticated");
+
+        if (error || !user) {
+            return NextResponse.json(
+                { error: error || "Authentication required" },
+                { status: 401 }
+            );
+        }
+
+        if (!prisma) {
+            return NextResponse.json({ error: "Database not available" }, { status: 503 });
+        }
+
+        const body = await request.json();
+        const { id, lng, lat, address, content, mood, images } = body;
+
+        // Validate required fields
+        if (!id) {
+            return NextResponse.json(
+                { error: "Note ID is required" },
+                { status: 400 }
+            );
+        }
+
+        if (!content) {
+            return NextResponse.json(
+                { error: "Content is required" },
+                { status: 400 }
+            );
+        }
+
+        // Update the location note
+        const updatedNote = await prisma.place.update({
+            where: {
+                id: id,
+                createdBy: user.id, // Ensure user owns the note
+                openHours: {
+                    path: ["isLocationNote"],
+                    equals: true,
+                },
+            },
+            data: {
+                name: `Note: ${content.substring(0, 50)}...`,
+                address: address || undefined,
+                lat: lng ? parseFloat(lat) : undefined,
+                lng: lat ? parseFloat(lng) : undefined,
+                // Update note data in JSON field
+                openHours: {
+                    isLocationNote: true,
+                    content,
+                    mood,
+                    images: images || [],
+                    timestamp: new Date().toISOString(),
+                },
+            },
+        });
+
+        const responseData = {
+            id: updatedNote.id,
+            lng: updatedNote.lng,
+            lat: updatedNote.lat,
+            address: updatedNote.address,
+            content,
+            mood,
+            timestamp: new Date(),
+            images: images || [],
+        };
+
+        return NextResponse.json(responseData);
+
+    } catch (error) {
+        console.error("Error updating location note:", error);
+        return NextResponse.json(
+            { error: "Failed to update location note" },
+            { status: 500 }
+        );
+    }
+}
+
 // DELETE /api/location-notes - Delete a location note
 export async function DELETE(request: NextRequest) {
     try {
