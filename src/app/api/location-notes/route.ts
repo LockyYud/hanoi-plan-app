@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
     try {
         // Get user from session (creates user if needed for JWT strategy)
         const { user, error } = await getUserFromSession();
+        console.log("🔐 Session check:", user ? "✅ Authenticated" : "❌ Not authenticated");
 
         if (error || !user) {
             return NextResponse.json(

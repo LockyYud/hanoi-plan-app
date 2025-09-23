@@ -54,6 +54,13 @@ export function MapContainer({ className }: MapContainerProps) {
     // Load location notes from API
     const loadLocationNotes = async () => {
         try {
+            // Only fetch if user is logged in
+            if (!session) {
+                console.log("🚫 Not logged in, skipping location notes fetch");
+                setLocationNotes([]);
+                return;
+            }
+
             const response = await fetch("/api/location-notes");
             if (response.ok) {
                 const notes = await response.json();
@@ -67,6 +74,9 @@ export function MapContainer({ className }: MapContainerProps) {
                 );
                 setLocationNotes(notes);
                 console.log("📍 Loaded", notes.length, "location notes");
+            } else if (response.status === 401) {
+                console.log("🔐 Authentication required for location notes");
+                setLocationNotes([]);
             }
         } catch (error) {
             console.error("Error loading location notes:", error);
@@ -196,12 +206,12 @@ export function MapContainer({ className }: MapContainerProps) {
         };
     }, [hasMapboxToken]); // Only depend on token for initial setup
 
-    // Load location notes on component mount
+    // Load location notes on component mount and when session changes
     useEffect(() => {
         if (mapLoaded) {
             loadLocationNotes();
         }
-    }, [mapLoaded]);
+    }, [mapLoaded, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Add place markers
     useEffect(() => {
