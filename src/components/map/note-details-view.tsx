@@ -18,6 +18,7 @@ import {
     Heart,
     Eye,
 } from "lucide-react";
+import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 
 interface LocationNote {
     id: string;
@@ -148,6 +149,26 @@ export function NoteDetailsView({
 
     // Use fullNote if available, otherwise use the basic note
     const displayNote = fullNote || note;
+
+    // Refresh note when content changes (after edit)
+    useEffect(() => {
+        if (isOpen && note.id && note.content !== displayNote.content) {
+            console.log(
+                "📝 Note content changed, clearing cache to force refresh"
+            );
+            setFullNote(null);
+            if (note.hasImages) {
+                loadFullNote();
+            }
+        }
+    }, [
+        isOpen,
+        note.id,
+        note.content,
+        displayNote.content,
+        note.hasImages,
+        loadFullNote,
+    ]);
 
     const formatDateTime = (date: Date) => {
         return new Date(date).toLocaleString("vi-VN", {
@@ -339,14 +360,11 @@ export function NoteDetailsView({
                                                                 key={`image-${displayNote.id}-${index}`}
                                                                 className="group relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
                                                             >
-                                                                {typeof image ===
-                                                                    "string" &&
-                                                                image.startsWith(
-                                                                    "data:image"
+                                                                {isValidImageUrl(
+                                                                    image
                                                                 ) ? (
                                                                     <>
-                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                        <img
+                                                                        <ImageDisplay
                                                                             src={
                                                                                 image
                                                                             }

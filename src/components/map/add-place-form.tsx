@@ -22,17 +22,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { CATEGORIES } from "@/lib/types";
-import {
-    MapPin,
-    Camera,
-    X,
-    Star,
-    DollarSign,
-    Clock,
-    Phone,
-    Globe,
-    Save,
-} from "lucide-react";
+import { MapPin, Camera, X, Save, Loader2 } from "lucide-react";
+import { useImageUpload } from "@/lib/image-upload";
 
 const AddPlaceSchema = z.object({
     name: z.string().min(1, "Tên địa điểm là bắt buộc"),
@@ -54,15 +45,20 @@ const AddPlaceSchema = z.object({
 type AddPlaceFormData = z.infer<typeof AddPlaceSchema>;
 
 interface AddPlaceFormProps {
-    isOpen: boolean;
-    onClose: () => void;
-    location: {
+    readonly isOpen: boolean;
+    readonly onClose: () => void;
+    readonly location: {
         lng: number;
         lat: number;
         address?: string;
     };
-    onSubmit: (
-        data: AddPlaceFormData & { lng: number; lat: number; address: string }
+    readonly onSubmit: (
+        data: AddPlaceFormData & {
+            lng: number;
+            lat: number;
+            address: string;
+            images?: string[]; // Image URLs from ShareVoucher API
+        }
     ) => void;
 }
 
@@ -74,13 +70,16 @@ export function AddPlaceForm({
 }: AddPlaceFormProps) {
     const [images, setImages] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+    const [isUploadingImages, setIsUploadingImages] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<string>("");
+
+    const { uploadMultipleImages } = useImageUpload();
 
     const {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
         setValue,
-        watch,
         reset,
     } = useForm<AddPlaceFormData>({
         resolver: zodResolver(AddPlaceSchema),
@@ -119,17 +118,70 @@ export function AddPlaceForm({
         });
     };
 
-    const onFormSubmit = (data: AddPlaceFormData) => {
-        onSubmit({
-            ...data,
-            lng: location.lng,
-            lat: location.lat,
-            address: location.address || "",
-        });
-        reset();
-        setImages([]);
-        setPreviewUrls([]);
-        onClose();
+    const onFormSubmit = async (data: AddPlaceFormData) => {
+        try {
+            setIsUploadingImages(true);
+            setUploadProgress("Đang xử lý ảnh...");
+
+            let imageUrls: string[] = [];
+
+            // Upload images to ShareVoucher API if any
+            if (images.length > 0) {
+                setUploadProgress(`Đang upload ${images.length} ảnh...`);
+                console.log(
+                    `📤 Uploading ${images.length} images to ShareVoucher API`
+                );
+
+                const uploadResults = await uploadMultipleImages(images);
+
+                let successCount = 0;
+                for (const result of uploadResults) {
+                    if (result.success && result.url) {
+                        imageUrls.push(result.url);
+                        successCount++;
+                        console.log(
+                            `✅ Successfully uploaded image: ${result.url}`
+                        );
+                    } else {
+                        console.error(
+                            `❌ Failed to upload image: ${result.error}`
+                        );
+                    }
+                }
+
+                console.log(
+                    `📊 Upload summary: ${successCount}/${images.length} images uploaded successfully`
+                );
+                setUploadProgress(
+                    `Đã upload ${successCount}/${images.length} ảnh thành công`
+                );
+
+                // Brief delay to show the progress message
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
+
+            setUploadProgress("Đang lưu địa điểm...");
+
+            onSubmit({
+                ...data,
+                lng: location.lng,
+                lat: location.lat,
+                address: location.address || "",
+                images: imageUrls,
+            });
+
+            // Reset form
+            reset();
+            setImages([]);
+            setPreviewUrls([]);
+            onClose();
+        } catch (error) {
+            console.error("Error submitting place:", error);
+            setUploadProgress("Có lỗi xảy ra khi xử lý ảnh");
+        } finally {
+            setIsUploadingImages(false);
+            setUploadProgress("");
+        }
     };
 
     const handleClose = () => {
@@ -335,11 +387,20 @@ export function AddPlaceForm({
                         </Button>
                         <Button
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isUploadingImages}
                             className="flex-1"
                         >
-                            <Save className="h-4 w-4 mr-2" />
-                            {isSubmitting ? "Đang lưu..." : "Lưu địa điểm"}
+                            {isUploadingImages ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Save className="h-4 w-4 mr-2" />
+                            )}
+                            {(() => {
+                                if (isUploadingImages && uploadProgress)
+                                    return uploadProgress;
+                                if (isSubmitting) return "Đang lưu...";
+                                return "Lưu địa điểm";
+                            })()}
                         </Button>
                     </div>
                 </form>

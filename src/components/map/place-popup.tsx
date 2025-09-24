@@ -23,13 +23,12 @@ import {
     Globe,
     Star,
     Navigation,
-    Heart,
     Eye,
     BookOpen,
-    Plus,
     PenTool,
     Trash2,
 } from "lucide-react";
+import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 
 interface LocationNote {
     id: string;
@@ -521,11 +520,8 @@ export function PlacePopup({
                                                 key={index}
                                                 className="w-8 h-8 bg-gray-100 rounded border border-gray-200 overflow-hidden"
                                             >
-                                                {typeof image === "string" &&
-                                                image.startsWith(
-                                                    "data:image"
-                                                ) ? (
-                                                    <img
+                                                {isValidImageUrl(image) ? (
+                                                    <ImageDisplay
                                                         src={image}
                                                         alt={`Ảnh ${index + 1}`}
                                                         className="w-full h-full object-cover"

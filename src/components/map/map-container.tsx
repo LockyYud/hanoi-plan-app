@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import mapboxgl from "mapbox-gl";
-import { useMapStore, usePlaceStore } from "@/lib/store";
+import { useMapStore, usePlaceStore, useUIStore } from "@/lib/store";
 import { PlacePopup } from "./place-popup";
 import { MapControls } from "./map-controls";
 import { LocationNoteForm } from "./location-note-form";
@@ -47,6 +47,7 @@ export function MapContainer({ className }: MapContainerProps) {
     const { center, zoom, setCenter, setZoom, setBounds } = useMapStore();
     const { places, selectedPlace, setSelectedPlace, setPlaces } =
         usePlaceStore();
+    const { sidebarOpen } = useUIStore();
 
     // State for location notes
     const [locationNotes, setLocationNotes] = useState<
@@ -250,44 +251,76 @@ export function MapContainer({ className }: MapContainerProps) {
                 "type:",
                 (place as any).placeType || "regular"
             );
+
             const markerElement = document.createElement("div");
             markerElement.className = "place-marker";
+
+            // Determine if this marker is selected
+            const isSelected = selectedPlace && selectedPlace.id === place.id;
+
             markerElement.innerHTML = `
-                <div style="
-                    width: 32px;
-                    height: 32px;
-                    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                    border: 3px solid white;
-                    border-radius: 50%;
-                    cursor: pointer;
-                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-                    transition: all 0.3s ease;
+                <div class="marker-container" style="
+                    position: relative;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    color: white;
-                    font-size: 14px;
-                    font-weight: bold;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    ${isSelected ? "transform: scale(1.2);" : ""}
                 ">
-                    ${(place as any).placeType === "note" ? (place as any).mood || "📝" : place.category === "cafe" ? "☕" : place.category === "food" ? "🍜" : place.category === "bar" ? "🍻" : place.category === "rooftop" ? "🏙️" : place.category === "activity" ? "🎯" : "🏛️"}
+                    ${
+                        isSelected
+                            ? `
+                        <div style="
+                            position: absolute;
+                            width: 50px;
+                            height: 50px;
+                            border: 3px solid #3b82f6;
+                            border-radius: 50%;
+                            animation: pulse-ring 2s infinite;
+                            opacity: 0.6;
+                        "></div>
+                    `
+                            : ""
+                    }
+                    <div class="marker-inner" style="
+                        width: 36px;
+                        height: 36px;
+                        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                        border: 3px solid white;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-size: 16px;
+                        font-weight: bold;
+                        transition: all 0.3s ease;
+                        ${isSelected ? "box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6); border-color: #fbbf24;" : ""}
+                    ">
+                        ${(place as any).placeType === "note" ? (place as any).mood || "📝" : place.category === "cafe" ? "☕" : place.category === "food" ? "🍜" : place.category === "bar" ? "🍻" : place.category === "rooftop" ? "🏙️" : place.category === "activity" ? "🎯" : "🏛️"}
+                    </div>
                 </div>
             `;
 
-            const innerDiv = markerElement.querySelector("div");
+            const markerInner = markerElement.querySelector(".marker-inner");
 
             markerElement.addEventListener("mouseenter", () => {
-                if (innerDiv) {
-                    innerDiv.style.transform = "scale(1.2)";
-                    innerDiv.style.boxShadow =
+                if (markerInner && !isSelected) {
+                    (markerInner as HTMLElement).style.transform = "scale(1.1)";
+                    (markerInner as HTMLElement).style.boxShadow =
                         "0 6px 20px rgba(59, 130, 246, 0.6)";
+                    (markerInner as HTMLElement).style.borderColor = "#fbbf24";
                 }
             });
 
             markerElement.addEventListener("mouseleave", () => {
-                if (innerDiv) {
-                    innerDiv.style.transform = "scale(1)";
-                    innerDiv.style.boxShadow =
+                if (markerInner && !isSelected) {
+                    (markerInner as HTMLElement).style.transform = "scale(1)";
+                    (markerInner as HTMLElement).style.boxShadow =
                         "0 4px 12px rgba(59, 130, 246, 0.4)";
+                    (markerInner as HTMLElement).style.borderColor = "white";
                 }
             });
 
@@ -330,7 +363,7 @@ export function MapContainer({ className }: MapContainerProps) {
                 });
             }
         }
-    }, [places, mapLoaded, setSelectedPlace]);
+    }, [places, mapLoaded, setSelectedPlace, selectedPlace]);
 
     // Location note markers are now unified with place markers
     // This useEffect is disabled to prevent duplicate markers
@@ -495,9 +528,16 @@ export function MapContainer({ className }: MapContainerProps) {
             setShowEditForm(false);
             setEditingNote(null);
 
-            // Close details dialog and refresh
-            setShowDetailsDialog(false);
-            setSelectedPlace(null);
+            // Update selected place with new data so details view shows updated info
+            if (selectedPlace && selectedPlace.id === updatedNote.id) {
+                setSelectedPlace({
+                    ...selectedPlace,
+                    content: updatedNote.content,
+                    mood: updatedNote.mood,
+                    timestamp: updatedNote.timestamp,
+                    images: updatedNote.images,
+                });
+            }
 
             // Dispatch event to update sidebar
             window.dispatchEvent(new CustomEvent("locationNoteUpdated"));
@@ -646,6 +686,37 @@ export function MapContainer({ className }: MapContainerProps) {
         }
     }, [mapLoaded, session]);
 
+    // Handle map resize when sidebar toggles
+    useEffect(() => {
+        if (!map.current || !mapLoaded) return;
+
+        // Add a small delay to allow CSS transition to complete
+        const timeoutId = setTimeout(() => {
+            console.log("🔄 Resizing map after sidebar toggle");
+            map.current?.resize();
+        }, 350); // Slightly longer than the 300ms transition
+
+        return () => clearTimeout(timeoutId);
+    }, [sidebarOpen, mapLoaded]);
+
+    // Add ResizeObserver as additional safeguard for map container resizing
+    useEffect(() => {
+        if (!map.current || !mapLoaded || !mapContainer.current) return;
+
+        const resizeObserver = new ResizeObserver(() => {
+            if (map.current) {
+                console.log("🔄 Map container size changed, resizing map");
+                map.current.resize();
+            }
+        });
+
+        resizeObserver.observe(mapContainer.current);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [mapLoaded]);
+
     // Show error state if map error or no token
     if (mapError || !hasMapboxToken) {
         return (
@@ -750,12 +821,15 @@ export function MapContainer({ className }: MapContainerProps) {
 
                                 setSelectedPlace(null);
                                 // Trigger refresh of sidebar and map markers
-                                window.dispatchEvent(
-                                    new CustomEvent("favoritesUpdated")
-                                );
-                                window.dispatchEvent(
-                                    new CustomEvent("locationNoteAdded")
-                                );
+                                if (placeType === "note") {
+                                    window.dispatchEvent(
+                                        new CustomEvent("locationNoteUpdated")
+                                    );
+                                } else {
+                                    window.dispatchEvent(
+                                        new CustomEvent("favoritesUpdated")
+                                    );
+                                }
                             } catch (error) {
                                 console.error("Error deleting:", error);
                                 alert(

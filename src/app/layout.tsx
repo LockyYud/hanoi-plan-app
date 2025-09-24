@@ -90,8 +90,9 @@ export default function RootLayout({
                 <ErrorBoundary>
                     <Providers>
                         {children}
-                        {(process.env.NODE_ENV === "development" ||
-                            process.env.VERCEL_ENV) && <DebugSession />}
+                        {/* {process.env.NODE_ENV === "development" && (
+                            <DebugSession />
+                        )} */}
                     </Providers>
                     <Toaster />
                 </ErrorBoundary>

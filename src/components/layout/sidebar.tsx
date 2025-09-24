@@ -287,10 +287,15 @@ export function Sidebar() {
         // Listen for both favorites and location notes updates
         window.addEventListener("favoritesUpdated", handlePlacesUpdate);
         window.addEventListener("locationNoteAdded", handlePlacesUpdate);
+        window.addEventListener("locationNoteUpdated", handlePlacesUpdate);
 
         return () => {
             window.removeEventListener("favoritesUpdated", handlePlacesUpdate);
             window.removeEventListener("locationNoteAdded", handlePlacesUpdate);
+            window.removeEventListener(
+                "locationNoteUpdated",
+                handlePlacesUpdate
+            );
         };
     }, [fetchPlaces, mounted, session]);
 
@@ -397,24 +402,24 @@ export function Sidebar() {
     return (
         <div
             className={cn(
-                "fixed left-0 top-0 h-full w-80 bg-white border-r border-gray-200 transition-transform duration-300 z-20",
+                "fixed left-0 top-0 h-full w-80 md:w-80 sm:w-72 xs:w-full bg-white border-r border-gray-200 transition-transform duration-300 z-20 shadow-lg md:shadow-lg sm:shadow-xl",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
             suppressHydrationWarning
         >
             <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="p-4 border-b border-gray-200">
-                    <h1 className="text-xl font-bold text-gray-900">
+                <div className="p-6 border-b border-gray-100">
+                    <h1 className="text-xl font-bold text-gray-900 mb-1">
                         Hanoi Plan
                     </h1>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-500 leading-relaxed">
                         Khám phá Hà Nội cùng bạn bè
                     </p>
                 </div>
 
                 {/* Navigation Tabs */}
-                <div className="flex border-b border-gray-200">
+                <div className="flex border-b border-gray-100 bg-gray-50/50">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         return (
@@ -422,9 +427,9 @@ export function Sidebar() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
                                 className={cn(
-                                    "flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium border-b-2 transition-colors",
+                                    "flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium border-b-2 transition-all duration-200 hover:bg-white/50",
                                     activeTab === tab.id
-                                        ? "border-blue-500 text-blue-600"
+                                        ? "border-blue-500 text-blue-600 bg-white shadow-sm"
                                         : "border-transparent text-gray-500 hover:text-gray-700"
                                 )}
                             >
@@ -440,7 +445,7 @@ export function Sidebar() {
                     {activeTab === "places" && (
                         <div className="p-4 space-y-4">
                             {/* Search and Filter */}
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                     <Input
@@ -449,26 +454,24 @@ export function Sidebar() {
                                         onChange={(e) =>
                                             setFilter({ query: e.target.value })
                                         }
-                                        className="pl-10"
+                                        className="pl-10 h-11 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all duration-200 rounded-xl"
                                     />
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                                    >
+                                        <Filter className="h-4 w-4" />
+                                    </Button>
                                 </div>
-
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full"
-                                >
-                                    <Filter className="h-4 w-4 mr-2" />
-                                    Bộ lọc nâng cao
-                                </Button>
                             </div>
 
                             {/* Quick Categories */}
-                            <div className="space-y-2">
-                                <h3 className="text-sm font-medium text-gray-700">
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-semibold text-gray-700">
                                     Danh mục
                                 </h3>
-                                <div className="flex flex-wrap gap-1">
+                                <div className="flex flex-wrap gap-2">
                                     {CATEGORIES.map((category) => (
                                         <Badge
                                             key={category}
@@ -479,7 +482,14 @@ export function Sidebar() {
                                                     ? "default"
                                                     : "outline"
                                             }
-                                            className="cursor-pointer"
+                                            className={cn(
+                                                "cursor-pointer px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:shadow-sm",
+                                                filter.category?.includes(
+                                                    category
+                                                )
+                                                    ? "bg-blue-500 text-white border-blue-500 shadow-sm hover:bg-blue-600"
+                                                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                                            )}
                                             onClick={() => {
                                                 const currentCategories =
                                                     filter.category || [];
@@ -510,20 +520,27 @@ export function Sidebar() {
                             </div>
 
                             {/* Places List */}
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-sm font-medium text-gray-700">
+                                    <h3 className="text-sm font-semibold text-gray-700">
                                         {session
                                             ? "Địa điểm của tôi"
                                             : "Địa điểm phổ biến"}{" "}
-                                        ({filteredPlaces.length})
+                                        <span className="text-gray-500 font-normal">
+                                            ({filteredPlaces.length})
+                                        </span>
                                     </h3>
-                                    <Button size="sm" variant="ghost">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                                        title="Thêm địa điểm"
+                                    >
                                         <Plus className="h-4 w-4" />
                                     </Button>
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     {isLoadingPlaces ? (
                                         <div className="text-center py-8 text-gray-500">
                                             <div className="animate-spin h-6 w-6 mx-auto mb-2 border-2 border-blue-600 border-t-transparent rounded-full" />
@@ -553,29 +570,50 @@ export function Sidebar() {
                                         filteredPlaces.map((place) => (
                                             <Card
                                                 key={place.id}
-                                                className="p-3 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="group p-4 bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer rounded-xl"
                                                 onClick={() =>
                                                     setSelectedPlace(place)
                                                 }
                                             >
                                                 <div className="flex items-start gap-3">
-                                                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 mt-1">
-                                                        {(place as any)
-                                                            .placeType ===
-                                                        "note" ? (
-                                                            <span className="text-xs">
-                                                                {(place as any)
-                                                                    .mood ||
-                                                                    "📝"}
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-xs text-blue-500">
-                                                                📍
-                                                            </span>
-                                                        )}
+                                                    {/* Avatar/Icon */}
+                                                    <div className="flex-shrink-0">
+                                                        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                                                            {(place as any)
+                                                                .placeType ===
+                                                            "note" ? (
+                                                                <span className="text-lg">
+                                                                    {(
+                                                                        place as any
+                                                                    ).mood ||
+                                                                        "📝"}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-lg">
+                                                                    {place.category ===
+                                                                    "cafe"
+                                                                        ? "☕"
+                                                                        : place.category ===
+                                                                            "food"
+                                                                          ? "🍜"
+                                                                          : place.category ===
+                                                                              "bar"
+                                                                            ? "🍻"
+                                                                            : place.category ===
+                                                                                "rooftop"
+                                                                              ? "🏙️"
+                                                                              : place.category ===
+                                                                                  "activity"
+                                                                                ? "🎯"
+                                                                                : "🏛️"}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
+
+                                                    {/* Content */}
                                                     <div className="flex-1 min-w-0">
-                                                        <h4 className="font-medium text-sm text-gray-900 truncate">
+                                                        <h4 className="font-semibold text-sm text-gray-900 truncate mb-1">
                                                             {(place as any)
                                                                 .placeType ===
                                                             "note"
@@ -594,66 +632,70 @@ export function Sidebar() {
                                                                       ).content
                                                                 : place.name}
                                                         </h4>
-                                                        <p className="text-xs text-gray-500 truncate">
+                                                        <p className="text-xs text-gray-500 truncate mb-2">
                                                             {place.address}
                                                         </p>
-                                                        <div className="flex items-center gap-2 mt-1">
+
+                                                        {/* Meta info */}
+                                                        <div className="flex items-center gap-2 text-xs">
                                                             {(place as any)
                                                                 .placeType ===
                                                             "note" ? (
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className="text-xs bg-blue-50 text-blue-700 border-blue-200"
-                                                                >
-                                                                    Ghi chú
-                                                                </Badge>
-                                                            ) : (
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className="text-xs"
-                                                                >
-                                                                    {
-                                                                        place.category
-                                                                    }
-                                                                </Badge>
-                                                            )}
-                                                            {place.priceLevel && (
-                                                                <span className="text-xs text-gray-500">
-                                                                    {"₫".repeat(
-                                                                        place.priceLevel
-                                                                    )}
-                                                                </span>
-                                                            )}
-                                                            {(place as any)
-                                                                .placeType ===
-                                                                "note" &&
-                                                                (place as any)
-                                                                    .images
-                                                                    ?.length >
-                                                                    0 && (
+                                                                <>
                                                                     <Badge
                                                                         variant="outline"
-                                                                        className="text-xs bg-green-50 text-green-700 border-green-200"
+                                                                        className="px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200 rounded-md"
                                                                     >
-                                                                        📷{" "}
+                                                                        Ghi chú
+                                                                    </Badge>
+                                                                    {(
+                                                                        place as any
+                                                                    ).images
+                                                                        ?.length >
+                                                                        0 && (
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="px-2 py-0.5 bg-green-50 text-green-700 border-green-200 rounded-md"
+                                                                        >
+                                                                            📷{" "}
+                                                                            {
+                                                                                (
+                                                                                    place as any
+                                                                                )
+                                                                                    .images
+                                                                                    .length
+                                                                            }
+                                                                        </Badge>
+                                                                    )}
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="px-2 py-0.5 bg-gray-50 text-gray-700 border-gray-200 rounded-md"
+                                                                    >
                                                                         {
-                                                                            (
-                                                                                place as any
-                                                                            )
-                                                                                .images
-                                                                                .length
+                                                                            place.category
                                                                         }
                                                                     </Badge>
-                                                                )}
+                                                                    {place.priceLevel && (
+                                                                        <span className="text-gray-500">
+                                                                            {"₫".repeat(
+                                                                                place.priceLevel
+                                                                            )}
+                                                                        </span>
+                                                                    )}
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </div>
 
                                                     {/* Action buttons */}
-                                                    <div className="flex flex-col gap-1">
+                                                    <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
-                                                            className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700"
+                                                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 handleGetDirections(
@@ -667,13 +709,13 @@ export function Sidebar() {
                                                             title="Chỉ đường"
                                                         >
                                                             <Navigation
-                                                                className={`h-3 w-3 ${isGettingDirections === place.id ? "animate-spin" : ""}`}
+                                                                className={`h-4 w-4 ${isGettingDirections === place.id ? "animate-spin" : ""}`}
                                                             />
                                                         </Button>
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
-                                                            className="h-6 w-6 p-0"
+                                                            className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 console.log(
@@ -687,98 +729,7 @@ export function Sidebar() {
                                                             }}
                                                             title="Xem chi tiết"
                                                         >
-                                                            <Eye className="h-3 w-3" />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            className="h-6 w-6 p-0 text-red-500 hover:text-red-600"
-                                                            onClick={async (
-                                                                e
-                                                            ) => {
-                                                                e.stopPropagation();
-                                                                if (
-                                                                    confirm(
-                                                                        "Bạn có chắc muốn xóa địa điểm này?"
-                                                                    )
-                                                                ) {
-                                                                    try {
-                                                                        const placeType =
-                                                                            (
-                                                                                place as any
-                                                                            )
-                                                                                .placeType;
-                                                                        let apiUrl =
-                                                                            "";
-
-                                                                        if (
-                                                                            placeType ===
-                                                                            "note"
-                                                                        ) {
-                                                                            // Delete location note
-                                                                            apiUrl = `/api/location-notes?id=${place.id}`;
-                                                                        } else {
-                                                                            // Delete favorite place
-                                                                            apiUrl = `/api/favorites?placeId=${place.id}`;
-                                                                        }
-
-                                                                        const response =
-                                                                            await fetch(
-                                                                                apiUrl,
-                                                                                {
-                                                                                    method: "DELETE",
-                                                                                }
-                                                                            );
-
-                                                                        if (
-                                                                            !response.ok
-                                                                        ) {
-                                                                            throw new Error(
-                                                                                "Failed to delete"
-                                                                            );
-                                                                        }
-
-                                                                        console.log(
-                                                                            "Deleted:",
-                                                                            place.name ||
-                                                                                (
-                                                                                    place as any
-                                                                                )
-                                                                                    .content
-                                                                        );
-
-                                                                        // Refresh places list
-                                                                        fetchPlaces();
-
-                                                                        // Trigger map refresh
-                                                                        window.dispatchEvent(
-                                                                            new CustomEvent(
-                                                                                "favoritesUpdated"
-                                                                            )
-                                                                        );
-                                                                        window.dispatchEvent(
-                                                                            new CustomEvent(
-                                                                                "locationNoteAdded"
-                                                                            )
-                                                                        );
-
-                                                                        toast.success(
-                                                                            "Đã xóa địa điểm"
-                                                                        );
-                                                                    } catch (error) {
-                                                                        console.error(
-                                                                            "Error deleting:",
-                                                                            error
-                                                                        );
-                                                                        toast.error(
-                                                                            "Không thể xóa địa điểm"
-                                                                        );
-                                                                    }
-                                                                }
-                                                            }}
-                                                            title="Xóa khỏi danh sách"
-                                                        >
-                                                            <Trash2 className="h-3 w-3" />
+                                                            <Eye className="h-4 w-4" />
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -914,67 +865,109 @@ export function Sidebar() {
                     )}
 
                     {activeTab === "profile" && (
-                        <div className="p-4 space-y-4">
+                        <div className="p-6 space-y-6">
                             {status === "loading" ? (
-                                <div className="text-center py-8">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                                    <p className="text-gray-600">Đang tải...</p>
+                                <div className="text-center py-12">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+                                    <p className="text-gray-600 text-sm">
+                                        Đang tải...
+                                    </p>
                                 </div>
                             ) : session ? (
                                 <>
-                                    <div className="w-16 h-16 bg-blue-200 rounded-full mx-auto mb-3 flex items-center justify-center overflow-hidden">
-                                        {session.user?.image ? (
-                                            /* eslint-disable-next-line @next/next/no-img-element */
-                                            <img
-                                                src={session.user.image}
-                                                alt="Avatar"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <User className="h-8 w-8 text-blue-600" />
-                                        )}
+                                    {/* Profile Card */}
+                                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                                        <div className="text-center">
+                                            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl mx-auto mb-4 flex items-center justify-center overflow-hidden shadow-lg">
+                                                {session.user?.image ? (
+                                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                                    <img
+                                                        src={session.user.image}
+                                                        alt="Avatar"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <User className="h-10 w-10 text-white" />
+                                                )}
+                                            </div>
+                                            <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                                                {session.user?.name ||
+                                                    "Người dùng"}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 mb-4">
+                                                {session.user?.email}
+                                            </p>
+
+                                            {/* Stats */}
+                                            <div className="grid grid-cols-2 gap-4 text-center">
+                                                <div className="bg-white/50 rounded-xl p-3">
+                                                    <div className="font-semibold text-blue-600">
+                                                        {places.length}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
+                                                        Địa điểm
+                                                    </div>
+                                                </div>
+                                                <div className="bg-white/50 rounded-xl p-3">
+                                                    <div className="font-semibold text-green-600">
+                                                        {
+                                                            places.filter(
+                                                                (p) =>
+                                                                    (p as any)
+                                                                        .placeType ===
+                                                                    "note"
+                                                            ).length
+                                                        }
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
+                                                        Ghi chú
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h3 className="font-medium text-gray-900">
-                                        {session.user?.name || "Người dùng"}
-                                    </h3>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        {session.user?.email}
-                                    </p>
-                                    <div className="space-y-2 mt-4">
+
+                                    {/* Actions */}
+                                    <div className="space-y-3">
                                         <Button
                                             variant="outline"
-                                            className="w-full justify-start"
+                                            className="w-full justify-start h-12 bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
                                         >
-                                            <Settings className="h-4 w-4 mr-2" />
-                                            Cài đặt
+                                            <Settings className="h-5 w-5 mr-3 text-gray-500" />
+                                            <span className="font-medium">
+                                                Cài đặt
+                                            </span>
                                         </Button>
                                         <Button
                                             variant="outline"
-                                            className="w-full justify-start text-red-600 hover:text-red-700"
+                                            className="w-full justify-start h-12 bg-white border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl"
                                             onClick={() => signOut()}
                                         >
-                                            <LogOut className="h-4 w-4 mr-2" />
-                                            Đăng xuất
+                                            <LogOut className="h-5 w-5 mr-3" />
+                                            <span className="font-medium">
+                                                Đăng xuất
+                                            </span>
                                         </Button>
                                     </div>
                                 </>
                             ) : (
-                                <div className="text-center py-8">
-                                    <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                                        <User className="h-8 w-8 text-gray-400" />
+                                <div className="text-center py-12">
+                                    <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl mx-auto mb-6 flex items-center justify-center">
+                                        <User className="h-10 w-10 text-gray-500" />
                                     </div>
-                                    <h3 className="font-medium text-gray-900 mb-2">
+                                    <h3 className="font-semibold text-lg text-gray-900 mb-2">
                                         Đăng nhập để sử dụng
                                     </h3>
-                                    <p className="text-sm text-gray-500 mb-4">
-                                        Lưu địa điểm yêu thích và tạo nhóm
+                                    <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                                        Lưu địa điểm yêu thích và tạo nhóm cùng
+                                        bạn bè
                                     </p>
                                     {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID &&
                                     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID !==
                                         "demo-google-client-id" ? (
                                         <Button
                                             onClick={() => signIn("google")}
-                                            className="w-full mb-2"
+                                            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
                                         >
                                             <svg
                                                 className="w-4 h-4 mr-2"
@@ -1000,17 +993,14 @@ export function Sidebar() {
                                             Đăng nhập với Google
                                         </Button>
                                     ) : (
-                                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                            <p className="text-sm text-yellow-800 mb-2">
-                                                🔧{" "}
-                                                <strong>
-                                                    Cần cấu hình Google OAuth
-                                                </strong>
+                                        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                                            <p className="text-sm text-amber-800 mb-3 font-medium">
+                                                🔧 Cần cấu hình Google OAuth
                                             </p>
-                                            <p className="text-xs text-yellow-700">
+                                            <p className="text-xs text-amber-700 mb-2">
                                                 Để sử dụng đăng nhập, vui lòng:
                                             </p>
-                                            <ol className="text-xs text-yellow-700 ml-4 mt-1 list-decimal">
+                                            <ol className="text-xs text-amber-700 ml-4 space-y-1 list-decimal">
                                                 <li>Tạo Google OAuth app</li>
                                                 <li>Cập nhật .env.local</li>
                                                 <li>Restart dev server</li>

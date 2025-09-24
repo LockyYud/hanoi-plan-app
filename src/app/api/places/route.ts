@@ -17,6 +17,7 @@ const PlaceCreateSchema = z.object({
     phone: z.string().optional(),
     website: z.string().url().optional(),
     tags: z.array(z.string()).optional(),
+    images: z.array(z.string()).optional(), // Image URLs from ShareVoucher API
 })
 
 const PlaceFilterSchema = z.object({
@@ -185,6 +186,13 @@ export async function POST(request: NextRequest) {
                 createdBy: session.user.id,
                 tags: data.tags ? {
                     create: data.tags.map(tag => ({ tag }))
+                } : undefined,
+                media: data.images ? {
+                    create: data.images.map(url => ({
+                        url,
+                        userId: session.user.id,
+                        visibility: "group" as const
+                    }))
                 } : undefined
             },
             include: {

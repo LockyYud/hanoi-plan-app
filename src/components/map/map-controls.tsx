@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
     MapPin,
-    Filter,
     Plus,
     Users,
     Search,
     Menu,
     Loader2,
+    Navigation,
 } from "lucide-react";
 import { useUIStore, useMapStore } from "@/lib/store";
+import { getCurrentLocation } from "@/lib/geolocation";
 
 export function MapControls() {
     const { sidebarOpen, setSidebarOpen } = useUIStore();
@@ -83,7 +84,11 @@ export function MapControls() {
                 },
             ];
 
-            let allResults: any[] = [];
+            const allResults: Array<{
+                text: string;
+                place_name: string;
+                center: [number, number];
+            }> = [];
 
             // Try each search strategy
             for (const search of searches) {
@@ -157,6 +162,34 @@ export function MapControls() {
         setSearchResults([]);
     };
 
+    // Handle current location button
+    const handleCurrentLocation = async () => {
+        try {
+            const userLocation = await getCurrentLocation();
+            setCenter([userLocation.lng, userLocation.lat]);
+            setZoom(16);
+        } catch (error) {
+            console.error("Could not get current location:", error);
+            alert(
+                "Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền truy cập vị trí."
+            );
+        }
+    };
+
+    // Handle add place button
+    const handleAddPlace = () => {
+        alert(
+            "Chức năng thêm địa điểm sẽ được phát triển trong phiên bản tiếp theo."
+        );
+    };
+
+    // Handle create group button
+    const handleCreateGroup = () => {
+        alert(
+            "Chức năng tạo nhóm sẽ được phát triển trong phiên bản tiếp theo."
+        );
+    };
+
     return (
         <>
             {/* Sidebar toggle */}
@@ -165,16 +198,16 @@ export function MapControls() {
                     variant="outline"
                     size="sm"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="bg-white shadow-md pointer-events-auto"
+                    className="bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-blue-300 shadow-md pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                     <Menu className="h-4 w-4" />
                 </Button>
             </div>
 
             {/* Search control */}
-            <div className="absolute top-4 left-16 right-20 z-10 pointer-events-none">
+            <div className="absolute top-4 left-16 right-4 md:right-20 z-10 pointer-events-none">
                 <div className="relative pointer-events-auto">
-                    <Card className="p-3 bg-white shadow-lg border border-gray-200">
+                    <Card className="p-3 md:p-3 sm:p-2 bg-white shadow-lg border border-gray-200 rounded-xl">
                         <div className="flex items-center gap-3">
                             {isSearching ? (
                                 <Loader2 className="h-4 w-4 text-blue-500 animate-spin flex-shrink-0" />
@@ -207,7 +240,7 @@ export function MapControls() {
                                         setSearchValue("");
                                         setSearchResults([]);
                                     }}
-                                    className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+                                    className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors duration-200"
                                 >
                                     ×
                                 </Button>
@@ -218,11 +251,20 @@ export function MapControls() {
                     {/* Search Results Dropdown */}
                     {searchResults.length > 0 && (
                         <Card className="absolute top-full mt-1 w-full bg-white shadow-xl border border-gray-200 max-h-64 overflow-y-auto">
-                            {searchResults.map((place, index) => (
-                                <div
-                                    key={index}
+                            {searchResults.map((place) => (
+                                <button
+                                    key={place.place_name}
                                     onClick={() => handleSelectPlace(place)}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                    onKeyDown={(e) => {
+                                        if (
+                                            e.key === "Enter" ||
+                                            e.key === " "
+                                        ) {
+                                            e.preventDefault();
+                                            handleSelectPlace(place);
+                                        }
+                                    }}
+                                    className="w-full p-3 text-left hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-blue-50 focus:border-blue-200"
                                 >
                                     <div className="flex items-start gap-3">
                                         <MapPin className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
@@ -235,27 +277,31 @@ export function MapControls() {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </button>
                             ))}
                         </Card>
                     )}
                 </div>
             </div>
 
-            {/* Action buttons */}
-            <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 pointer-events-none">
+            {/* Action buttons - Mobile optimized FAB */}
+            <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-3 pointer-events-none">
+                {/* Primary FAB - Add Place */}
                 <Button
                     size="sm"
-                    className="w-12 h-12 rounded-full shadow-lg pointer-events-auto"
+                    onClick={handleAddPlace}
+                    className="w-14 h-14 md:w-12 md:h-12 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 text-white border-2 border-white pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
                     title="Thêm địa điểm"
                 >
-                    <Plus className="h-5 w-5" />
+                    <Plus className="h-6 w-6 md:h-5 md:w-5" />
                 </Button>
 
+                {/* Secondary FABs */}
                 <Button
                     variant="outline"
                     size="sm"
-                    className="w-12 h-12 rounded-full shadow-lg bg-white pointer-events-auto"
+                    onClick={handleCreateGroup}
+                    className="w-12 h-12 md:w-12 md:h-12 rounded-full shadow-lg bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-blue-300 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
                     title="Tạo nhóm"
                 >
                     <Users className="h-5 w-5" />
@@ -264,10 +310,11 @@ export function MapControls() {
                 <Button
                     variant="outline"
                     size="sm"
-                    className="w-12 h-12 rounded-full shadow-lg bg-white pointer-events-auto"
+                    onClick={handleCurrentLocation}
+                    className="w-12 h-12 md:w-12 md:h-12 rounded-full shadow-lg bg-white hover:bg-blue-50 text-blue-600 border-2 border-blue-200 hover:border-blue-400 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
                     title="Vị trí của tôi"
                 >
-                    <MapPin className="h-5 w-5" />
+                    <Navigation className="h-5 w-5" />
                 </Button>
             </div>
         </>
