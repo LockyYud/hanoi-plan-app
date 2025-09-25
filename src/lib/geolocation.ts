@@ -203,6 +203,52 @@ export const formatDistance = (meters: number): string => {
 };
 
 /**
+ * Remove route from Mapbox map
+ */
+export const removeRouteFromMap = (mapRef: any, sourceId: string = 'route') => {
+    // Get the actual map instance
+    const map = mapRef?.current || mapRef;
+
+    if (!map || typeof map.getSource !== 'function') {
+        console.error('❌ Invalid map reference passed to removeRouteFromMap:', map);
+        return false;
+    }
+
+    console.log('🧹 Removing route from map:', { sourceId });
+
+    try {
+        // Remove layer first, then source
+        if (map.getLayer(`${sourceId}-layer`)) {
+            map.removeLayer(`${sourceId}-layer`);
+            console.log('✅ Route layer removed');
+        }
+
+        if (map.getSource(sourceId)) {
+            map.removeSource(sourceId);
+            console.log('✅ Route source removed');
+        }
+
+        return true;
+    } catch (error) {
+        console.error('❌ Error removing route from map:', error);
+        return false;
+    }
+};
+
+/**
+ * Check if route exists on map
+ */
+export const hasActiveRoute = (mapRef: any, sourceId: string = 'route'): boolean => {
+    const map = mapRef?.current || mapRef;
+
+    if (!map || typeof map.getSource !== 'function') {
+        return false;
+    }
+
+    return !!map.getSource(sourceId);
+};
+
+/**
  * Open external navigation app with directions using Mapbox Navigation
  */
 export const openExternalNavigation = (destination: UserLocation, userLocation?: UserLocation) => {

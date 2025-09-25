@@ -70,6 +70,7 @@ export function Sidebar() {
     >([]);
     const [showRouteGenerator, setShowRouteGenerator] = useState(false);
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+    const [showFilterPopover, setShowFilterPopover] = useState(false);
 
     // Define fetchGroups function
     const fetchGroups = async () => {
@@ -459,12 +460,153 @@ export function Sidebar() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                                        onClick={() =>
+                                            setShowFilterPopover(
+                                                !showFilterPopover
+                                            )
+                                        }
+                                        className={cn(
+                                            "absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200",
+                                            showFilterPopover
+                                                ? "text-blue-600 bg-blue-50"
+                                                : ""
+                                        )}
+                                        title="Bộ lọc nâng cao"
                                     >
                                         <Filter className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </div>
+
+                            {/* Filter Popover */}
+                            {showFilterPopover && (
+                                <div className="bg-white rounded-xl border border-gray-200 shadow-lg p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-semibold text-gray-900">
+                                            Bộ lọc nâng cao
+                                        </h4>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                setShowFilterPopover(false)
+                                            }
+                                            className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+
+                                    {/* Filter by type */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">
+                                            Loại địa điểm
+                                        </label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {[
+                                                {
+                                                    label: "Ghi chú",
+                                                    value: "note",
+                                                    icon: "📝",
+                                                },
+                                                {
+                                                    label: "Đã lưu",
+                                                    value: "saved",
+                                                    icon: "⭐",
+                                                },
+                                                {
+                                                    label: "Có ảnh",
+                                                    value: "with-images",
+                                                    icon: "📷",
+                                                },
+                                            ].map((type) => (
+                                                <Button
+                                                    key={type.value}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        // TODO: Implement filter logic
+                                                        console.log(
+                                                            "Filter by:",
+                                                            type.value
+                                                        );
+                                                    }}
+                                                    className="h-8 px-3 text-xs bg-white hover:bg-gray-50 border-gray-200 rounded-lg"
+                                                >
+                                                    <span className="mr-1">
+                                                        {type.icon}
+                                                    </span>
+                                                    {type.label}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Date range */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">
+                                            Thời gian
+                                        </label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                {
+                                                    label: "Hôm nay",
+                                                    value: "today",
+                                                },
+                                                {
+                                                    label: "Tuần này",
+                                                    value: "week",
+                                                },
+                                                {
+                                                    label: "Tháng này",
+                                                    value: "month",
+                                                },
+                                            ].map((period) => (
+                                                <Button
+                                                    key={period.value}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        // TODO: Implement date filter
+                                                        console.log(
+                                                            "Filter by period:",
+                                                            period.value
+                                                        );
+                                                    }}
+                                                    className="h-8 text-xs bg-white hover:bg-gray-50 border-gray-200 rounded-lg"
+                                                >
+                                                    {period.label}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex gap-2 pt-2 border-t border-gray-100">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                // Reset filters
+                                                setFilter({});
+                                                setShowFilterPopover(false);
+                                            }}
+                                            className="flex-1 h-8 text-xs bg-white hover:bg-gray-50 border-gray-200 rounded-lg"
+                                        >
+                                            Đặt lại
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            onClick={() =>
+                                                setShowFilterPopover(false)
+                                            }
+                                            className="flex-1 h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                                        >
+                                            Áp dụng
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Quick Categories */}
                             <div className="space-y-3">

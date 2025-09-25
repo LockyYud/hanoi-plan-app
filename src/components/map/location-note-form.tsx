@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { useImageUpload } from "@/lib/image-upload";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 const LocationNoteSchema = z.object({
     content: z.string().min(1, "Nội dung ghi chú không được để trống"),
@@ -113,6 +114,11 @@ export function LocationNoteForm({
         additional: false, // Bổ sung (collapsed by default)
     });
 
+    // Lightbox state
+    const [showLightbox, setShowLightbox] = useState(false);
+    const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
+
     const { uploadMultipleImages } = useImageUpload();
 
     // Toggle section expansion
@@ -121,6 +127,13 @@ export function LocationNoteForm({
             ...prev,
             [section]: !prev[section],
         }));
+    };
+
+    // Open lightbox
+    const openLightbox = (images: string[], startIndex: number = 0) => {
+        setLightboxImages(images);
+        setLightboxIndex(startIndex);
+        setShowLightbox(true);
     };
 
     const {
@@ -219,6 +232,45 @@ export function LocationNoteForm({
 
     const removeExistingImage = (index: number) => {
         setExistingImageUrls((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    // Drag & Drop handlers
+    const [dragActive, setDragActive] = useState(false);
+
+    const handleDrag = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const droppedFiles = Array.from(e.dataTransfer.files);
+            const imageFiles = droppedFiles.filter((file) =>
+                file.type.startsWith("image/")
+            );
+
+            const totalImages = existingImageUrls.length + images.length;
+            if (imageFiles.length + totalImages > 3) {
+                alert("Tối đa 3 ảnh cho ghi chú");
+                return;
+            }
+
+            setImages((prev) => [...prev, ...imageFiles]);
+
+            imageFiles.forEach((file) => {
+                const url = URL.createObjectURL(file);
+                setPreviewUrls((prev) => [...prev, url]);
+            });
+        }
     };
 
     const onFormSubmit = async (data: LocationNoteFormData) => {
@@ -721,11 +773,45 @@ Ví dụ:
                                 onChange={handleImageUpload}
                                 className="hidden"
                             />
-                            {/* Upload Zone */}
-                            <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-200">
+                            {/* Upload Zone with Drag & Drop */}
+                            <div
+                                className={`border-2 border-dashed rounded-xl p-6 transition-all duration-200 relative ${
+                                    dragActive
+                                        ? "border-blue-400 bg-blue-50 scale-[1.02]"
+                                        : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
+                                }`}
+                                onDragEnter={handleDrag}
+                                onDragLeave={handleDrag}
+                                onDragOver={handleDrag}
+                                onDrop={handleDrop}
+                            >
+                                {dragActive && (
+                                    <div className="absolute inset-0 bg-blue-50/80 border-2 border-blue-400 border-dashed rounded-xl flex items-center justify-center">
+                                        <div className="text-center">
+                                            <div className="text-4xl mb-2">
+                                                📁
+                                            </div>
+                                            <div className="text-blue-700 font-medium">
+                                                Thả ảnh vào đây
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="text-center">
-                                    <div className="w-12 h-12 bg-blue-100 rounded-xl mx-auto mb-3 flex items-center justify-center">
-                                        <Camera className="h-6 w-6 text-blue-600" />
+                                    <div
+                                        className={`w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center transition-all duration-200 ${
+                                            dragActive
+                                                ? "bg-blue-200"
+                                                : "bg-blue-100"
+                                        }`}
+                                    >
+                                        <Camera
+                                            className={`h-6 w-6 transition-colors duration-200 ${
+                                                dragActive
+                                                    ? "text-blue-700"
+                                                    : "text-blue-600"
+                                            }`}
+                                        />
                                     </div>
                                     <Button
                                         type="button"
@@ -764,7 +850,13 @@ Ví dụ:
                                         {existingImageUrls.map((url, index) => (
                                             <div
                                                 key={`existing-image-${existingNote?.id || "unknown"}-${index}`}
-                                                className="group relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300"
+                                                className="group relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
+                                                onClick={() =>
+                                                    openLightbox(
+                                                        existingImageUrls,
+                                                        index
+                                                    )
+                                                }
                                             >
                                                 {isValidImageUrl(url) ? (
                                                     <>
@@ -773,17 +865,24 @@ Ví dụ:
                                                             alt={`Ảnh hiện có ${index + 1}`}
                                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                         />
-                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/50 rounded-full p-2">
+                                                                <span className="text-white text-sm">
+                                                                    👁️
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                         <Button
                                                             type="button"
                                                             variant="destructive"
                                                             size="sm"
-                                                            className="absolute -top-2 -right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                                                            onClick={() =>
+                                                            className="absolute -top-2 -right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
                                                                 removeExistingImage(
                                                                     index
-                                                                )
-                                                            }
+                                                                );
+                                                            }}
                                                         >
                                                             <X className="h-4 w-4" />
                                                         </Button>
@@ -816,7 +915,13 @@ Ví dụ:
                                         {previewUrls.map((url, index) => (
                                             <div
                                                 key={`new-image-${url}-${index}`}
-                                                className="group relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300"
+                                                className="group relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
+                                                onClick={() =>
+                                                    openLightbox(
+                                                        previewUrls,
+                                                        index
+                                                    )
+                                                }
                                             >
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img
@@ -824,15 +929,22 @@ Ví dụ:
                                                     alt={`Ảnh mới ${index + 1}`}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                 />
-                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/50 rounded-full p-2">
+                                                        <span className="text-white text-sm">
+                                                            👁️
+                                                        </span>
+                                                    </div>
+                                                </div>
                                                 <Button
                                                     type="button"
                                                     variant="destructive"
                                                     size="sm"
-                                                    className="absolute -top-2 -right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                                                    onClick={() =>
-                                                        removeNewImage(index)
-                                                    }
+                                                    className="absolute -top-2 -right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        removeNewImage(index);
+                                                    }}
                                                 >
                                                     <X className="h-4 w-4" />
                                                 </Button>
@@ -876,6 +988,14 @@ Ví dụ:
                         </div>
                     </div>
                 </form>
+
+                {/* Image Lightbox */}
+                <ImageLightbox
+                    images={lightboxImages}
+                    initialIndex={lightboxIndex}
+                    isOpen={showLightbox}
+                    onClose={() => setShowLightbox(false)}
+                />
             </DialogContent>
         </Dialog>
     );

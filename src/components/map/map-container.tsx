@@ -773,7 +773,7 @@ export function MapContainer({ className }: MapContainerProps) {
     return (
         <div className={cn("relative", className)} suppressHydrationWarning>
             <div ref={mapContainer} className="w-full h-full relative z-0" />
-            <MapControls />
+            <MapControls mapRef={map} />
             {/* Unified popup system - only 2 types: My Places or New Location */}
             {selectedPlace ? (
                 <PlacePopup

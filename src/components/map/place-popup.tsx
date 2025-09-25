@@ -8,6 +8,8 @@ import {
     openExternalNavigation,
     getRoute,
     addRouteToMap,
+    removeRouteFromMap,
+    hasActiveRoute,
     formatDuration,
     formatDistance,
     UserLocation,
@@ -27,6 +29,7 @@ import {
     BookOpen,
     PenTool,
     Trash2,
+    NavigationOff,
 } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 
@@ -48,14 +51,14 @@ interface LocationPreview {
 }
 
 interface PlacePopupProps {
-    place?: Place;
-    note?: LocationNote;
-    location?: LocationPreview; // For location preview
-    onClose: () => void;
-    onViewDetails?: () => void; // For notes and places
-    onAddNote?: () => void; // For locations
-    onDelete?: () => void; // For deleting places/notes
-    mapRef?: React.RefObject<mapboxgl.Map>; // Pass map reference for dynamic positioning
+    readonly place?: Place;
+    readonly note?: LocationNote;
+    readonly location?: LocationPreview; // For location preview
+    readonly onClose: () => void;
+    readonly onViewDetails?: () => void; // For notes and places
+    readonly onAddNote?: () => void; // For locations
+    readonly onDelete?: () => void; // For deleting places/notes
+    readonly mapRef?: React.RefObject<mapboxgl.Map>; // Pass map reference for dynamic positioning
 }
 
 export function PlacePopup({
@@ -77,6 +80,7 @@ export function PlacePopup({
         duration: number;
         distance: number;
     } | null>(null);
+    const [hasRoute, setHasRoute] = useState(false);
 
     // Determine popup type
     const isNote = !!note;
@@ -165,6 +169,7 @@ export function PlacePopup({
                             duration: route.duration,
                             distance: route.distance,
                         });
+                        setHasRoute(true);
 
                         toast.success(
                             `Đường đi: ${formatDistance(route.distance)} • ${formatDuration(route.duration)}`,
@@ -183,6 +188,7 @@ export function PlacePopup({
                             duration: route.duration,
                             distance: route.distance,
                         });
+                        setHasRoute(true);
 
                         toast.success(
                             `Đường đi: ${formatDistance(route.distance)} • ${formatDuration(route.duration)} (Không hiển thị được trên bản đồ)`,
@@ -232,6 +238,20 @@ export function PlacePopup({
             openExternalNavigation(destination);
         } finally {
             setIsGettingDirections(false);
+        }
+    };
+
+    const handleClearDirections = () => {
+        if (mapRef) {
+            const success = removeRouteFromMap(mapRef);
+            if (success) {
+                setRouteInfo(null);
+                setShowRouteOptions(false);
+                setHasRoute(false);
+                toast.success("Đã tắt chỉ đường");
+            } else {
+                toast.error("Không thể tắt chỉ đường");
+            }
         }
     };
 
@@ -371,6 +391,15 @@ export function PlacePopup({
             map.off("zoom", updatePosition);
         };
     }, [mapRef, note, location, place]);
+
+    // Check if route exists when popup opens
+    useEffect(() => {
+        if (mapRef) {
+            const routeExists = hasActiveRoute(mapRef);
+            setHasRoute(routeExists);
+            console.log("🔍 Route status check:", routeExists);
+        }
+    }, [mapRef]);
 
     return (
         <div className="w-80 z-20 pointer-events-auto" style={popupStyle}>
@@ -547,7 +576,18 @@ export function PlacePopup({
 
                             {/* Action buttons for notes */}
                             <div className="flex gap-2 pt-2">
-                                {!showRouteOptions ? (
+                                {hasRoute ? (
+                                    /* Show clear directions button when route is active */
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                                        onClick={handleClearDirections}
+                                    >
+                                        <NavigationOff className="h-4 w-4 mr-1" />
+                                        Tắt chỉ đường
+                                    </Button>
+                                ) : !showRouteOptions ? (
                                     <Button
                                         size="sm"
                                         className="flex-1 bg-blue-600 hover:bg-blue-700"
@@ -658,7 +698,18 @@ export function PlacePopup({
 
                             {/* Action buttons for locations */}
                             <div className="flex gap-2 pt-2">
-                                {!showRouteOptions ? (
+                                {hasRoute ? (
+                                    /* Show clear directions button when route is active */
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                                        onClick={handleClearDirections}
+                                    >
+                                        <NavigationOff className="h-4 w-4 mr-1" />
+                                        Tắt chỉ đường
+                                    </Button>
+                                ) : !showRouteOptions ? (
                                     <Button
                                         size="sm"
                                         className="flex-1 bg-blue-600 hover:bg-blue-700"
@@ -824,7 +875,18 @@ export function PlacePopup({
 
                             {/* Action buttons */}
                             <div className="flex gap-2 pt-3">
-                                {!showRouteOptions ? (
+                                {hasRoute ? (
+                                    /* Show clear directions button when route is active */
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                                        onClick={handleClearDirections}
+                                    >
+                                        <NavigationOff className="h-4 w-4 mr-1" />
+                                        Tắt chỉ đường
+                                    </Button>
+                                ) : !showRouteOptions ? (
                                     <Button
                                         size="sm"
                                         className="flex-1 bg-blue-600 hover:bg-blue-700"

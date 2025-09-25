@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import mapboxgl from "mapbox-gl";
 import { debounce } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,11 +13,21 @@ import {
     Menu,
     Loader2,
     Navigation,
+    NavigationOff,
 } from "lucide-react";
 import { useUIStore, useMapStore } from "@/lib/store";
-import { getCurrentLocation } from "@/lib/geolocation";
+import {
+    getCurrentLocation,
+    hasActiveRoute,
+    removeRouteFromMap,
+} from "@/lib/geolocation";
+import { toast } from "sonner";
 
-export function MapControls() {
+interface MapControlsProps {
+    readonly mapRef?: React.RefObject<mapboxgl.Map>;
+}
+
+export function MapControls({ mapRef }: MapControlsProps) {
     const { sidebarOpen, setSidebarOpen } = useUIStore();
     const { setCenter, setZoom } = useMapStore();
     const [searchValue, setSearchValue] = useState("");
@@ -28,6 +39,7 @@ export function MapControls() {
             center: [number, number];
         }>
     >([]);
+    const [showClearRoute, setShowClearRoute] = useState(false);
 
     // Search địa điểm thật qua Mapbox Geocoding API
     const searchPlaces = async (query: string) => {
@@ -190,6 +202,37 @@ export function MapControls() {
         );
     };
 
+    // Handle clear route button
+    const handleClearRoute = () => {
+        if (mapRef) {
+            const success = removeRouteFromMap(mapRef);
+            if (success) {
+                setShowClearRoute(false);
+                toast.success("Đã tắt chỉ đường");
+            } else {
+                toast.error("Không thể tắt chỉ đường");
+            }
+        }
+    };
+
+    // Check for active route periodically
+    useEffect(() => {
+        if (!mapRef) return;
+
+        const checkRoute = () => {
+            const routeExists = hasActiveRoute(mapRef);
+            setShowClearRoute(routeExists);
+        };
+
+        // Check immediately
+        checkRoute();
+
+        // Check every 1 second
+        const interval = setInterval(checkRoute, 1000);
+
+        return () => clearInterval(interval);
+    }, [mapRef]);
+
     return (
         <>
             {/* Sidebar toggle */}
@@ -286,6 +329,19 @@ export function MapControls() {
 
             {/* Action buttons - Mobile optimized FAB */}
             <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-3 pointer-events-none">
+                {/* Clear route button - only shown when route is active */}
+                {showClearRoute && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearRoute}
+                        className="w-12 h-12 md:w-12 md:h-12 rounded-full shadow-lg bg-red-50 hover:bg-red-100 text-red-600 border-2 border-red-200 hover:border-red-400 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
+                        title="Tắt chỉ đường"
+                    >
+                        <NavigationOff className="h-5 w-5" />
+                    </Button>
+                )}
+
                 {/* Primary FAB - Add Place */}
                 <Button
                     size="sm"
