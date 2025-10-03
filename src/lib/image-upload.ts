@@ -10,60 +10,12 @@ interface ImageUploadResponse {
 
 export class ImageUploadService {
     private static readonly API_BASE_URL = 'https://sharevoucher.app/api/v1';
-    private static readonly UPLOAD_ENDPOINT = '/asset/image';
     private static readonly INTERNAL_UPLOAD_ENDPOINT = '/internal/asset/image';
 
     /**
-     * Upload image using the main API endpoint
+     * Upload image using the internal API endpoint (only method available)
      */
-    static async uploadImage(file: File, authToken?: string): Promise<ImageUploadResponse> {
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const headers: HeadersInit = {};
-            if (authToken) {
-                headers['Authorization'] = `Bearer ${authToken}`;
-            }
-
-            const response = await fetch(`${this.API_BASE_URL}${this.UPLOAD_ENDPOINT}`, {
-                method: 'POST',
-                headers,
-                body: formData,
-            });
-
-            if (!response.ok) {
-                throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
-            }
-
-            const result = await response.json();
-
-            // Assuming the API returns the image URL in a specific format
-            // Adjust this based on actual API response structure
-            const imageUrl = result.url || result.data?.url || result.image_url;
-
-            if (!imageUrl) {
-                throw new Error('No image URL returned from API');
-            }
-
-            return {
-                success: true,
-                url: imageUrl,
-            };
-
-        } catch (error) {
-            console.error('Image upload error:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown upload error',
-            };
-        }
-    }
-
-    /**
-     * Upload image using the internal API endpoint
-     */
-    static async uploadImageInternal(file: File, basicAuthToken?: string): Promise<ImageUploadResponse> {
+    static async uploadImage(file: File, basicAuthToken?: string): Promise<ImageUploadResponse> {
         try {
             console.log('🔍 Starting internal image upload:', {
                 fileName: file.name,
@@ -75,9 +27,13 @@ export class ImageUploadService {
             const formData = new FormData();
             formData.append('file', file);
 
-            // Simplified headers - remove browser-specific ones that might cause CORS issues
+            // Headers based on the cURL example
             const headers: HeadersInit = {
                 'accept': 'application/json, text/plain, */*',
+                'accept-language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin',
             };
 
             if (basicAuthToken) {
@@ -87,7 +43,6 @@ export class ImageUploadService {
 
             const url = `${this.API_BASE_URL}${this.INTERNAL_UPLOAD_ENDPOINT}`;
             console.log('📡 Making request to:', url);
-            console.log('📋 Headers:', headers);
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -98,16 +53,21 @@ export class ImageUploadService {
             console.log('📊 Response status:', response.status, response.statusText);
 
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ API Error Response:', errorText);
-                throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+                let errorMessage = `Upload failed: ${response.status} ${response.statusText}`;
+                try {
+                    const errorText = await response.text();
+                    console.error('❌ API Error Response:', errorText);
+                    errorMessage += ` - ${errorText}`;
+                } catch {
+                    // If response reading fails, use default message
+                }
+                throw new Error(errorMessage);
             }
 
             const result = await response.json();
             console.log('✅ API Response:', result);
 
-            // Assuming the API returns the image URL in a specific format
-            // Adjust this based on actual API response structure
+            // Extract image URL from response
             const imageUrl = result.url || result.data?.url || result.image_url;
 
             if (!imageUrl) {
@@ -140,13 +100,10 @@ export class ImageUploadService {
      */
     static async uploadMultipleImages(
         files: File[],
-        authToken?: string,
-        useInternal = false
+        basicAuthToken?: string
     ): Promise<ImageUploadResponse[]> {
         const uploadPromises = files.map(file =>
-            useInternal
-                ? this.uploadImageInternal(file, authToken)
-                : this.uploadImage(file, authToken)
+            this.uploadImage(file, basicAuthToken)
         );
 
         return Promise.all(uploadPromises);
@@ -159,16 +116,11 @@ export class ImageUploadService {
         file: File,
         maxWidth = 800,
         quality = 0.7,
-        authToken?: string,
-        useInternal = false
+        basicAuthToken?: string
     ): Promise<ImageUploadResponse> {
         try {
             const compressedFile = await this.compressImage(file, maxWidth, quality);
-
-            return useInternal
-                ? this.uploadImageInternal(compressedFile, authToken)
-                : this.uploadImage(compressedFile, authToken);
-
+            return this.uploadImage(compressedFile, basicAuthToken);
         } catch (error) {
             console.error('Image compression and upload error:', error);
             return {
@@ -225,12 +177,21 @@ export class ImageUploadService {
 /**
  * Upload image via Next.js API proxy (bypasses CORS)
  */
-async function uploadViaProxy(file: File): Promise<ImageUploadResponse> {
+async function uploadViaProxy(file: File, noteId?: string): Promise<ImageUploadResponse> {
     try {
-        console.log('🔄 Uploading via proxy:', file.name);
+        console.log('🔄 Uploading via proxy:', {
+            fileName: file.name,
+            noteId: noteId || 'none'
+        });
 
         const formData = new FormData();
         formData.append('file', file);
+
+        // Add noteId if provided
+        if (noteId) {
+            formData.append('noteId', noteId);
+            console.log('📎 Attaching to note:', noteId);
+        }
 
         const response = await fetch('/api/upload-image', {
             method: 'POST',
@@ -238,8 +199,15 @@ async function uploadViaProxy(file: File): Promise<ImageUploadResponse> {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `HTTP ${response.status}`);
+            let errorMessage = `HTTP ${response.status}`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch {
+                // If response is not JSON, use status text or default message
+                errorMessage = response.statusText || errorMessage;
+            }
+            throw new Error(errorMessage);
         }
 
         const result = await response.json();
@@ -263,23 +231,23 @@ async function uploadViaProxy(file: File): Promise<ImageUploadResponse> {
 }
 
 export function useImageUpload() {
-    const uploadImage = async (file: File): Promise<ImageUploadResponse> => {
-        // First try to compress the image
+    const uploadImage = async (file: File, noteId?: string): Promise<ImageUploadResponse> => {
+        // First try to compress the image, then upload via proxy
         try {
             const compressedFile = await ImageUploadService.compressImage(file, 800, 0.7);
-            return uploadViaProxy(compressedFile);
+            return uploadViaProxy(compressedFile, noteId);
         } catch (error) {
             console.warn('⚠️ Image compression failed, uploading original:', error);
-            return uploadViaProxy(file);
+            return uploadViaProxy(file, noteId);
         }
     };
 
-    const uploadMultipleImages = async (files: File[]): Promise<ImageUploadResponse[]> => {
+    const uploadMultipleImages = async (files: File[], noteId?: string): Promise<ImageUploadResponse[]> => {
         // Upload images sequentially to avoid overwhelming the server
         const results: ImageUploadResponse[] = [];
 
         for (const file of files) {
-            const result = await uploadImage(file);
+            const result = await uploadImage(file, noteId);
             results.push(result);
         }
 

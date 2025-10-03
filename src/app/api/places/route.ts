@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma, isDatabaseAvailable } from "@/lib/prisma"
 import { z } from "zod"
+import type { Prisma } from "@prisma/client"
 
 const PlaceCreateSchema = z.object({
     name: z.string().min(1),
@@ -15,7 +16,7 @@ const PlaceCreateSchema = z.object({
     category: z.enum(["cafe", "food", "bar", "rooftop", "activity", "landmark"]),
     openHours: z.any().optional(),
     phone: z.string().optional(),
-    website: z.string().url().optional(),
+    website: z.string().optional(),
     tags: z.array(z.string()).optional(),
     images: z.array(z.string()).optional(), // Image URLs from ShareVoucher API
 })
@@ -44,30 +45,38 @@ export async function GET(request: NextRequest) {
         }
 
         const { searchParams } = new URL(request.url)
-        const params = Object.fromEntries(searchParams.entries())
+        const rawParams = Object.fromEntries(searchParams.entries())
+
+        // Parse array and numeric parameters properly
+        const parsedParams: {
+            bbox?: string
+            category?: string[]
+            district?: string[]
+            priceLevel?: number[]
+            query?: string
+            openAt?: string
+            limit: number
+            offset: number
+        } = {
+            ...rawParams,
+            limit: Number(rawParams.limit) || 50,
+            offset: Number(rawParams.offset) || 0
+        }
 
         // Parse array parameters
-        if (params.category) {
-            params.category = params.category.split(',')
+        if (rawParams.category) {
+            parsedParams.category = rawParams.category.split(',')
         }
-        if (params.district) {
-            params.district = params.district.split(',')
+        if (rawParams.district) {
+            parsedParams.district = rawParams.district.split(',')
         }
-        if (params.priceLevel) {
-            params.priceLevel = params.priceLevel.split(',').map(Number)
-        }
-
-        // Parse numeric parameters
-        if (params.limit) {
-            params.limit = Number(params.limit)
-        }
-        if (params.offset) {
-            params.offset = Number(params.offset)
+        if (rawParams.priceLevel) {
+            parsedParams.priceLevel = rawParams.priceLevel.split(',').map(Number)
         }
 
-        const filter = PlaceFilterSchema.parse(params)
+        const filter = PlaceFilterSchema.parse(parsedParams)
 
-        const where: any = {}
+        const where: Prisma.PlaceWhereInput = {}
 
         // Apply filters
         if (filter.category) {
@@ -109,9 +118,13 @@ export async function GET(request: NextRequest) {
                 },
                 media: {
                     where: {
-                        visibility: "group"
+                        isActive: true,
+                        type: 'image' // Only get images for map markers
                     },
-                    take: 3
+                    orderBy: {
+                        createdAt: 'desc'
+                    },
+                    take: 1 // Only get the latest image
                 }
             },
             take: filter.limit,
@@ -122,10 +135,16 @@ export async function GET(request: NextRequest) {
             ]
         })
 
+        // Transform places to include latestMedia for easier access
+        const placesWithLatestMedia = places.map(place => ({
+            ...place,
+            latestMedia: place.media[0] || null
+        }))
+
         return NextResponse.json({
-            data: places,
-            total: places.length,
-            hasMore: places.length === filter.limit
+            data: placesWithLatestMedia,
+            total: placesWithLatestMedia.length,
+            hasMore: placesWithLatestMedia.length === filter.limit
         })
 
     } catch (error) {

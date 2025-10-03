@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
       'lh3.googleusercontent.com', // Google profile images
       'avatars.githubusercontent.com', // GitHub profile images
     ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.tiktokcdn.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 
   // Environment variables

@@ -121,13 +121,20 @@ model Favorite {
   @@map("favorites")
 }
 
+enum MediaType {
+  image
+  video
+}
+
 model Media {
   id         String          @id @default(cuid())
   placeId    String?         @map("place_id")
   userId     String          @map("user_id")
   groupId    String?         @map("group_id")
   url        String
+  type       MediaType       @default(image)
   visibility VisibilityType  @default(private)
+  isActive   Boolean         @default(true)  @map("is_active")
   createdAt  DateTime        @default(now()) @map("created_at")
 
   // Relations
@@ -135,6 +142,8 @@ model Media {
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
+  @@index([placeId, isActive])
+  @@index([createdAt])
   @@map("media")
 }
 

@@ -57,6 +57,17 @@ export async function GET(
                     },
                 ],
             },
+            include: {
+                media: {
+                    where: {
+                        type: "image",
+                        isActive: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                },
+            },
         });
 
         console.log("🔍 Note API - Database result:", {
@@ -86,8 +97,8 @@ export async function GET(
             timestamp: openHoursData?.timestamp
                 ? new Date(openHoursData.timestamp as string)
                 : note.createdAt,
-            images: (openHoursData?.images as string[]) || [],
-            hasImages: Boolean((openHoursData?.images as string[])?.length > 0),
+            images: note.media.map(media => media.url), // Get images from media relationship
+            hasImages: note.media.length > 0, // Check media relationship
         };
 
         console.log("✅ Note API - Returning note:", {

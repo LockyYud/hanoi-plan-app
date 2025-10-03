@@ -2,9 +2,24 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { Place, Group, MapBounds, PlaceFilter } from "@/lib/types"
 
+export interface LocationNote {
+    id: string
+    lng: number
+    lat: number
+    address: string
+    content: string
+    mood?: string
+    timestamp: Date
+    images?: string[]
+    hasImages?: boolean
+}
+
 interface PlaceStore {
     selectedPlace: Place | null
     setSelectedPlace: (place: Place | null) => void
+
+    selectedNote: LocationNote | null
+    setSelectedNote: (note: LocationNote | null) => void
 
     places: Place[]
     setPlaces: (places: Place[]) => void
@@ -54,6 +69,9 @@ interface UIStore {
 export const usePlaceStore = create<PlaceStore>((set) => ({
     selectedPlace: null,
     setSelectedPlace: (place) => set({ selectedPlace: place }),
+
+    selectedNote: null,
+    setSelectedNote: (note) => set({ selectedNote: note }),
 
     places: [],
     setPlaces: (places) => set({ places }),

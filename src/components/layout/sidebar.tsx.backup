@@ -24,29 +24,11 @@ import {
   X,
   Navigation,
 } from "lucide-react";
-import { useUIStore, usePlaceStore, type LocationNote } from "@/lib/store";
-import { CategoryType, SourceType, VisibilityType } from "@prisma/client";
+import { useUIStore, usePlaceStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { CATEGORIES } from "@/lib/types";
 import { getCurrentLocation, openExternalNavigation } from "@/lib/geolocation";
 import { toast } from "sonner";
-
-// Extended place type that includes location note properties
-type ExtendedPlace = {
-  id: string;
-  name: string;
-  address: string;
-  lat: number;
-  lng: number;
-  category: string;
-  createdAt: Date;
-  placeType?: "note" | "place";
-  content?: string;
-  mood?: string;
-  timestamp?: Date;
-  images?: string[];
-  hasImages?: boolean;
-};
 
 export function Sidebar() {
   const { data: session, status } = useSession();
@@ -63,15 +45,8 @@ export function Sidebar() {
   }, [session, status]);
 
   const { sidebarOpen } = useUIStore();
-  const {
-    places,
-    filter,
-    setFilter,
-    setPlaces,
-    setSelectedPlace,
-    selectedNote,
-    setSelectedNote,
-  } = usePlaceStore();
+  const { places, filter, setFilter, setPlaces, setSelectedPlace } =
+    usePlaceStore();
   const [activeTab, setActiveTab] = useState<"places" | "groups" | "profile">(
     "profile"
   );
@@ -80,6 +55,8 @@ export function Sidebar() {
   const [isGettingDirections, setIsGettingDirections] = useState<string | null>(
     null
   );
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  const [lastFetchUserId, setLastFetchUserId] = useState<string | null>(null);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
   const [groups, setGroups] = useState<
     Array<{
@@ -98,9 +75,7 @@ export function Sidebar() {
   // Define fetchGroups function
   const fetchGroups = async () => {
     try {
-      const response = await fetch("/api/groups", {
-        credentials: "include", // 🔑 Include session
-      });
+      const response = await fetch("/api/groups");
       const result = await response.json();
       if (result.data) {
         setGroups(result.data);
@@ -110,7 +85,7 @@ export function Sidebar() {
     }
   };
 
-  // Define fetchPlaces function with useCallback - UNIFIED LOCATION NOTES SYSTEM
+  // Define fetchPlaces function with useCallback
   const fetchPlaces = useCallback(async () => {
     try {
       console.log(
@@ -120,42 +95,55 @@ export function Sidebar() {
         status
       );
 
-      // Don't fetch if session is still loading
-      if (status === "loading") {
-        console.log("⏳ Session still loading, skipping fetch");
+      // Don't fetch if session is still loading or already loading
+      if (status === "loading" || isLoadingPlaces) {
+        console.log(
+          "⏳ Session still loading or already fetching, skipping fetch"
+        );
         return;
       }
 
-      // Use functional update to check loading state
-      setIsLoadingPlaces((currentlyLoading) => {
-        if (currentlyLoading) {
-          console.log("⏳ Already fetching, skipping fetch");
-          return true; // Keep current state
-        }
-        return true; // Start loading
-      });
+      // Cache for 30 seconds to avoid excessive refetching
+      // BUT clear cache if user changed
+      const currentUserId = session?.user?.id;
+      const now = Date.now();
+      if (
+        now - lastFetchTime < 30000 &&
+        places.length > 0 &&
+        (!currentUserId ||
+          !lastFetchUserId ||
+          currentUserId === lastFetchUserId)
+      ) {
+        console.log("🚀 Using cached places data");
+        return;
+      }
+
+      if (currentUserId !== lastFetchUserId) {
+        console.log("👤 User changed, clearing cache and forcing refresh");
+        setPlaces([]); // Clear old user's data immediately
+        setLastFetchUserId(currentUserId);
+      }
+
+      setIsLoadingPlaces(true);
+      setLastFetchTime(now);
 
       if (session) {
-        // Fetch user's location notes (unified system)
-        console.log(
-          "🔍 Fetching location notes for user:",
-          session.user?.email
-        );
+        // Fetch user's places (unified concept)
+        console.log("🔍 Fetching my places for user:", session.user?.email);
 
-        const notesResponse = await fetch("/api/location-notes", {
-          credentials: "include", // 🔑 Include session
-        });
+        // Fetch user's location notes (unified system)
+        console.log("🔍 Fetching location notes for user:", session.user?.email);
+
+        const notesResponse = await fetch("/api/location-notes");
 
         if (notesResponse.ok) {
           const notes = await notesResponse.json();
           console.log("📍 Location notes:", notes.length, "items");
 
           // Convert location notes to unified place format
-          const locationNotes = notes.map((note: LocationNote) => ({
+          const locationNotes = notes.map((note: any) => ({
             id: note.id,
-            name:
-              note.content?.substring(0, 50) +
-              (note.content?.length > 50 ? "..." : ""),
+            name: note.content?.substring(0, 50) + (note.content?.length > 50 ? "..." : ""),
             address: note.address,
             lat: note.lat,
             lng: note.lng,
@@ -164,33 +152,119 @@ export function Sidebar() {
             timestamp: note.timestamp,
             images: note.images || [],
             hasImages: note.images && note.images.length > 0,
-            category: CategoryType.cafe, // Default category for location notes
-            source: SourceType.manual,
-            visibility: VisibilityType.private,
+            category: "cafe" as any, // Default category for location notes
+            source: "manual" as any,
+            visibility: "private" as any,
             createdBy: session.user?.id || "",
             createdAt: new Date(note.timestamp),
             placeType: "note",
           }));
 
-          // Sort by creation date (newest first)
-          locationNotes.sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-
+          console.log("� Converted", locationNotes.length, "location notes to place format");
           setPlaces(locationNotes);
-          console.log(
-            "📝 Converted",
-            locationNotes.length,
-            "location notes to place format"
-          );
         } else {
-          console.error(
-            "Failed to fetch location notes:",
-            notesResponse.status
-          );
+          console.error("Failed to fetch location notes:", notesResponse.status);
           setPlaces([]);
         }
+            userComment: fav.comment,
+            userRating: fav.rating,
+            placeType: "saved",
+          }));
+          allPlaces.push(...savedPlaces);
+        }
+
+        // Process actual places with media
+        if (placesResponse.ok) {
+          const placesData = await placesResponse.json();
+          console.log("🏢 Places with media:", placesData.data?.length || 0, "items");
+
+          if (placesData.data && Array.isArray(placesData.data)) {
+            // Add places with media
+            const placesWithMedia = placesData.data.map((place: any) => ({
+              ...place,
+              placeType: "place",
+              hasImages: !!place.latestMedia,
+            }));
+            allPlaces.push(...placesWithMedia);
+          }
+        }
+
+        // Process user notes/places (legacy support)
+        if (notesResponse.ok) {
+          const notes = await notesResponse.json();
+          console.log("📝 Location notes:", notes.length, "items");
+
+          // Transform notes to unified place format
+          const myPlaces = notes.map((note: any) => ({
+            id: note.id,
+            name: note.content.substring(0, 50),
+            address: note.address,
+            lat: note.lat,
+            lng: note.lng,
+            category: "landmark",
+            source: "manual",
+            createdAt: note.timestamp,
+            placeType: "note",
+            content: note.content,
+            mood: note.mood,
+            images: note.images || [],
+            hasImages: note.hasImages || false, // Include hasImages field
+            timestamp: note.timestamp, // Include timestamp for NoteDetailsView
+          }));
+          allPlaces.push(...myPlaces);
+        }
+
+        // Remove duplicates (same ID can be in both favorites and notes)
+        const uniquePlaces = allPlaces.reduce((acc: any[], current: any) => {
+          const existing = acc.find((item) => item.id === current.id);
+          if (!existing) {
+            acc.push(current);
+          } else {
+            // If exists, merge data intelligently
+            const existingIndex = acc.indexOf(existing);
+            if (current.placeType === "note") {
+              // Note data takes precedence for content and mood
+              acc[existingIndex] = {
+                ...existing,
+                ...current,
+                isSaved: existing.isSaved || false, // Keep saved status
+                placeType: "note", // Ensure it stays as note type
+              };
+            } else if (existing.placeType !== "note") {
+              // If neither is note, merge normally
+              acc[existingIndex] = {
+                ...existing,
+                ...current,
+              };
+            }
+            // If existing is note and current is saved, keep note as-is but mark as saved
+            if (
+              existing.placeType === "note" &&
+              current.placeType === "saved"
+            ) {
+              acc[existingIndex] = {
+                ...existing,
+                isSaved: true,
+              };
+            }
+          }
+          return acc;
+        }, []);
+
+        // Sort by creation date (newest first)
+        uniquePlaces.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        setPlaces(uniquePlaces);
+        console.log(
+          "✅ My places loaded:",
+          uniquePlaces.length,
+          "places (deduplicated from",
+          allPlaces.length,
+          ")"
+        );
       } else {
         // Clear places when not logged in
         setPlaces([]);
@@ -204,20 +278,14 @@ export function Sidebar() {
     } finally {
       setIsLoadingPlaces(false);
     }
-  }, [session, status, setPlaces]); // Simplified dependencies
+  }, [session, status, setPlaces]);
 
   // Load initial data
   useEffect(() => {
     setMounted(true);
     fetchGroups();
-  }, []);
-
-  // Fetch places when session or status changes
-  useEffect(() => {
-    if (mounted && (session || status === "unauthenticated")) {
-      fetchPlaces();
-    }
-  }, [mounted, session, status, fetchPlaces]); // Include fetchPlaces but it should be stable now
+    fetchPlaces();
+  }, [fetchPlaces]);
 
   // Auto-switch to appropriate tab based on session status change
   useEffect(() => {
@@ -229,7 +297,7 @@ export function Sidebar() {
     // Remove auto-switch to places when logging in - let user choose their tab
   }, [session, activeTab]);
 
-  // Listen for places updates (location notes)
+  // Listen for places updates (favorites and location notes)
   useEffect(() => {
     const handlePlacesUpdate = () => {
       if (mounted && session) {
@@ -237,15 +305,24 @@ export function Sidebar() {
       }
     };
 
-    // Listen for location notes updates
+    // Listen for both favorites and location notes updates
+    window.addEventListener("favoritesUpdated", handlePlacesUpdate);
     window.addEventListener("locationNoteAdded", handlePlacesUpdate);
     window.addEventListener("locationNoteUpdated", handlePlacesUpdate);
 
     return () => {
+      window.removeEventListener("favoritesUpdated", handlePlacesUpdate);
       window.removeEventListener("locationNoteAdded", handlePlacesUpdate);
       window.removeEventListener("locationNoteUpdated", handlePlacesUpdate);
     };
   }, [fetchPlaces, mounted, session]);
+
+  // Refetch places when filter changes
+  useEffect(() => {
+    if (mounted) {
+      fetchPlaces();
+    }
+  }, [filter, mounted, fetchPlaces]);
 
   const handleCreateGroup = async (data: {
     name: string;
@@ -256,7 +333,6 @@ export function Sidebar() {
     try {
       const response = await fetch("/api/groups", {
         method: "POST",
-        credentials: "include", // 🔑 Include session
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
@@ -272,7 +348,7 @@ export function Sidebar() {
     }
   };
 
-  const handleGetDirections = async (place: ExtendedPlace) => {
+  const handleGetDirections = async (place: any) => {
     console.log("🧭 Sidebar: Getting directions to place:", place);
     setIsGettingDirections(place.id);
 
@@ -497,6 +573,11 @@ export function Sidebar() {
                           icon: "📝",
                         },
                         {
+                          label: "Đã lưu",
+                          value: "saved",
+                          icon: "⭐",
+                        },
+                        {
                           label: "Có ảnh",
                           value: "with-images",
                           icon: "📷",
@@ -625,7 +706,7 @@ export function Sidebar() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-gray-700">
-                    {session ? "Ghi chú của tôi" : "Địa điểm phổ biến"}{" "}
+                    {session ? "Địa điểm của tôi" : "Địa điểm phổ biến"}{" "}
                     <span className="text-gray-500 font-normal">
                       ({filteredPlaces.length})
                     </span>
@@ -634,7 +715,7 @@ export function Sidebar() {
                     size="sm"
                     variant="ghost"
                     className="h-8 w-8 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                    title="Thêm ghi chú"
+                    title="Thêm địa điểm"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -644,128 +725,142 @@ export function Sidebar() {
                   {isLoadingPlaces ? (
                     <div className="text-center py-8 text-gray-500">
                       <div className="animate-spin h-6 w-6 mx-auto mb-2 border-2 border-blue-600 border-t-transparent rounded-full" />
-                      <p className="text-sm">Đang tải ghi chú...</p>
+                      <p className="text-sm">Đang tải địa điểm...</p>
                     </div>
                   ) : filteredPlaces.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <MapPin className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                       <p className="text-sm">
                         {session
-                          ? "Chưa có ghi chú nào"
-                          : "Không có ghi chú nào"}
+                          ? "Chưa có địa điểm nào"
+                          : "Không có địa điểm nào"}
                       </p>
                       {session && (
                         <Button size="sm" variant="outline" className="mt-2">
-                          Thêm ghi chú
+                          Thêm địa điểm
                         </Button>
                       )}
                     </div>
                   ) : (
-                    filteredPlaces.map((place) => {
-                      const extendedPlace = place as ExtendedPlace;
-                      return (
-                        <Card
-                          key={place.id}
-                          className="group p-4 bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer rounded-xl"
-                          onClick={() => {
-                            // Check if this is a location note (has placeType: 'note')
-                            if (extendedPlace.placeType === "note") {
-                              // Convert place back to LocationNote format and select it
-                              setSelectedNote({
-                                id: place.id,
-                                lng: place.lng,
-                                lat: place.lat,
-                                address: place.address,
-                                content: extendedPlace.content || place.name,
-                                mood: extendedPlace.mood,
-                                timestamp:
-                                  extendedPlace.timestamp || place.createdAt,
-                                images: extendedPlace.images || [],
-                                hasImages: extendedPlace.hasImages || false,
-                              });
-                            } else {
-                              setSelectedPlace(place);
-                            }
-                          }}
-                        >
-                          <div className="flex items-start gap-3">
-                            {/* Avatar/Icon */}
-                            <div className="flex-shrink-0">
-                              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                    filteredPlaces.map((place) => (
+                      <Card
+                        key={place.id}
+                        className="group p-4 bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer rounded-xl"
+                        onClick={() => setSelectedPlace(place)}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Avatar/Icon */}
+                          <div className="flex-shrink-0">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                              {(place as any).placeType === "note" ? (
                                 <span className="text-lg">
-                                  {extendedPlace.mood || "📝"}
+                                  {(place as any).mood || "📝"}
                                 </span>
-                              </div>
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-sm text-gray-900 truncate mb-1">
-                                {extendedPlace.content?.length > 40
-                                  ? extendedPlace.content.substring(0, 40) +
-                                    "..."
-                                  : extendedPlace.content || place.name}
-                              </h4>
-                              <p className="text-xs text-gray-500 truncate mb-2">
-                                {place.address}
-                              </p>
-
-                              {/* Meta info */}
-                              <div className="flex items-center gap-2 text-xs">
-                                <Badge
-                                  variant="outline"
-                                  className="px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200 rounded-md"
-                                >
-                                  Ghi chú
-                                </Badge>
-                                {extendedPlace.images?.length > 0 && (
-                                  <Badge
-                                    variant="outline"
-                                    className="px-2 py-0.5 bg-green-50 text-green-700 border-green-200 rounded-md"
-                                  >
-                                    📷 {extendedPlace.images.length}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Action buttons */}
-                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleGetDirections(place);
-                                }}
-                                disabled={isGettingDirections === place.id}
-                                title="Chỉ đường"
-                              >
-                                <Navigation
-                                  className={`h-4 w-4 ${isGettingDirections === place.id ? "animate-spin" : ""}`}
-                                />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  console.log(
-                                    "View details:",
-                                    extendedPlace.content || place.name
-                                  );
-                                }}
-                                title="Xem chi tiết"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
+                              ) : (
+                                <span className="text-lg">
+                                  {place.category === "cafe"
+                                    ? "☕"
+                                    : place.category === "food"
+                                      ? "🍜"
+                                      : place.category === "bar"
+                                        ? "🍻"
+                                        : place.category === "rooftop"
+                                          ? "🏙️"
+                                          : place.category === "activity"
+                                            ? "🎯"
+                                            : "🏛️"}
+                                </span>
+                              )}
                             </div>
                           </div>
-                        </Card>
-                      );
-                    })
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-sm text-gray-900 truncate mb-1">
+                              {(place as any).placeType === "note"
+                                ? (place as any).content.length > 40
+                                  ? (place as any).content.substring(0, 40) +
+                                    "..."
+                                  : (place as any).content
+                                : place.name}
+                            </h4>
+                            <p className="text-xs text-gray-500 truncate mb-2">
+                              {place.address}
+                            </p>
+
+                            {/* Meta info */}
+                            <div className="flex items-center gap-2 text-xs">
+                              {(place as any).placeType === "note" ? (
+                                <>
+                                  <Badge
+                                    variant="outline"
+                                    className="px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200 rounded-md"
+                                  >
+                                    Ghi chú
+                                  </Badge>
+                                  {(place as any).images?.length > 0 && (
+                                    <Badge
+                                      variant="outline"
+                                      className="px-2 py-0.5 bg-green-50 text-green-700 border-green-200 rounded-md"
+                                    >
+                                      📷 {(place as any).images.length}
+                                    </Badge>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <Badge
+                                    variant="outline"
+                                    className="px-2 py-0.5 bg-gray-50 text-gray-700 border-gray-200 rounded-md"
+                                  >
+                                    {place.category}
+                                  </Badge>
+                                  {place.priceLevel && (
+                                    <span className="text-gray-500">
+                                      {"₫".repeat(place.priceLevel)}
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Action buttons */}
+                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleGetDirections(place);
+                              }}
+                              disabled={isGettingDirections === place.id}
+                              title="Chỉ đường"
+                            >
+                              <Navigation
+                                className={`h-4 w-4 ${isGettingDirections === place.id ? "animate-spin" : ""}`}
+                              />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                console.log(
+                                  "View details:",
+                                  place.name || (place as any).content
+                                );
+                              }}
+                              title="Xem chi tiết"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))
                   )}
                 </div>
               </div>
@@ -899,19 +994,17 @@ export function Sidebar() {
                           <div className="font-semibold text-blue-600">
                             {places.length}
                           </div>
-                          <div className="text-xs text-gray-500">Ghi chú</div>
+                          <div className="text-xs text-gray-500">Địa điểm</div>
                         </div>
                         <div className="bg-white/50 rounded-xl p-3">
                           <div className="font-semibold text-green-600">
                             {
-                              filteredPlaces.filter(
-                                (p) =>
-                                  (p as ExtendedPlace).images &&
-                                  (p as ExtendedPlace).images.length > 0
+                              places.filter(
+                                (p) => (p as any).placeType === "note"
                               ).length
                             }
                           </div>
-                          <div className="text-xs text-gray-500">Có ảnh</div>
+                          <div className="text-xs text-gray-500">Ghi chú</div>
                         </div>
                       </div>
                     </div>
@@ -945,7 +1038,7 @@ export function Sidebar() {
                     Đăng nhập để sử dụng
                   </h3>
                   <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                    Lưu ghi chú và tạo nhóm cùng bạn bè
+                    Lưu địa điểm yêu thích và tạo nhóm cùng bạn bè
                   </p>
                   {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID &&
                   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID !==

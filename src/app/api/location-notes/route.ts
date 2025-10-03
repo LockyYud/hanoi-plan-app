@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromSession } from "@/lib/user-session";
 
+interface LocationNoteResponse {
+    id: string;
+    lng: number;
+    lat: number;
+    address: string;
+    content: string;
+    mood: string;
+    timestamp: Date;
+    hasImages: boolean;
+    images?: string[];
+}
+
 // GET /api/location-notes - Get all location notes
 export async function GET(request: NextRequest) {
     try {
@@ -19,6 +31,13 @@ export async function GET(request: NextRequest) {
         console.log(`🔍 Fetching location notes for user: ${user.email} (ID: ${user.id})`);
         const startTime = Date.now();
 
+        if (!prisma) {
+            return NextResponse.json(
+                { error: "Database not available" },
+                { status: 503 }
+            );
+        }
+
         const notes = await prisma.place.findMany({
             where: {
                 AND: [
@@ -32,6 +51,17 @@ export async function GET(request: NextRequest) {
                         createdBy: user.id, // Use database user ID
                     },
                 ],
+            },
+            include: {
+                media: {
+                    where: {
+                        type: "image",
+                        isActive: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                },
             },
             orderBy: {
                 createdAt: "desc",
@@ -50,21 +80,22 @@ export async function GET(request: NextRequest) {
         const processStartTime = Date.now();
 
         const locationNotes = notes.map(note => {
-            const baseNote = {
+            const openHoursData = note.openHours as Record<string, unknown> || {};
+            const baseNote: LocationNoteResponse = {
                 id: note.id,
                 lng: note.lng,
                 lat: note.lat,
                 address: note.address,
-                content: (note.openHours as any)?.content || "",
-                mood: (note.openHours as any)?.mood || "📝",
-                timestamp: (note.openHours as any)?.timestamp ? new Date((note.openHours as any).timestamp) : note.createdAt,
-                hasImages: Boolean((note.openHours as any)?.images?.length > 0), // Indicate if images exist
+                content: (openHoursData.content as string) || "",
+                mood: (openHoursData.mood as string) || "📝",
+                timestamp: openHoursData.timestamp ? new Date(openHoursData.timestamp as string) : note.createdAt,
+                hasImages: note.media.length > 0, // Check media relationship instead of JSON
             };
 
             // Only include images if explicitly requested
             if (includeImages) {
                 console.log(`📸 Including images for note ${note.id}`);
-                baseNote.images = (note.openHours as any)?.images || [];
+                baseNote.images = note.media.map(media => media.url);
             }
 
             return baseNote;
@@ -102,7 +133,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { lng, lat, address, content, mood, images } = body;
+        const { lng, lat, address, content, mood } = body;
 
         // Validate required fields
         if (!lng || !lat || !address || !content) {
@@ -113,7 +144,7 @@ export async function POST(request: NextRequest) {
         }
 
         // For now, create a place entry to store the location note
-        // TODO: Create proper location_notes table
+        // Using media table for proper image storage
         const locationNote = await prisma.place.create({
             data: {
                 name: `Note: ${content.substring(0, 50)}...`,
@@ -123,12 +154,11 @@ export async function POST(request: NextRequest) {
                 category: "landmark", // Use landmark as default category for notes
                 source: "manual",
                 createdBy: user.id,
-                // Store note data in JSON field (temporary solution)
+                // Store note data in JSON field (images will be stored in media table)
                 openHours: {
                     isLocationNote: true,
                     content,
                     mood,
-                    images: images || [],
                     timestamp: new Date().toISOString(),
                 },
             },
@@ -141,8 +171,9 @@ export async function POST(request: NextRequest) {
             address: locationNote.address,
             content,
             mood,
-            images: images || [],
+            images: [], // Images will be handled separately via upload API
             timestamp: new Date(),
+            hasImages: false, // Initially no images
         };
 
         return NextResponse.json(responseData, { status: 201 });
@@ -175,7 +206,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, lng, lat, address, content, mood, images } = body;
+        const { id, lng, lat, address, content, mood } = body;
 
         // Validate required fields
         if (!id) {
@@ -192,7 +223,7 @@ export async function PUT(request: NextRequest) {
             );
         }
 
-        // Update the location note
+        // Update the location note and include media to get current images
         const updatedNote = await prisma.place.update({
             where: {
                 id: id,
@@ -207,13 +238,23 @@ export async function PUT(request: NextRequest) {
                 address: address || undefined,
                 lat: lng ? parseFloat(lat) : undefined,
                 lng: lat ? parseFloat(lng) : undefined,
-                // Update note data in JSON field
+                // Update note data in JSON field (images stored in media table)
                 openHours: {
                     isLocationNote: true,
                     content,
                     mood,
-                    images: images || [],
                     timestamp: new Date().toISOString(),
+                },
+            },
+            include: {
+                media: {
+                    where: {
+                        type: "image",
+                        isActive: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
                 },
             },
         });
@@ -226,7 +267,8 @@ export async function PUT(request: NextRequest) {
             content,
             mood,
             timestamp: new Date(),
-            images: images || [],
+            images: updatedNote.media.map(media => media.url),
+            hasImages: updatedNote.media.length > 0,
         };
 
         return NextResponse.json(responseData);
