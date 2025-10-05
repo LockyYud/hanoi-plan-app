@@ -28,29 +28,29 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         // JWT callback - runs on sign in and when JWT is accessed
         jwt: async ({ token, user, account, profile }) => {
-            console.log("JWT callback called:", { 
-                hasToken: !!token, 
-                hasUser: !!user, 
+            console.log("JWT callback called:", {
+                hasToken: !!token,
+                hasUser: !!user,
                 hasAccount: !!account,
-                provider: account?.provider 
+                provider: account?.provider
             });
 
             // Initial sign in - user object is available
             if (user) {
                 console.log("JWT callback - initial sign in:", user);
-                
+
                 // Store user data in token
                 token.uid = user.id;
                 token.email = user.email;
                 token.name = user.name;
-                
+
                 // Handle Google profile data
                 if (account?.provider === "google" && profile) {
                     const googleProfile = profile as { picture?: string };
                     token.picture = googleProfile.picture || user.image;
                     console.log("JWT callback - stored Google profile picture");
                 }
-                
+
                 console.log("JWT callback - token enriched with user data");
             }
 
@@ -60,10 +60,10 @@ export const authOptions: NextAuthOptions = {
 
         // Session callback - shapes the session object returned to client
         session: async ({ session, token }) => {
-            console.log("Session callback called:", { 
-                hasSession: !!session, 
+            console.log("Session callback called:", {
+                hasSession: !!session,
                 hasToken: !!token,
-                tokenKeys: token ? Object.keys(token) : [] 
+                tokenKeys: token ? Object.keys(token) : []
             });
 
             if (session?.user && token) {
@@ -72,7 +72,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.email = token.email as string;
                 session.user.name = token.name as string;
                 session.user.image = token.picture as string;
-                
+
                 console.log("Session callback - session user ID:", session.user.id);
             }
 
@@ -81,7 +81,7 @@ export const authOptions: NextAuthOptions = {
                 userId: session?.user?.id,
                 userEmail: session?.user?.email
             });
-            
+
             return session;
         },
 
@@ -93,13 +93,13 @@ export const authOptions: NextAuthOptions = {
                 userEmail: user?.email,
                 timestamp: new Date().toISOString()
             });
-            
+
             // For production debugging - more detailed logging
             if (process.env.NODE_ENV === 'production') {
                 console.log("🔐 PROD SignIn - User object:", JSON.stringify(user, null, 2));
                 console.log("🔐 PROD SignIn - Account object:", JSON.stringify(account, null, 2));
             }
-            
+
             console.log("✅ SignIn callback - approved for provider:", account?.provider);
             return true;
         },
@@ -107,7 +107,7 @@ export const authOptions: NextAuthOptions = {
         // Redirect callback - control where to redirect after sign in
         redirect: async ({ url, baseUrl }) => {
             console.log("🔄 Redirect callback:", { url, baseUrl });
-            
+
             // Always redirect to baseUrl (home page) after sign in
             if (url.startsWith("/")) return `${baseUrl}${url}`;
             else if (new URL(url).origin === baseUrl) return url;
@@ -116,8 +116,8 @@ export const authOptions: NextAuthOptions = {
     },
 
     pages: {
-        signIn: "/",
-        error: "/",
+        signIn: "/auth/signin",
+        error: "/auth/signin",
     },
 
     // Add secret with fallback

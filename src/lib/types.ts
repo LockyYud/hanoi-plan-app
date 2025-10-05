@@ -149,7 +149,7 @@ export interface MapBounds {
 }
 
 export interface PlaceFilter {
-    category?: CategoryType[]
+    category?: string[] // Changed to string[] to support category slugs
     priceLevel?: number[]
     district?: string[]
     tags?: string[]

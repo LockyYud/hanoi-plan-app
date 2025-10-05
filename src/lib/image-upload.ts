@@ -109,66 +109,7 @@ export class ImageUploadService {
         return Promise.all(uploadPromises);
     }
 
-    /**
-     * Helper method to compress image before upload if needed
-     */
-    static async compressAndUpload(
-        file: File,
-        maxWidth = 800,
-        quality = 0.7,
-        basicAuthToken?: string
-    ): Promise<ImageUploadResponse> {
-        try {
-            const compressedFile = await this.compressImage(file, maxWidth, quality);
-            return this.uploadImage(compressedFile, basicAuthToken);
-        } catch (error) {
-            console.error('Image compression and upload error:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown compression error',
-            };
-        }
-    }
 
-    /**
-     * Compress image file
-     */
-    static compressImage(file: File, maxWidth: number, quality: number): Promise<File> {
-        return new Promise((resolve, reject) => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-
-            img.onload = () => {
-                // Calculate new dimensions
-                const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
-                canvas.width = img.width * ratio;
-                canvas.height = img.height * ratio;
-
-                // Draw and compress
-                ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                canvas.toBlob(
-                    (blob) => {
-                        if (blob) {
-                            const compressedFile = new File([blob], file.name, {
-                                type: file.type,
-                                lastModified: Date.now(),
-                            });
-                            resolve(compressedFile);
-                        } else {
-                            reject(new Error('Failed to compress image'));
-                        }
-                    },
-                    file.type,
-                    quality
-                );
-            };
-
-            img.onerror = () => reject(new Error('Failed to load image'));
-            img.src = URL.createObjectURL(file);
-        });
-    }
 }
 
 /**
@@ -232,14 +173,7 @@ async function uploadViaProxy(file: File, noteId?: string): Promise<ImageUploadR
 
 export function useImageUpload() {
     const uploadImage = async (file: File, noteId?: string): Promise<ImageUploadResponse> => {
-        // First try to compress the image, then upload via proxy
-        try {
-            const compressedFile = await ImageUploadService.compressImage(file, 800, 0.7);
-            return uploadViaProxy(compressedFile, noteId);
-        } catch (error) {
-            console.warn('⚠️ Image compression failed, uploading original:', error);
-            return uploadViaProxy(file, noteId);
-        }
+        return uploadViaProxy(file, noteId);
     };
 
     const uploadMultipleImages = async (files: File[], noteId?: string): Promise<ImageUploadResponse[]> => {

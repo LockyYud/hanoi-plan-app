@@ -12,6 +12,7 @@ interface LocationNoteResponse {
     timestamp: Date;
     hasImages: boolean;
     images?: string[];
+    categorySlug?: string; // Add category slug
 }
 
 // GET /api/location-notes - Get all location notes
@@ -53,6 +54,7 @@ export async function GET(request: NextRequest) {
                 ],
             },
             include: {
+                categoryModel: true, // Include category relation
                 media: {
                     where: {
                         type: "image",
@@ -90,6 +92,7 @@ export async function GET(request: NextRequest) {
                 mood: (openHoursData.mood as string) || "📝",
                 timestamp: openHoursData.timestamp ? new Date(openHoursData.timestamp as string) : note.createdAt,
                 hasImages: note.media.length > 0, // Check media relationship instead of JSON
+                categorySlug: note.categoryModel?.slug, // Map category slug from relation
             };
 
             // Only include images if explicitly requested
@@ -133,34 +136,41 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { lng, lat, address, content, mood } = body;
+        const { lng, lat, address, content, mood, categoryIds } = body;
 
         // Validate required fields
-        if (!lng || !lat || !address || !content) {
+        if (!lng || !lat || !address) {
             return NextResponse.json(
-                { error: "Missing required fields: lng, lat, address, content" },
+                { error: "Missing required fields: lng, lat, address" },
                 { status: 400 }
             );
         }
+
+        // Use first category ID if provided
+        const categoryId = categoryIds && categoryIds.length > 0 ? categoryIds[0] : null;
 
         // For now, create a place entry to store the location note
         // Using media table for proper image storage
         const locationNote = await prisma.place.create({
             data: {
-                name: `Note: ${content.substring(0, 50)}...`,
+                name: content ? `Note: ${content.substring(0, 50)}...` : `Location Note`,
                 address,
                 lat: parseFloat(lat),
                 lng: parseFloat(lng),
                 category: "landmark", // Use landmark as default category for notes
+                categoryId: categoryId || null, // Allow custom category
                 source: "manual",
                 createdBy: user.id,
                 // Store note data in JSON field (images will be stored in media table)
                 openHours: {
                     isLocationNote: true,
-                    content,
+                    content: content || "",
                     mood,
                     timestamp: new Date().toISOString(),
                 },
+            },
+            include: {
+                categoryModel: true, // Include category in response
             },
         });
 
@@ -174,6 +184,7 @@ export async function POST(request: NextRequest) {
             images: [], // Images will be handled separately via upload API
             timestamp: new Date(),
             hasImages: false, // Initially no images
+            categorySlug: locationNote.categoryModel?.slug, // Include category slug
         };
 
         return NextResponse.json(responseData, { status: 201 });
@@ -206,7 +217,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, lng, lat, address, content, mood } = body;
+        const { id, lng, lat, address, content, mood, categoryIds } = body;
 
         // Validate required fields
         if (!id) {
@@ -216,12 +227,8 @@ export async function PUT(request: NextRequest) {
             );
         }
 
-        if (!content) {
-            return NextResponse.json(
-                { error: "Content is required" },
-                { status: 400 }
-            );
-        }
+        // Use first category ID if provided
+        const categoryId = categoryIds && categoryIds.length > 0 ? categoryIds[0] : null;
 
         // Update the location note and include media to get current images
         const updatedNote = await prisma.place.update({
@@ -234,19 +241,21 @@ export async function PUT(request: NextRequest) {
                 },
             },
             data: {
-                name: `Note: ${content.substring(0, 50)}...`,
+                name: content ? `Note: ${content.substring(0, 50)}...` : `Location Note`,
                 address: address || undefined,
                 lat: lng ? parseFloat(lat) : undefined,
                 lng: lat ? parseFloat(lng) : undefined,
+                categoryId: categoryId !== undefined ? categoryId : undefined, // Allow setting to null
                 // Update note data in JSON field (images stored in media table)
                 openHours: {
                     isLocationNote: true,
-                    content,
+                    content: content || "",
                     mood,
                     timestamp: new Date().toISOString(),
                 },
             },
             include: {
+                categoryModel: true, // Include category relation
                 media: {
                     where: {
                         type: "image",
@@ -269,6 +278,7 @@ export async function PUT(request: NextRequest) {
             timestamp: new Date(),
             images: updatedNote.media.map(media => media.url),
             hasImages: updatedNote.media.length > 0,
+            categorySlug: updatedNote.categoryModel?.slug, // Include category slug
         };
 
         return NextResponse.json(responseData);

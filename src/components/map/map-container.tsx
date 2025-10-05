@@ -488,6 +488,7 @@ export function MapContainer({ className }: MapContainerProps) {
 
   // Handle editing location note
   const handleEditLocationNote = async (noteData: {
+    category: string;
     content: string;
     placeName: string;
     visitTime: string;
@@ -520,6 +521,7 @@ export function MapContainer({ className }: MapContainerProps) {
           address: noteData.address,
           content: noteData.content,
           mood: noteData.mood,
+          categoryIds: noteData.category ? [noteData.category] : [], // Convert single category to array for API
           images: noteData.images || [],
         }),
       });
@@ -575,68 +577,138 @@ export function MapContainer({ className }: MapContainerProps) {
   const updateUserLocationMarker = useCallback(async () => {
     if (!map.current || !session) return;
 
-    // Create user location marker element
+    // Create user location marker element (Google Maps style)
     const createUserLocationMarker = () => {
+      // Main container with pulse animation
       const markerElement = document.createElement("div");
       markerElement.className = "user-location-marker";
       markerElement.style.cssText = `
-              width: 44px;
-              height: 44px;
-              border-radius: 50%;
-              border: 3px solid #3b82f6;
-              background: white;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-              cursor: pointer;
-              transition: transform 0.2s ease;
+              width: 40px;
+              height: 40px;
               position: relative;
-              z-index: 1000;
+              cursor: pointer;
               pointer-events: auto;
           `;
 
-      // Create inner content container to prevent layout shifts
-      const innerContainer = document.createElement("div");
-      innerContainer.style.cssText = `
-              width: 36px;
-              height: 36px;
+      // Pulse background circle (animated)
+      const pulseCircle = document.createElement("div");
+      pulseCircle.className = "user-location-pulse";
+      pulseCircle.style.cssText = `
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              width: 40px;
+              height: 40px;
+              background: rgba(66, 133, 244, 0.3);
               border-radius: 50%;
+              transform: translate(-50%, -50%);
+              animation: userLocationPulse 2s infinite ease-out;
+          `;
+
+      // Accuracy circle (static, larger)
+      const accuracyCircle = document.createElement("div");
+      accuracyCircle.className = "user-location-accuracy";
+      accuracyCircle.style.cssText = `
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              width: 30px;
+              height: 30px;
+              background: rgba(66, 133, 244, 0.2);
+              border: 2px solid rgba(66, 133, 244, 0.5);
+              border-radius: 50%;
+              transform: translate(-50%, -50%);
+          `;
+
+      // Main dot with user avatar or icon
+      const mainDot = document.createElement("div");
+      mainDot.className = "user-location-dot";
+      mainDot.style.cssText = `
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              width: 20px;
+              height: 20px;
+              background: #4285f4;
+              border: 3px solid white;
+              border-radius: 50%;
+              transform: translate(-50%, -50%);
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              z-index: 3;
               display: flex;
               align-items: center;
               justify-content: center;
               overflow: hidden;
           `;
 
-      // Use user avatar or default icon
+      // User avatar or default icon inside the dot
       if (session?.user?.image) {
         const img = document.createElement("img");
         img.src = session.user.image;
         img.style.cssText = `
-                  width: 100%;
-                  height: 100%;
+                  width: 14px;
+                  height: 14px;
+                  border-radius: 50%;
                   object-fit: cover;
                   display: block;
               `;
         img.onerror = () => {
-          // Fallback to default icon if image fails
-          innerContainer.innerHTML = "📍";
-          innerContainer.style.fontSize = "20px";
-          innerContainer.style.lineHeight = "1";
+          // Fallback to white dot if image fails
+          mainDot.style.background = "#4285f4";
         };
-        innerContainer.appendChild(img);
-      } else {
-        innerContainer.innerHTML = "📍";
-        innerContainer.style.fontSize = "20px";
-        innerContainer.style.lineHeight = "1";
+        mainDot.appendChild(img);
       }
 
-      markerElement.appendChild(innerContainer);
+      // Add CSS animation keyframes to document
+      if (!document.querySelector("#user-location-styles")) {
+        const style = document.createElement("style");
+        style.id = "user-location-styles";
+        style.textContent = `
+          @keyframes userLocationPulse {
+            0% {
+              transform: translate(-50%, -50%) scale(0.8);
+              opacity: 1;
+            }
+            100% {
+              transform: translate(-50%, -50%) scale(2.5);
+              opacity: 0;
+            }
+          }
+          
+          .user-location-marker:hover .user-location-dot {
+            transform: translate(-50%, -50%) scale(1.2);
+            transition: transform 0.2s ease;
+          }
 
-      // Only handle click events - let CSS handle hover
+          .user-location-marker:hover .user-location-accuracy {
+            border-color: rgba(66, 133, 244, 0.8);
+            background: rgba(66, 133, 244, 0.3);
+            transition: all 0.2s ease;
+          }
+
+          .user-location-dot {
+            transition: transform 0.2s ease;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Assemble the marker
+      markerElement.appendChild(pulseCircle);
+      markerElement.appendChild(accuracyCircle);
+      markerElement.appendChild(mainDot);
+
+      // Click handler
       markerElement.addEventListener("click", (e) => {
         e.stopPropagation();
         console.log("📍 User location marker clicked");
+
+        // Add click animation
+        mainDot.style.transform = "translate(-50%, -50%) scale(0.8)";
+        setTimeout(() => {
+          mainDot.style.transform = "translate(-50%, -50%) scale(1)";
+          mainDot.style.transition = "transform 0.2s ease";
+        }, 100);
       });
 
       return markerElement;
@@ -680,7 +752,7 @@ export function MapContainer({ className }: MapContainerProps) {
         .setLngLat([userLocation.lng, userLocation.lat])
         .addTo(map.current);
 
-      console.log("✅ User location marker created");
+      console.log("✅ User location marker created with Google Maps style");
     } catch (error) {
       console.error("❌ Could not get user location:", error);
     }

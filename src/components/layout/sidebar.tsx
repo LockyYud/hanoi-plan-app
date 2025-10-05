@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,11 +23,11 @@ import {
   LogOut,
   X,
   Navigation,
+  Download,
 } from "lucide-react";
 import { useUIStore, usePlaceStore, type LocationNote } from "@/lib/store";
 import { CategoryType, SourceType, VisibilityType } from "@prisma/client";
 import { cn } from "@/lib/utils";
-import { CATEGORIES } from "@/lib/types";
 import { getCurrentLocation, openExternalNavigation } from "@/lib/geolocation";
 import { toast } from "sonner";
 
@@ -46,6 +46,7 @@ type ExtendedPlace = {
   timestamp?: Date;
   images?: string[];
   hasImages?: boolean;
+  categorySlug?: string; // For location notes
 };
 
 export function Sidebar() {
@@ -94,10 +95,27 @@ export function Sidebar() {
   const [showRouteGenerator, setShowRouteGenerator] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [showFilterPopover, setShowFilterPopover] = useState(false);
+  const [categories, setCategories] = useState<
+    Array<{
+      id: string;
+      name: string;
+      slug: string;
+      icon?: string;
+      color?: string;
+      isDefault: boolean;
+    }>
+  >([]);
 
   // Define fetchGroups function
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     try {
+      // Don't fetch if user is not authenticated
+      if (!session) {
+        console.log("🚫 No session, skipping groups fetch");
+        setGroups([]);
+        return;
+      }
+
       const response = await fetch("/api/groups", {
         credentials: "include", // 🔑 Include session
       });
@@ -107,8 +125,49 @@ export function Sidebar() {
       }
     } catch (error) {
       console.error("Error fetching groups:", error);
+      setGroups([]);
     }
-  };
+  }, [session]);
+
+  // Define fetchCategories function
+  const fetchCategories = useCallback(async () => {
+    try {
+      console.log(
+        "🔄 fetchCategories called, session:",
+        session ? "exists" : "null"
+      );
+
+      // Don't fetch if session is still loading
+      if (status === "loading") {
+        console.log("⏳ Session still loading, skipping categories fetch");
+        return;
+      }
+
+      // Don't fetch if user is not authenticated
+      if (!session) {
+        console.log("🚫 No session, skipping categories fetch");
+        setCategories([]);
+        return;
+      }
+
+      const response = await fetch("/api/categories", {
+        credentials: "include", // 🔑 Include session
+      });
+
+      if (response.ok) {
+        const categoriesData = await response.json();
+        console.log("📂 Categories fetched:", categoriesData.length, "items");
+        console.log("📂 Categories data:", categoriesData);
+        setCategories(categoriesData);
+      } else {
+        console.error("Failed to fetch categories:", response.status);
+        setCategories([]);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching categories:", error);
+      setCategories([]);
+    }
+  }, [session, status]);
 
   // Define fetchPlaces function with useCallback - UNIFIED LOCATION NOTES SYSTEM
   const fetchPlaces = useCallback(async () => {
@@ -151,6 +210,7 @@ export function Sidebar() {
           console.log("📍 Location notes:", notes.length, "items");
 
           // Convert location notes to unified place format
+          // Convert location notes to unified place format
           const locationNotes = notes.map((note: LocationNote) => ({
             id: note.id,
             name:
@@ -164,7 +224,8 @@ export function Sidebar() {
             timestamp: note.timestamp,
             images: note.images || [],
             hasImages: note.images && note.images.length > 0,
-            category: CategoryType.cafe, // Default category for location notes
+            category: CategoryType.cafe, // Keep for compatibility but not used for filtering
+            categorySlug: note.categorySlug, // Use categorySlug from note for filtering
             source: SourceType.manual,
             visibility: VisibilityType.private,
             createdBy: session.user?.id || "",
@@ -184,6 +245,7 @@ export function Sidebar() {
             locationNotes.length,
             "location notes to place format"
           );
+          console.log("📝 Sample place:", locationNotes[0]);
         } else {
           console.error(
             "Failed to fetch location notes:",
@@ -209,8 +271,14 @@ export function Sidebar() {
   // Load initial data
   useEffect(() => {
     setMounted(true);
-    fetchGroups();
   }, []);
+
+  // Fetch groups when session changes
+  useEffect(() => {
+    if (mounted) {
+      fetchGroups();
+    }
+  }, [mounted, fetchGroups]);
 
   // Fetch places when session or status changes
   useEffect(() => {
@@ -218,6 +286,13 @@ export function Sidebar() {
       fetchPlaces();
     }
   }, [mounted, session, status, fetchPlaces]); // Include fetchPlaces but it should be stable now
+
+  // Fetch categories when session changes
+  useEffect(() => {
+    if (mounted) {
+      fetchCategories();
+    }
+  }, [mounted, fetchCategories]);
 
   // Auto-switch to appropriate tab based on session status change
   useEffect(() => {
@@ -320,16 +395,80 @@ export function Sidebar() {
     { id: "profile", label: "Cá nhân", icon: User },
   ];
 
+  // Helper function to convert CategoryType enum to slug for filtering
+  const categoryTypeToSlug = (categoryType: string): string => {
+    // If it's already a slug (from location note), return as is
+    if (categoryType && categoryType.includes("-")) {
+      return categoryType;
+    }
+    // Otherwise convert CategoryType enum to lowercase slug
+    return categoryType.toLowerCase();
+  };
+
   const filteredPlaces = places.filter((place) => {
-    if (filter.category && !filter.category.includes(place.category))
-      return false;
+    const extendedPlace = place as ExtendedPlace;
+
+    // Category filtering
+    if (filter.category && filter.category.length > 0) {
+      // For location notes, use categorySlug if available
+      if (extendedPlace.placeType === "note") {
+        const noteHasCategory = extendedPlace.categorySlug;
+
+        console.log("🔍 Filter debug (location note):", {
+          placeName: place.name,
+          placeType: extendedPlace.placeType,
+          categorySlug: extendedPlace.categorySlug,
+          filterCategories: filter.category,
+          noteHasCategory,
+        });
+
+        // If no category filter is active, show all notes
+        if (filter.category.length === 0) {
+          // No category filter applied
+        } else if (!noteHasCategory) {
+          // Note has no category but filter is active - hide it
+          console.log("🚫 Filtering out note - no category assigned");
+          return false;
+        } else {
+          // Check if note's category matches the filter
+          const categoryMatches = filter.category.includes(
+            extendedPlace.categorySlug!
+          );
+          if (!categoryMatches) {
+            console.log("🚫 Filtering out note - category doesn't match");
+            return false;
+          }
+        }
+      } else {
+        // Regular places use normal category filtering
+        const placeSlug = categoryTypeToSlug(place.category);
+        console.log("🔍 Filter debug (regular place):", {
+          placeName: place.name,
+          placeCategory: place.category,
+          placeSlug,
+          filterCategories: filter.category,
+          includes: filter.category.includes(placeSlug),
+        });
+        if (!filter.category.includes(placeSlug)) return false;
+      }
+    }
+
+    // District filtering
     if (filter.district && !filter.district.includes(place.district || ""))
       return false;
+
+    // Query filtering
     if (
       filter.query &&
-      !place.name.toLowerCase().includes(filter.query.toLowerCase())
+      !place.name.toLowerCase().includes(filter.query.toLowerCase()) &&
+      !place.address.toLowerCase().includes(filter.query.toLowerCase()) &&
+      !(
+        extendedPlace.content &&
+        extendedPlace.content.toLowerCase().includes(filter.query.toLowerCase())
+      )
     )
       return false;
+
     return true;
   });
 
@@ -340,23 +479,23 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "fixed left-0 top-0 h-full w-80 md:w-80 sm:w-72 xs:w-full bg-white border-r border-gray-200 transition-transform duration-300 z-20 shadow-lg md:shadow-lg sm:shadow-xl",
+        "fixed left-0 top-0 h-full w-80 md:w-80 sm:w-72 xs:w-full bg-[#0C0C0C] border-r border-neutral-800 transition-transform duration-300 z-20 shadow-2xl",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}
       suppressHydrationWarning
     >
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100">
-          <h1 className="text-xl font-bold text-gray-900 mb-1">Hanoi Plan</h1>
-          <p className="text-sm text-gray-500 leading-relaxed">
+        <div className="p-6 border-b border-neutral-800">
+          <h1 className="text-xl font-bold text-[#EDEDED] mb-1">Hanoi Plan</h1>
+          <p className="text-sm text-[#A0A0A0] leading-relaxed">
             Khám phá Hà Nội cùng bạn bè
           </p>
         </div>
 
         {/* Navigation Tabs */}
         <div
-          className="flex border-b border-gray-100 bg-gray-50/50"
+          className="flex border-b border-neutral-800 bg-neutral-900/50"
           role="tablist"
           aria-label="Danh mục chính"
           onKeyDown={(e) => {
@@ -391,11 +530,11 @@ export function Sidebar() {
                 tabIndex={isActive ? 0 : -1}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium border-b-2 transition-all duration-300 relative overflow-hidden",
-                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
-                  "hover:bg-white/70 hover:text-gray-700",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0C0C0C]",
+                  "hover:bg-neutral-800/70 hover:text-[#EDEDED]",
                   isActive
-                    ? "border-blue-500 text-blue-600 bg-white shadow-lg shadow-blue-50/50 z-10"
-                    : "border-transparent text-gray-500"
+                    ? "border-blue-500 text-blue-400 bg-neutral-800 shadow-lg shadow-blue-500/20 z-10"
+                    : "border-transparent text-[#A0A0A0]"
                 )}
                 style={{
                   transform: isActive ? "translateY(-1px)" : "translateY(0)",
@@ -403,7 +542,7 @@ export function Sidebar() {
               >
                 {/* Active background glow */}
                 {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-b from-blue-50/80 to-white/80 border-l border-r border-blue-100/50" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-blue-900/30 to-neutral-800/80 border-l border-r border-blue-800/50" />
                 )}
 
                 {/* Icon with conditional weight */}
@@ -445,20 +584,20 @@ export function Sidebar() {
               {/* Search and Filter */}
               <div className="space-y-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#A0A0A0]" />
                   <Input
                     placeholder="Tìm kiếm địa điểm..."
                     value={filter.query || ""}
                     onChange={(e) => setFilter({ query: e.target.value })}
-                    className="pl-10 h-11 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all duration-200 rounded-xl"
+                    className="pl-10 h-11 bg-neutral-900/50 border-neutral-700 focus:bg-neutral-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 rounded-xl text-[#EDEDED] placeholder:text-[#A0A0A0]"
                   />
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowFilterPopover(!showFilterPopover)}
                     className={cn(
-                      "absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200",
-                      showFilterPopover ? "text-blue-600 bg-blue-50" : ""
+                      "absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-800 rounded-lg transition-all duration-200",
+                      showFilterPopover ? "text-blue-400 bg-blue-900/30" : ""
                     )}
                     title="Bộ lọc nâng cao"
                   >
@@ -469,16 +608,16 @@ export function Sidebar() {
 
               {/* Filter Popover */}
               {showFilterPopover && (
-                <div className="bg-white rounded-xl border border-gray-200 shadow-lg p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                <div className="bg-[#111111] rounded-xl border border-neutral-800 shadow-2xl p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-semibold text-gray-900">
+                    <h4 className="font-semibold text-[#EDEDED]">
                       Bộ lọc nâng cao
                     </h4>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowFilterPopover(false)}
-                      className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+                      className="h-6 w-6 p-0 text-[#A0A0A0] hover:text-[#EDEDED]"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -486,7 +625,7 @@ export function Sidebar() {
 
                   {/* Filter by type */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-[#EDEDED]">
                       Loại địa điểm
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -510,7 +649,7 @@ export function Sidebar() {
                             // TODO: Implement filter logic
                             console.log("Filter by:", type.value);
                           }}
-                          className="h-8 px-3 text-xs bg-white hover:bg-gray-50 border-gray-200 rounded-lg"
+                          className="h-8 px-3 text-xs bg-neutral-900 hover:bg-neutral-800 border-neutral-700 text-[#EDEDED] rounded-lg"
                         >
                           <span className="mr-1">{type.icon}</span>
                           {type.label}
@@ -521,7 +660,7 @@ export function Sidebar() {
 
                   {/* Date range */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-[#EDEDED]">
                       Thời gian
                     </label>
                     <div className="grid grid-cols-3 gap-2">
@@ -547,7 +686,7 @@ export function Sidebar() {
                             // TODO: Implement date filter
                             console.log("Filter by period:", period.value);
                           }}
-                          className="h-8 text-xs bg-white hover:bg-gray-50 border-gray-200 rounded-lg"
+                          className="h-8 text-xs bg-neutral-900 hover:bg-neutral-800 border-neutral-700 text-[#EDEDED] rounded-lg"
                         >
                           {period.label}
                         </Button>
@@ -556,7 +695,7 @@ export function Sidebar() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2 pt-2 border-t border-gray-100">
+                  <div className="flex gap-2 pt-2 border-t border-neutral-800">
                     <Button
                       variant="outline"
                       size="sm"
@@ -565,7 +704,7 @@ export function Sidebar() {
                         setFilter({});
                         setShowFilterPopover(false);
                       }}
-                      className="flex-1 h-8 text-xs bg-white hover:bg-gray-50 border-gray-200 rounded-lg"
+                      className="flex-1 h-8 text-xs bg-neutral-800 hover:bg-neutral-700 border-neutral-600 rounded-lg text-[#EDEDED]"
                     >
                       Đặt lại
                     </Button>
@@ -580,60 +719,93 @@ export function Sidebar() {
                 </div>
               )}
 
-              {/* Quick Categories */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">
-                  Danh mục
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {CATEGORIES.map((category) => (
-                    <Badge
-                      key={category}
-                      variant={
-                        filter.category?.includes(category)
-                          ? "default"
-                          : "outline"
-                      }
-                      className={cn(
-                        "cursor-pointer px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:shadow-sm",
-                        filter.category?.includes(category)
-                          ? "bg-blue-500 text-white border-blue-500 shadow-sm hover:bg-blue-600"
-                          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
-                      )}
-                      onClick={() => {
-                        const currentCategories = filter.category || [];
-                        const newCategories = currentCategories.includes(
-                          category
-                        )
-                          ? currentCategories.filter((c) => c !== category)
-                          : [...currentCategories, category];
-                        setFilter({
-                          category:
-                            newCategories.length > 0
-                              ? newCategories
-                              : undefined,
-                        });
-                      }}
-                    >
-                      {category}
-                    </Badge>
-                  ))}
+              {/* Quick Categories - Only show when logged in */}
+              {session && categories.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-[#EDEDED]">
+                    Danh mục
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((category) => (
+                      <Badge
+                        key={category.id}
+                        variant={
+                          filter.category?.includes(category.slug)
+                            ? "default"
+                            : "outline"
+                        }
+                        className={cn(
+                          "cursor-pointer px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 hover:shadow-sm",
+                          filter.category?.includes(category.slug)
+                            ? "bg-blue-500 text-white border-blue-500 shadow-sm hover:bg-blue-600"
+                            : "bg-neutral-800 text-[#A0A0A0] border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600 hover:text-[#EDEDED]"
+                        )}
+                        style={{
+                          backgroundColor: filter.category?.includes(
+                            category.slug
+                          )
+                            ? category.color || "#3B82F6"
+                            : undefined,
+                          borderColor: filter.category?.includes(category.slug)
+                            ? category.color || "#3B82F6"
+                            : undefined,
+                        }}
+                        onClick={() => {
+                          console.log("🏷️ Category clicked:", category);
+                          const currentCategories = filter.category || [];
+                          const newCategories = currentCategories.includes(
+                            category.slug
+                          )
+                            ? currentCategories.filter(
+                                (c) => c !== category.slug
+                              )
+                            : [...currentCategories, category.slug];
+                          console.log(
+                            "🏷️ New filter categories:",
+                            newCategories
+                          );
+
+                          // Update filter state
+                          setFilter({
+                            ...filter, // Preserve other filters
+                            category:
+                              newCategories.length > 0
+                                ? newCategories
+                                : undefined,
+                          });
+
+                          console.log("🔄 Filter updated:", {
+                            category:
+                              newCategories.length > 0
+                                ? newCategories
+                                : undefined,
+                            prevFilter: filter,
+                          });
+                        }}
+                      >
+                        {category.icon && (
+                          <span className="mr-1">{category.icon}</span>
+                        )}
+                        {category.name}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Places List */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-gray-700">
+                  <h3 className="text-sm font-semibold text-[#EDEDED]">
                     {session ? "Ghi chú của tôi" : "Địa điểm phổ biến"}{" "}
-                    <span className="text-gray-500 font-normal">
+                    <span className="text-[#A0A0A0] font-normal">
                       ({filteredPlaces.length})
                     </span>
                   </h3>
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-8 w-8 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                    className="h-8 w-8 p-0 text-[#A0A0A0] hover:text-blue-400 hover:bg-blue-900/30 rounded-lg"
                     title="Thêm ghi chú"
                   >
                     <Plus className="h-4 w-4" />
@@ -642,20 +814,24 @@ export function Sidebar() {
 
                 <div className="space-y-3">
                   {isLoadingPlaces ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <div className="animate-spin h-6 w-6 mx-auto mb-2 border-2 border-blue-600 border-t-transparent rounded-full" />
+                    <div className="text-center py-8 text-[#A0A0A0]">
+                      <div className="animate-spin h-6 w-6 mx-auto mb-2 border-2 border-blue-500 border-t-transparent rounded-full" />
                       <p className="text-sm">Đang tải ghi chú...</p>
                     </div>
                   ) : filteredPlaces.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <MapPin className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                    <div className="text-center py-8 text-[#A0A0A0]">
+                      <MapPin className="h-8 w-8 mx-auto mb-2 text-neutral-600" />
                       <p className="text-sm">
                         {session
                           ? "Chưa có ghi chú nào"
                           : "Không có ghi chú nào"}
                       </p>
                       {session && (
-                        <Button size="sm" variant="outline" className="mt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 bg-neutral-800 border-neutral-700 text-[#EDEDED] hover:bg-neutral-700"
+                        >
                           Thêm ghi chú
                         </Button>
                       )}
@@ -666,7 +842,7 @@ export function Sidebar() {
                       return (
                         <Card
                           key={place.id}
-                          className="group p-4 bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer rounded-xl"
+                          className="group p-4 bg-[#111111] border border-neutral-800 hover:border-neutral-700 hover:shadow-md transition-all duration-200 cursor-pointer rounded-xl"
                           onClick={() => {
                             // Check if this is a location note (has placeType: 'note')
                             if (extendedPlace.placeType === "note") {
@@ -691,7 +867,7 @@ export function Sidebar() {
                           <div className="flex items-start gap-3">
                             {/* Avatar/Icon */}
                             <div className="flex-shrink-0">
-                              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-700 border border-neutral-600">
                                 <span className="text-lg">
                                   {extendedPlace.mood || "📝"}
                                 </span>
@@ -700,13 +876,13 @@ export function Sidebar() {
 
                             {/* Content */}
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-sm text-gray-900 truncate mb-1">
+                              <h4 className="font-semibold text-sm text-[#EDEDED] truncate mb-1">
                                 {extendedPlace.content?.length > 40
                                   ? extendedPlace.content.substring(0, 40) +
                                     "..."
                                   : extendedPlace.content || place.name}
                               </h4>
-                              <p className="text-xs text-gray-500 truncate mb-2">
+                              <p className="text-xs text-[#A0A0A0] truncate mb-2">
                                 {place.address}
                               </p>
 
@@ -714,14 +890,14 @@ export function Sidebar() {
                               <div className="flex items-center gap-2 text-xs">
                                 <Badge
                                   variant="outline"
-                                  className="px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200 rounded-md"
+                                  className="px-2 py-0.5 bg-neutral-800 text-blue-400 border-neutral-700 rounded-full"
                                 >
                                   Ghi chú
                                 </Badge>
                                 {extendedPlace.images?.length > 0 && (
                                   <Badge
                                     variant="outline"
-                                    className="px-2 py-0.5 bg-green-50 text-green-700 border-green-200 rounded-md"
+                                    className="px-2 py-0.5 bg-neutral-800 text-green-400 border-neutral-700 rounded-full"
                                   >
                                     📷 {extendedPlace.images.length}
                                   </Badge>
@@ -734,7 +910,7 @@ export function Sidebar() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
+                                className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-neutral-800 rounded-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleGetDirections(place);
@@ -749,7 +925,7 @@ export function Sidebar() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg"
+                                className="h-8 w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-800 rounded-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   console.log(
@@ -777,7 +953,7 @@ export function Sidebar() {
               {showRouteGenerator && selectedGroupId ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-700">
+                    <h3 className="text-sm font-medium text-[#EDEDED]">
                       Tạo lộ trình cho nhóm
                     </h3>
                     <Button
@@ -796,7 +972,7 @@ export function Sidebar() {
               ) : showGroupForm ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-700">
+                    <h3 className="text-sm font-medium text-[#EDEDED]">
                       Tạo nhóm mới
                     </h3>
                     <Button
@@ -815,7 +991,7 @@ export function Sidebar() {
               ) : (
                 <>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-700">
+                    <h3 className="text-sm font-medium text-[#EDEDED]">
                       Nhóm của tôi ({groups.length})
                     </h3>
                     <Button size="sm" onClick={() => setShowGroupForm(true)}>
@@ -826,10 +1002,10 @@ export function Sidebar() {
 
                   <div className="space-y-3">
                     {groups.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <Users className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                      <div className="text-center py-8 text-[#A0A0A0]">
+                        <Users className="h-8 w-8 mx-auto mb-2 text-neutral-600" />
                         <p className="text-sm">Chưa có nhóm nào</p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-[#A0A0A0] mt-1">
                           Tạo nhóm để lên kế hoạch cùng bạn bè
                         </p>
                       </div>
@@ -867,14 +1043,14 @@ export function Sidebar() {
               {status === "loading" ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-                  <p className="text-gray-600 text-sm">Đang tải...</p>
+                  <p className="text-[#A0A0A0] text-sm">Đang tải...</p>
                 </div>
               ) : session ? (
                 <>
                   {/* Profile Card */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                  <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl p-6 border border-neutral-700 shadow-lg">
                     <div className="text-center">
-                      <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl mx-auto mb-4 flex items-center justify-center overflow-hidden shadow-lg">
+                      <div className="relative w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center overflow-hidden shadow-lg ring-2 ring-neutral-700">
                         {session.user?.image ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img
@@ -886,23 +1062,23 @@ export function Sidebar() {
                           <User className="h-10 w-10 text-white" />
                         )}
                       </div>
-                      <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                      <h3 className="font-semibold text-lg text-[#EDEDED] mb-1">
                         {session.user?.name || "Người dùng"}
                       </h3>
-                      <p className="text-sm text-gray-500 mb-4">
+                      <p className="text-sm text-[#A0A0A0] mb-4">
                         {session.user?.email}
                       </p>
 
-                      {/* Stats */}
-                      <div className="grid grid-cols-2 gap-4 text-center">
-                        <div className="bg-white/50 rounded-xl p-3">
-                          <div className="font-semibold text-blue-600">
+                      {/* Enhanced Stats */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="bg-gradient-to-br from-blue-900/50 to-blue-800/50 border border-blue-700/30 rounded-xl p-3">
+                          <div className="font-bold text-lg text-blue-400">
                             {places.length}
                           </div>
-                          <div className="text-xs text-gray-500">Ghi chú</div>
+                          <div className="text-xs text-blue-300">Ghi chú</div>
                         </div>
-                        <div className="bg-white/50 rounded-xl p-3">
-                          <div className="font-semibold text-green-600">
+                        <div className="bg-gradient-to-br from-green-900/50 to-green-800/50 border border-green-700/30 rounded-xl p-3">
+                          <div className="font-bold text-lg text-green-400">
                             {
                               filteredPlaces.filter(
                                 (p) =>
@@ -911,84 +1087,91 @@ export function Sidebar() {
                               ).length
                             }
                           </div>
-                          <div className="text-xs text-gray-500">Có ảnh</div>
+                          <div className="text-xs text-green-300">Có ảnh</div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Actions */}
+                  {/* Quick Actions */}
                   <div className="space-y-3">
+                    <div className="text-xs text-[#A0A0A0] uppercase tracking-wider font-medium mb-3 px-1">
+                      Thao tác nhanh
+                    </div>
+
                     <Button
                       variant="outline"
-                      className="w-full justify-start h-12 bg-white border-gray-200 hover:bg-gray-50 rounded-xl"
+                      className="w-full justify-start h-12 bg-gradient-to-r from-neutral-900 to-neutral-800 border-neutral-700 text-[#EDEDED] hover:bg-gradient-to-r hover:from-neutral-800 hover:to-neutral-700 rounded-xl group transition-all duration-200"
                     >
-                      <Settings className="h-5 w-5 mr-3 text-gray-500" />
-                      <span className="font-medium">Cài đặt</span>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center">
+                          <Settings className="h-5 w-5 mr-3 text-[#A0A0A0] group-hover:text-blue-400 transition-colors" />
+                          <span className="font-medium">Cài đặt</span>
+                        </div>
+                        <div className="text-xs text-[#A0A0A0] group-hover:text-[#EDEDED] transition-colors">
+                          ⌘,
+                        </div>
+                      </div>
                     </Button>
+
                     <Button
                       variant="outline"
-                      className="w-full justify-start h-12 bg-white border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl"
+                      className="w-full justify-start h-12 bg-gradient-to-r from-neutral-900 to-neutral-800 border-neutral-700 text-[#EDEDED] hover:bg-gradient-to-r hover:from-neutral-800 hover:to-neutral-700 rounded-xl group transition-all duration-200"
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center">
+                          <Download className="h-5 w-5 mr-3 text-[#A0A0A0] group-hover:text-green-400 transition-colors" />
+                          <span className="font-medium">Xuất dữ liệu</span>
+                        </div>
+                        <div className="text-xs text-[#A0A0A0] group-hover:text-[#EDEDED] transition-colors">
+                          JSON
+                        </div>
+                      </div>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start h-12 bg-gradient-to-r from-red-950/50 to-red-900/50 border-red-800/50 text-red-400 hover:bg-gradient-to-r hover:from-red-900/70 hover:to-red-800/70 hover:border-red-700/70 rounded-xl group transition-all duration-200"
                       onClick={() => signOut()}
                     >
-                      <LogOut className="h-5 w-5 mr-3" />
-                      <span className="font-medium">Đăng xuất</span>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center">
+                          <LogOut className="h-5 w-5 mr-3 group-hover:text-red-300 transition-colors" />
+                          <span className="font-medium">Đăng xuất</span>
+                        </div>
+                        <div className="text-xs text-red-500 group-hover:text-red-300 transition-colors">
+                          ⌘Q
+                        </div>
+                      </div>
                     </Button>
                   </div>
                 </>
               ) : (
                 <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                    <User className="h-10 w-10 text-gray-500" />
+                  <div className="relative w-20 h-20 bg-gradient-to-br from-neutral-800 to-neutral-700 rounded-2xl mx-auto mb-6 flex items-center justify-center ring-2 ring-neutral-600">
+                    <User className="h-10 w-10 text-[#A0A0A0]" />
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10"></div>
                   </div>
-                  <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                    Đăng nhập để sử dụng
+                  <h3 className="font-semibold text-xl text-[#EDEDED] mb-2">
+                    Chào mừng đến với HanoiPlan! 👋
                   </h3>
-                  <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                    Lưu ghi chú và tạo nhóm cùng bạn bè
+                  <p className="text-sm text-[#A0A0A0] mb-6 leading-relaxed max-w-sm mx-auto">
+                    Đăng nhập để trải nghiệm đầy đủ tính năng
                   </p>
-                  {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID &&
-                  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID !==
-                    "demo-google-client-id" ? (
-                    <Button
-                      onClick={() => signIn("google")}
-                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-                    >
-                      <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        />
-                      </svg>
-                      Đăng nhập với Google
-                    </Button>
-                  ) : (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                      <p className="text-sm text-amber-800 mb-3 font-medium">
-                        🔧 Cần cấu hình Google OAuth
-                      </p>
-                      <p className="text-xs text-amber-700 mb-2">
-                        Để sử dụng đăng nhập, vui lòng:
-                      </p>
-                      <ol className="text-xs text-amber-700 ml-4 space-y-1 list-decimal">
-                        <li>Tạo Google OAuth app</li>
-                        <li>Cập nhật .env.local</li>
-                        <li>Restart dev server</li>
-                      </ol>
-                    </div>
-                  )}
+
+                  {/* Login Button */}
+                  <Button
+                    onClick={() => (window.location.href = "/auth/signin")}
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] mb-4"
+                  >
+                    <User className="h-5 w-5 mr-2" />
+                    Đăng nhập
+                  </Button>
+
+                  {/* Quick info */}
+                  <div className="text-xs text-[#A0A0A0]">
+                    Lưu ghi chú • Tạo nhóm • Chia sẻ
+                  </div>
                 </div>
               )}
             </div>

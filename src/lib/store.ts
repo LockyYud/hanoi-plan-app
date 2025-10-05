@@ -12,6 +12,7 @@ export interface LocationNote {
     timestamp: Date
     images?: string[]
     hasImages?: boolean
+    categorySlug?: string // Category slug for filtering
 }
 
 interface PlaceStore {
