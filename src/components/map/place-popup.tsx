@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import {
   X,
   MapPin,
-  Clock,
   Phone,
   Globe,
   Star,
@@ -117,12 +116,6 @@ export function PlacePopup({
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const truncateText = (text: string, maxLength: number = 80) => {
-    return text.length > maxLength
-      ? text.substring(0, maxLength) + "..."
-      : text;
   };
 
   const handleGetDirections = async (
@@ -432,46 +425,58 @@ export function PlacePopup({
             </Button>
           </div>
         ) : (
-          <div className="h-20 relative bg-gradient-to-r from-neutral-800 to-neutral-900">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-4xl">
-                {isNote
-                  ? note?.mood || "📝"
-                  : isLocation
-                    ? "📍"
-                    : place && categoryIcons[place.category]}
-              </span>
+          <div className="h-16 relative bg-gradient-to-r from-neutral-800 to-neutral-900 px-4 py-3">
+            <div className="flex items-center justify-between h-full">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <span className="text-2xl flex-shrink-0">
+                  {isNote
+                    ? note?.mood || "📝"
+                    : isLocation
+                      ? "📍"
+                      : place && categoryIcons[place.category]}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium text-white truncate">
+                    {isNote
+                      ? note?.address
+                      : isLocation
+                        ? location?.address
+                        : place?.name}
+                  </div>
+                  {isNote && note && (
+                    <div className="text-xs text-neutral-300">
+                      {formatTime(note.timestamp)}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="text-white bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 p-0 backdrop-blur-sm border border-neutral-600 flex-shrink-0"
+              >
+                <X className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="absolute top-3 right-3 text-white bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 p-0 backdrop-blur-sm border border-neutral-600"
-            >
-              <X className="h-4 w-4" strokeWidth={1.5} />
-            </Button>
           </div>
         )}
 
         <CardHeader className="pb-2 pt-3">
           {isNote ? (
             /* Note Header */
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <BookOpen
                   className="h-4 w-4 text-[#A0A0A0]"
                   strokeWidth={1.5}
                 />
                 <span className="text-sm text-[#A0A0A0]">Ghi chú địa điểm</span>
-                <div className="flex items-center gap-1 text-[#A0A0A0] text-xs ml-auto">
-                  <Clock className="h-3 w-3" strokeWidth={1.5} />
-                  {note && formatTime(note.timestamp)}
-                </div>
               </div>
             </div>
           ) : isLocation ? (
             /* Location Header */
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-[#A0A0A0]" strokeWidth={1.5} />
                 <span className="text-sm text-[#A0A0A0]">Địa điểm mới</span>
@@ -516,81 +521,116 @@ export function PlacePopup({
           {isNote ? (
             /* Note Content */
             <>
-              {/* Location */}
-              <div className="flex items-start gap-2">
-                <MapPin
-                  className="h-4 w-4 text-[#A0A0A0] mt-0.5 flex-shrink-0"
-                  strokeWidth={1.5}
-                />
-                <span className="text-sm text-[#A0A0A0] break-words">
-                  {note && truncateText(note.address, 45)}
-                </span>
+              {/* Note content - main focus */}
+              <div className="text-sm text-[#EDEDED] leading-relaxed mb-3">
+                {note && note.content}
               </div>
 
-              {/* Note content preview */}
-              <div className="text-sm text-[#EDEDED] line-clamp-2 leading-tight">
-                {note && truncateText(note.content, 80)}
-              </div>
-
-              {/* Images preview */}
+              {/* Images - larger display */}
               {note?.images && note.images.length > 0 && (
-                <div className="flex gap-1">
-                  {note.images.slice(0, 3).map((image, index) => (
-                    <div
-                      key={index}
-                      className="w-8 h-8 bg-neutral-800 rounded border border-neutral-700 overflow-hidden"
-                    >
-                      {isValidImageUrl(image) ? (
+                <div className="mb-3">
+                  {note.images.length === 1 ? (
+                    <div className="w-full h-32 bg-neutral-800 rounded-lg border border-neutral-700 overflow-hidden">
+                      {isValidImageUrl(note.images[0]) ? (
                         <ImageDisplay
-                          src={image}
-                          alt={`Ảnh ${index + 1}`}
+                          src={note.images[0]}
+                          alt="Ảnh ghi chú"
                           className="w-full h-full object-cover"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-xs text-[#A0A0A0]">📷</span>
+                          <span className="text-lg text-[#A0A0A0]">📷</span>
                         </div>
                       )}
                     </div>
-                  ))}
-                  {note.images.length > 3 && (
-                    <div className="w-8 h-8 bg-neutral-800 rounded border border-neutral-700 flex items-center justify-center">
-                      <span className="text-xs text-[#A0A0A0]">
-                        +{note.images.length - 3}
-                      </span>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {note.images.slice(0, 4).map((image, index) => (
+                        <div
+                          key={index}
+                          className="aspect-square bg-neutral-800 rounded-lg border border-neutral-700 overflow-hidden"
+                        >
+                          {isValidImageUrl(image) ? (
+                            <ImageDisplay
+                              src={image}
+                              alt={`Ảnh ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-lg text-[#A0A0A0]">📷</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {note.images.length > 4 && (
+                        <div className="aspect-square bg-neutral-800 rounded-lg border border-neutral-700 flex items-center justify-center">
+                          <span className="text-sm text-[#A0A0A0]">
+                            +{note.images.length - 4}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Action buttons for notes */}
-              <div className="flex gap-2 pt-2">
+              {/* Route info display */}
+              {routeInfo && (
+                <div className="text-xs text-blue-400 text-center mb-3 p-2 bg-blue-900/20 rounded-lg border border-blue-800">
+                  📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
+                  {formatDuration(routeInfo.duration)}
+                </div>
+              )}
+
+              {/* Action buttons for notes - all in one row */}
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600"
+                  onClick={onViewDetails}
+                >
+                  <Eye className="h-4 w-4 mr-1" strokeWidth={1.5} />
+                  Chi tiết
+                </Button>
+
                 {hasRoute ? (
-                  /* Show clear directions button when route is active */
                   <Button
                     size="sm"
                     variant="outline"
                     className="flex-1 bg-red-900/30 hover:bg-red-900/50 text-red-400 border-red-800"
                     onClick={handleClearDirections}
                   >
-                    <NavigationOff className="h-4 w-4 mr-1" strokeWidth={1.5} />
-                    Tắt chỉ đường
+                    <NavigationOff className="h-3 w-3 mr-1" strokeWidth={1.5} />
+                    Tắt đường
                   </Button>
                 ) : !showRouteOptions ? (
                   <Button
                     size="sm"
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
-                    onClick={() => setShowRouteOptions(true)}
+                    variant="outline"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                    onClick={() =>
+                      note &&
+                      handleGetDirections(
+                        {
+                          lat: note.lat,
+                          lng: note.lng,
+                        },
+                        true
+                      )
+                    }
                     disabled={isGettingDirections}
                   >
-                    <Navigation className="h-4 w-4 mr-1" strokeWidth={1.5} />
+                    <Navigation className="h-3 w-3 mr-1" strokeWidth={1.5} />
                     Chỉ đường
                   </Button>
                 ) : (
                   <>
                     <Button
                       size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white border-0"
+                      variant="outline"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white border-green-600"
                       onClick={() =>
                         note &&
                         handleGetDirections(
@@ -604,14 +644,15 @@ export function PlacePopup({
                       disabled={isGettingDirections}
                     >
                       <Navigation
-                        className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                        className={`h-3 w-3 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
                         strokeWidth={1.5}
                       />
-                      {isGettingDirections ? "Đang tìm..." : "Trên bản đồ"}
+                      Bản đồ
                     </Button>
                     <Button
                       size="sm"
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
+                      variant="outline"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                       onClick={() =>
                         note &&
                         handleGetDirections(
@@ -625,32 +666,14 @@ export function PlacePopup({
                       disabled={isGettingDirections}
                     >
                       <Navigation
-                        className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                        className={`h-3 w-3 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
                         strokeWidth={1.5}
                       />
-                      {isGettingDirections ? "Đang tìm..." : "Mở app"}
+                      Mở app
                     </Button>
                   </>
                 )}
-              </div>
-              {routeInfo && (
-                <div className="text-xs text-blue-400 text-center mt-1">
-                  📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
-                  {formatDuration(routeInfo.duration)}
-                </div>
-              )}
 
-              {/* Additional action buttons */}
-              <div className="flex gap-2 pt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600"
-                  onClick={onViewDetails}
-                >
-                  <Eye className="h-4 w-4 mr-1" strokeWidth={1.5} />
-                  Xem chi tiết
-                </Button>
                 {onDelete && (
                   <Button
                     size="sm"
@@ -668,49 +691,68 @@ export function PlacePopup({
             /* Location Content */
             <>
               {/* Location address */}
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-2 mb-3">
                 <MapPin
                   className="h-4 w-4 text-[#A0A0A0] mt-0.5 flex-shrink-0"
                   strokeWidth={1.5}
                 />
-                <span className="text-sm text-[#A0A0A0] break-words leading-relaxed">
+                <span className="text-sm text-[#EDEDED] break-words leading-relaxed">
                   {location?.address}
                 </span>
               </div>
 
               {/* Coordinates */}
-              <div className="text-xs text-[#A0A0A0]">
+              <div className="text-xs text-[#A0A0A0] mb-3">
                 {location?.lat.toFixed(6)}, {location?.lng.toFixed(6)}
               </div>
 
+              {/* Route info display */}
+              {routeInfo && (
+                <div className="text-xs text-blue-400 text-center mb-3 p-2 bg-blue-900/20 rounded-lg border border-blue-800">
+                  📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
+                  {formatDuration(routeInfo.duration)}
+                </div>
+              )}
+
               {/* Action buttons for locations */}
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600"
+                  onClick={onAddNote}
+                >
+                  <PenTool className="h-4 w-4 mr-1" strokeWidth={1.5} />
+                  Thêm ghi chú
+                </Button>
+
                 {hasRoute ? (
-                  /* Show clear directions button when route is active */
                   <Button
                     size="sm"
                     variant="outline"
                     className="flex-1 bg-red-900/30 hover:bg-red-900/50 text-red-400 border-red-800"
                     onClick={handleClearDirections}
                   >
-                    <NavigationOff className="h-4 w-4 mr-1" strokeWidth={1.5} />
-                    Tắt chỉ đường
+                    <NavigationOff className="h-3 w-3 mr-1" strokeWidth={1.5} />
+                    Tắt đường
                   </Button>
                 ) : !showRouteOptions ? (
                   <Button
                     size="sm"
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
+                    variant="outline"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                     onClick={() => setShowRouteOptions(true)}
                     disabled={isGettingDirections}
                   >
-                    <Navigation className="h-4 w-4 mr-1" strokeWidth={1.5} />
+                    <Navigation className="h-3 w-3 mr-1" strokeWidth={1.5} />
                     Chỉ đường
                   </Button>
                 ) : (
                   <>
                     <Button
                       size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white border-0"
+                      variant="outline"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white border-green-600"
                       onClick={() =>
                         location &&
                         handleGetDirections(
@@ -724,14 +766,15 @@ export function PlacePopup({
                       disabled={isGettingDirections}
                     >
                       <Navigation
-                        className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                        className={`h-3 w-3 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
                         strokeWidth={1.5}
                       />
-                      {isGettingDirections ? "Đang tìm..." : "Trên bản đồ"}
+                      Bản đồ
                     </Button>
                     <Button
                       size="sm"
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
+                      variant="outline"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                       onClick={() =>
                         location &&
                         handleGetDirections(
@@ -745,39 +788,20 @@ export function PlacePopup({
                       disabled={isGettingDirections}
                     >
                       <Navigation
-                        className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                        className={`h-3 w-3 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
                         strokeWidth={1.5}
                       />
-                      {isGettingDirections ? "Đang tìm..." : "Mở app"}
+                      Mở app
                     </Button>
                   </>
                 )}
-              </div>
-              {routeInfo && (
-                <div className="text-xs text-blue-400 text-center mt-1">
-                  📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
-                  {formatDuration(routeInfo.duration)}
-                </div>
-              )}
-
-              {/* Add note button */}
-              <div className="flex gap-2 pt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600"
-                  onClick={onAddNote}
-                >
-                  <PenTool className="h-4 w-4 mr-1" strokeWidth={1.5} />
-                  Thêm ghi chú
-                </Button>
               </div>
             </>
           ) : (
             /* Place Content */
             <>
               {/* Address */}
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-2 mb-3">
                 <MapPin
                   className="h-4 w-4 text-[#A0A0A0] mt-0.5 flex-shrink-0"
                   strokeWidth={1.5}
@@ -790,55 +814,64 @@ export function PlacePopup({
                 </div>
               </div>
 
-              {/* Phone */}
-              {place?.phone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-[#A0A0A0]" strokeWidth={1.5} />
-                  <a
-                    href={`tel:${place.phone}`}
-                    className="text-sm text-blue-400 hover:underline"
-                  >
-                    {place.phone}
-                  </a>
-                </div>
-              )}
+              {/* Contact Info */}
+              <div className="space-y-2 mb-3">
+                {/* Phone */}
+                {place?.phone && (
+                  <div className="flex items-center gap-2">
+                    <Phone
+                      className="h-4 w-4 text-[#A0A0A0]"
+                      strokeWidth={1.5}
+                    />
+                    <a
+                      href={`tel:${place.phone}`}
+                      className="text-sm text-blue-400 hover:underline"
+                    >
+                      {place.phone}
+                    </a>
+                  </div>
+                )}
 
-              {/* Website */}
-              {place?.website && (
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-[#A0A0A0]" strokeWidth={1.5} />
-                  <a
-                    href={place.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-400 hover:underline"
-                  >
-                    Website
-                  </a>
-                </div>
-              )}
+                {/* Website */}
+                {place?.website && (
+                  <div className="flex items-center gap-2">
+                    <Globe
+                      className="h-4 w-4 text-[#A0A0A0]"
+                      strokeWidth={1.5}
+                    />
+                    <a
+                      href={place.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-400 hover:underline"
+                    >
+                      Website
+                    </a>
+                  </div>
+                )}
 
-              {/* Price Level */}
-              {place?.priceLevel && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-[#A0A0A0]">Giá:</span>
-                  <span className="text-sm font-medium text-green-400">
-                    {"₫".repeat(place.priceLevel)}
-                    {"₫"
-                      .repeat(4 - place.priceLevel)
-                      .split("")
-                      .map((_, i) => (
-                        <span key={i} className="text-neutral-600">
-                          ₫
-                        </span>
-                      ))}
-                  </span>
-                </div>
-              )}
+                {/* Price Level */}
+                {place?.priceLevel && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-[#A0A0A0]">Giá:</span>
+                    <span className="text-sm font-medium text-green-400">
+                      {"₫".repeat(place.priceLevel)}
+                      {"₫"
+                        .repeat(4 - place.priceLevel)
+                        .split("")
+                        .map((_, i) => (
+                          <span key={i} className="text-neutral-600">
+                            ₫
+                          </span>
+                        ))}
+                    </span>
+                  </div>
+                )}
+              </div>
 
               {/* Tags */}
               {place?.tags && place.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-3">
+                <div className="flex flex-wrap gap-1 mb-3">
                   {place.tags.slice(0, 3).map((tag, index) => (
                     <span
                       key={index}
@@ -850,34 +883,56 @@ export function PlacePopup({
                 </div>
               )}
 
+              {/* Route info display */}
+              {routeInfo && (
+                <div className="text-xs text-blue-400 text-center mb-3 p-2 bg-blue-900/20 rounded-lg border border-blue-800">
+                  📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
+                  {formatDuration(routeInfo.duration)}
+                </div>
+              )}
+
               {/* Action buttons */}
-              <div className="flex gap-2 pt-3">
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600"
+                  onClick={
+                    onViewDetails ||
+                    (() => console.log("View details for place:", place?.name))
+                  }
+                >
+                  <Eye className="h-4 w-4 mr-1" strokeWidth={1.5} />
+                  Chi tiết
+                </Button>
+
                 {hasRoute ? (
-                  /* Show clear directions button when route is active */
                   <Button
                     size="sm"
                     variant="outline"
                     className="flex-1 bg-red-900/30 hover:bg-red-900/50 text-red-400 border-red-800"
                     onClick={handleClearDirections}
                   >
-                    <NavigationOff className="h-4 w-4 mr-1" strokeWidth={1.5} />
-                    Tắt chỉ đường
+                    <NavigationOff className="h-3 w-3 mr-1" strokeWidth={1.5} />
+                    Tắt đường
                   </Button>
                 ) : !showRouteOptions ? (
                   <Button
                     size="sm"
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
+                    variant="outline"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                     onClick={() => setShowRouteOptions(true)}
                     disabled={isGettingDirections}
                   >
-                    <Navigation className="h-4 w-4 mr-1" strokeWidth={1.5} />
+                    <Navigation className="h-3 w-3 mr-1" strokeWidth={1.5} />
                     Chỉ đường
                   </Button>
                 ) : (
                   <>
                     <Button
                       size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white border-0"
+                      variant="outline"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white border-green-600"
                       onClick={() =>
                         place &&
                         handleGetDirections(
@@ -891,14 +946,15 @@ export function PlacePopup({
                       disabled={isGettingDirections}
                     >
                       <Navigation
-                        className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                        className={`h-3 w-3 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
                         strokeWidth={1.5}
                       />
-                      {isGettingDirections ? "Đang tìm..." : "Trên bản đồ"}
+                      Bản đồ
                     </Button>
                     <Button
                       size="sm"
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
+                      variant="outline"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                       onClick={() =>
                         place &&
                         handleGetDirections(
@@ -912,35 +968,14 @@ export function PlacePopup({
                       disabled={isGettingDirections}
                     >
                       <Navigation
-                        className={`h-4 w-4 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
+                        className={`h-3 w-3 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
                         strokeWidth={1.5}
                       />
-                      {isGettingDirections ? "Đang tìm..." : "Mở app"}
+                      Mở app
                     </Button>
                   </>
                 )}
-              </div>
-              {routeInfo && (
-                <div className="text-xs text-blue-400 text-center mt-1">
-                  📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
-                  {formatDuration(routeInfo.duration)}
-                </div>
-              )}
 
-              {/* Additional action buttons */}
-              <div className="flex gap-2 pt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600"
-                  onClick={
-                    onViewDetails ||
-                    (() => console.log("View details for place:", place?.name))
-                  }
-                >
-                  <Eye className="h-4 w-4 mr-1" strokeWidth={1.5} />
-                  Xem chi tiết
-                </Button>
                 {onDelete && (
                   <Button
                     size="sm"
