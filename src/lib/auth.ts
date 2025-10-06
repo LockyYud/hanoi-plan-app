@@ -108,6 +108,12 @@ export const authOptions: NextAuthOptions = {
         redirect: async ({ url, baseUrl }) => {
             console.log("🔄 Redirect callback:", { url, baseUrl });
 
+            // If coming from signin page, redirect to home
+            if (url.includes("/auth/signin")) {
+                console.log("🏠 Redirecting from signin to home");
+                return baseUrl;
+            }
+
             // Always redirect to baseUrl (home page) after sign in
             if (url.startsWith("/")) return `${baseUrl}${url}`;
             else if (new URL(url).origin === baseUrl) return url;

@@ -84,7 +84,7 @@ export default function SignInPage() {
             process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID !==
               "demo-google-client-id" ? (
               <Button
-                onClick={() => signIn("google")}
+                onClick={() => signIn("google", { callbackUrl: "/" })}
                 className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="flex items-center justify-center gap-3">
