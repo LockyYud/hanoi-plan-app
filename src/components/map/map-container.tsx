@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { useSession } from "next-auth/react";
 import mapboxgl from "mapbox-gl";
 import {
@@ -303,7 +304,13 @@ export function MapContainer({ className }: MapContainerProps) {
 
   // Add location note markers
   useEffect(() => {
-    if (!map.current || !mapLoaded) return;
+    if (!map.current || !mapLoaded) {
+      console.log("🗺️ Map not ready for markers:", {
+        mapExists: !!map.current,
+        mapLoaded,
+      });
+      return;
+    }
 
     console.log(
       "🗺️ Adding markers for",
@@ -320,6 +327,7 @@ export function MapContainer({ className }: MapContainerProps) {
     const existingMarkers = document.querySelectorAll(
       ".place-marker, .react-map-pin"
     );
+    console.log("🧹 Removing", existingMarkers.length, "existing markers");
     existingMarkers.forEach((marker) => {
       // Clean up React roots if any
       const reactMarker = marker as ReactMapPinElement;
@@ -358,6 +366,12 @@ export function MapContainer({ className }: MapContainerProps) {
         .addTo(map.current!);
     });
 
+    console.log(
+      "✅ Successfully added",
+      locationNotes.length,
+      "markers to map"
+    );
+
     // Auto focus on first result if there's a search
     if (locationNotes.length > 0 && locationNotes.length <= 5) {
       const bounds = new mapboxgl.LngLatBounds();
@@ -380,7 +394,7 @@ export function MapContainer({ className }: MapContainerProps) {
         });
       }
     }
-  }, [locationNotes, mapLoaded, handleMarkerClick]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [locationNotes, mapLoaded, selectedNote, handleMarkerClick]);
 
   // Location note markers are now the main marker system
   // This useEffect is disabled to prevent duplicate markers
@@ -447,30 +461,57 @@ export function MapContainer({ className }: MapContainerProps) {
     lng: number;
     lat: number;
     address: string;
-    content: string;
+    content?: string;
     mood?: string;
     images?: string[];
+    category?: string;
+    placeName?: string;
+    visitTime?: string;
+    timestamp?: Date;
+    coverImageIndex?: number;
   }) => {
     try {
-      console.log("Adding location note to local state:", noteData);
+      console.log("📝 Adding location note to local state:", noteData);
 
-      // For new workflow, the note is already created in the form component
-      // Just add to local state and update UI
+      // Ensure we have a valid ID from the form's API call
+      if (!noteData.id) {
+        console.error("❌ Note ID is missing, cannot add to local state");
+        throw new Error("Note ID is required");
+      }
+
+      // Create the note object for local state
       const savedNote = {
-        id: noteData.id!, // ID should exist from form's API call
+        id: noteData.id,
         lng: noteData.lng,
         lat: noteData.lat,
         address: noteData.address,
-        content: noteData.content,
+        content: noteData.content || "",
         mood: noteData.mood,
         images: noteData.images || [],
-        timestamp: new Date(),
+        timestamp: noteData.timestamp || new Date(),
         hasImages: (noteData.images || []).length > 0,
       };
 
-      // Add to local state
-      console.log("📝 Adding note to local state:", savedNote);
-      setLocationNotes((prev) => [...prev, savedNote]);
+      // Add to local state immediately for instant UI update
+      console.log(
+        "📍 Adding note to local state for immediate marker display:",
+        {
+          id: savedNote.id,
+          content: savedNote.content?.substring(0, 20),
+          coordinates: [savedNote.lng, savedNote.lat],
+        }
+      );
+
+      // Use flushSync to ensure immediate state update
+      flushSync(() => {
+        setLocationNotes((prev) => {
+          const updated = [...prev, savedNote];
+          console.log("📍 Updated locationNotes count:", updated.length);
+          return updated;
+        });
+      });
+
+      // Close forms
       setClickedLocation(null);
       setShowLocationForm(false);
 
@@ -479,7 +520,7 @@ export function MapContainer({ className }: MapContainerProps) {
 
       console.log("✅ Location note added to local state and sidebar notified");
     } catch (error: unknown) {
-      console.error("Error adding location note to local state:", error);
+      console.error("❌ Error adding location note to local state:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       alert(`Có lỗi xảy ra khi thêm ghi chú: ${errorMessage}`);
@@ -488,17 +529,18 @@ export function MapContainer({ className }: MapContainerProps) {
 
   // Handle editing location note
   const handleEditLocationNote = async (noteData: {
-    category: string;
-    content: string;
-    placeName: string;
-    visitTime: string;
-    mood?: "😊" | "😍" | "😎" | "🤔" | "😴" | "😋" | "🥳" | "😤";
+    category?: string;
+    content?: string;
+    placeName?: string;
+    visitTime?: string;
+    mood?: string;
     id?: string;
     lng: number;
     lat: number;
     address: string;
-    timestamp: Date;
+    timestamp?: Date;
     images?: string[];
+    coverImageIndex?: number;
   }) => {
     try {
       console.log("Editing location note:", noteData);
@@ -890,6 +932,11 @@ export function MapContainer({ className }: MapContainerProps) {
                 console.log(
                   "Deleted note:",
                   selectedNote.content?.substring(0, 20)
+                );
+
+                // Update local state to remove the deleted note
+                setLocationNotes((prev) =>
+                  prev.filter((note) => note.id !== selectedNote.id)
                 );
 
                 setSelectedNote(null);

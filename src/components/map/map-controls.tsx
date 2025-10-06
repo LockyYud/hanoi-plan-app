@@ -319,10 +319,10 @@ export function MapControls({ mapRef }: MapControlsProps) {
       </div>
 
       {/* Search control */}
-      <div className="absolute top-4 left-16 right-4 md:right-20 z-10 pointer-events-none">
+      <div className="absolute top-2 left-16 z-10 pointer-events-none max-w-[70%]">
         <div className="relative pointer-events-auto">
-          <Card className="p-3 md:p-3 sm:p-2 bg-white shadow-lg border border-gray-200 rounded-xl">
-            <div className="flex items-center gap-3">
+          <Card className="h-11 px-3 py-1.5 bg-white shadow-lg border border-gray-200 rounded-full">
+            <div className="flex items-center gap-3 h-full">
               {isSearching ? (
                 <Loader2 className="h-4 w-4 text-blue-500 animate-spin flex-shrink-0" />
               ) : (
@@ -341,7 +341,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
                     setSearchResults([]);
                   }
                 }}
-                className="flex-1 outline-none text-sm bg-transparent text-gray-900 placeholder-gray-500"
+                className="flex-1 outline-none text-sm bg-transparent text-gray-900 placeholder-gray-500 min-h-[44px] flex items-center"
               />
               {searchValue && (
                 <Button
@@ -361,7 +361,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
 
           {/* Search Results Dropdown */}
           {searchResults.length > 0 && (
-            <Card className="absolute top-full mt-1 w-full bg-white shadow-xl border border-gray-200 max-h-64 overflow-y-auto">
+            <Card className="absolute top-full mt-1 w-full bg-white shadow-xl border border-gray-200 max-h-64 overflow-y-auto rounded-2xl">
               {searchResults.map((place) => (
                 <button
                   key={place.place_name}
@@ -372,7 +372,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
                       handleSelectPlace(place);
                     }
                   }}
-                  className="w-full p-3 text-left hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-blue-50 focus:border-blue-200"
+                  className="w-full p-3 text-left hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-blue-50 focus:border-blue-200 first:rounded-t-2xl last:rounded-b-2xl"
                 >
                   <div className="flex items-start gap-3">
                     <MapPin className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />

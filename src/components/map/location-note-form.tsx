@@ -265,6 +265,7 @@ export function LocationNoteForm({
         body: JSON.stringify({
           name: customCategoryName.trim(),
           slug: customCategoryName.trim().toLowerCase().replace(/\s+/g, "-"),
+          icon: "📍",
         }),
       });
 
@@ -479,6 +480,14 @@ export function LocationNoteForm({
 
         setUploadProgress("Hoàn tất...");
 
+        console.log("📝 LocationNoteForm: Calling onSubmit with data:", {
+          id: createdNote.id,
+          content: data.content?.substring(0, 20),
+          lng: location.lng,
+          lat: location.lat,
+          images: imageUrls.length,
+        });
+
         onSubmit({
           ...data,
           id: createdNote.id,
@@ -489,6 +498,8 @@ export function LocationNoteForm({
           images: imageUrls,
           coverImageIndex,
         });
+
+        console.log("✅ LocationNoteForm: onSubmit called successfully");
       }
 
       // Reset form and clear draft

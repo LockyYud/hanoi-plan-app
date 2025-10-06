@@ -1108,24 +1108,6 @@ export function Sidebar() {
                           <Settings className="h-5 w-5 mr-3 text-[#A0A0A0] group-hover:text-blue-400 transition-colors" />
                           <span className="font-medium">Cài đặt</span>
                         </div>
-                        <div className="text-xs text-[#A0A0A0] group-hover:text-[#EDEDED] transition-colors">
-                          ⌘,
-                        </div>
-                      </div>
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start h-12 bg-gradient-to-r from-neutral-900 to-neutral-800 border-neutral-700 text-[#EDEDED] hover:bg-gradient-to-r hover:from-neutral-800 hover:to-neutral-700 rounded-xl group transition-all duration-200"
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center">
-                          <Download className="h-5 w-5 mr-3 text-[#A0A0A0] group-hover:text-green-400 transition-colors" />
-                          <span className="font-medium">Xuất dữ liệu</span>
-                        </div>
-                        <div className="text-xs text-[#A0A0A0] group-hover:text-[#EDEDED] transition-colors">
-                          JSON
-                        </div>
                       </div>
                     </Button>
 
@@ -1138,9 +1120,6 @@ export function Sidebar() {
                         <div className="flex items-center">
                           <LogOut className="h-5 w-5 mr-3 group-hover:text-red-300 transition-colors" />
                           <span className="font-medium">Đăng xuất</span>
-                        </div>
-                        <div className="text-xs text-red-500 group-hover:text-red-300 transition-colors">
-                          ⌘Q
                         </div>
                       </div>
                     </Button>
