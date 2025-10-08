@@ -890,7 +890,7 @@ export function MapContainer({ className }: MapContainerProps) {
             </div>
           )}
         </div>
-        <MapControls />
+        <MapControls mapRef={map} />
       </div>
     );
   }
@@ -898,7 +898,7 @@ export function MapContainer({ className }: MapContainerProps) {
   return (
     <div className={cn("relative", className)} suppressHydrationWarning>
       <div ref={mapContainer} className="w-full h-full relative z-0" />
-      <MapControls />
+      <MapControls mapRef={map} />
       {/* Unified popup system - only 2 types: My Notes or New Location */}
       {selectedNote && (
         <PlacePopup

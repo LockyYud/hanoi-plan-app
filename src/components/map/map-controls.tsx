@@ -13,12 +13,10 @@ import {
   Menu,
   Loader2,
   Navigation,
-  NavigationOff,
 } from "lucide-react";
 import { useUIStore, useMapStore } from "@/lib/store";
 import {
   getCurrentLocation,
-  hasActiveRoute,
   removeRouteFromMap,
 } from "@/lib/geolocation";
 import { toast } from "sonner";
@@ -26,7 +24,7 @@ import { LocationNoteForm } from "./location-note-form";
 import { DirectionPopup } from "./direction-popup";
 
 interface MapControlsProps {
-  readonly mapRef?: React.RefObject<mapboxgl.Map>;
+  readonly mapRef?: React.RefObject<mapboxgl.Map | null>;
 }
 
 export function MapControls({ mapRef }: MapControlsProps) {
@@ -41,7 +39,6 @@ export function MapControls({ mapRef }: MapControlsProps) {
       center: [number, number];
     }>
   >([]);
-  const [showClearRoute, setShowClearRoute] = useState(false);
 
   // State for direction popup
   const [showDirectionPopup, setShowDirectionPopup] = useState(false);
@@ -295,10 +292,17 @@ export function MapControls({ mapRef }: MapControlsProps) {
 
   // Handle clear route button
   const handleClearRoute = () => {
-    if (mapRef) {
+    console.log("🔴 handleClearRoute called", { 
+      hasMapRef: !!mapRef, 
+      hasMapRefCurrent: !!mapRef?.current 
+    });
+    
+    if (mapRef?.current) {
+      console.log("🗺️ Attempting to remove route from map...");
       const success = removeRouteFromMap(mapRef);
+      console.log("🗺️ Remove route result:", success);
+      
       if (success) {
-        setShowClearRoute(false);
         setShowDirectionPopup(false);
         setDirectionInfo(null);
         
@@ -309,18 +313,18 @@ export function MapControls({ mapRef }: MapControlsProps) {
       } else {
         toast.error("Không thể tắt chỉ đường");
       }
+    } else {
+      console.log("⚠️ mapRef not available, clearing UI state only");
+      // If mapRef not available, still clear the UI state
+      setShowDirectionPopup(false);
+      setDirectionInfo(null);
+      window.dispatchEvent(new CustomEvent('routeCleared'));
+      toast.success("Đã tắt chỉ đường");
     }
   };
 
-  // Check for active route periodically
+  // Listen for route events (independent of mapRef)
   useEffect(() => {
-    if (!mapRef) return;
-
-    const checkRoute = () => {
-      const routeExists = hasActiveRoute(mapRef);
-      setShowClearRoute(routeExists);
-    };
-
     // Listen for route creation events
     const handleRouteCreated = (event: CustomEvent) => {
       const { destination, routeInfo } = event.detail;
@@ -334,22 +338,17 @@ export function MapControls({ mapRef }: MapControlsProps) {
       setDirectionInfo(null);
     };
 
-    // Check immediately
-    checkRoute();
-
-    // Add event listeners
+    // Add event listeners immediately
     window.addEventListener('routeCreated', handleRouteCreated as EventListener);
     window.addEventListener('routeCleared', handleRouteCleared);
 
-    // Check every 1 second
-    const interval = setInterval(checkRoute, 1000);
-
     return () => {
-      clearInterval(interval);
       window.removeEventListener('routeCreated', handleRouteCreated as EventListener);
       window.removeEventListener('routeCleared', handleRouteCleared);
     };
-  }, [mapRef]);
+  }, []);
+
+
 
   return (
     <>
@@ -441,19 +440,6 @@ export function MapControls({ mapRef }: MapControlsProps) {
 
       {/* Action buttons - Mobile optimized FAB */}
       <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-3 pointer-events-none">
-        {/* Clear route button - only shown when route is active */}
-        {showClearRoute && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleClearRoute}
-            className="w-12 h-12 md:w-12 md:h-12 rounded-full shadow-lg bg-red-50 hover:bg-red-100 text-red-600 border-2 border-red-200 hover:border-red-400 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
-            title="Tắt chỉ đường"
-          >
-            <NavigationOff className="h-5 w-5" />
-          </Button>
-        )}
-
         {/* Primary FAB - Add Place */}
         <Button
           size="sm"
@@ -504,14 +490,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
         isVisible={showDirectionPopup}
         destination={directionInfo?.destination}
         routeInfo={directionInfo?.routeInfo}
-        onClose={() => {
-          // Clear direction popup
-          setShowDirectionPopup(false);
-          setDirectionInfo(null);
-          
-          // Also clear the route from map
-          handleClearRoute();
-        }}
+        onClose={handleClearRoute}
       />
     </>
   );

@@ -74,7 +74,7 @@ export function Sidebar() {
     setSelectedNote,
   } = usePlaceStore();
   const [activeTab, setActiveTab] = useState<"places" | "groups" | "profile">(
-    "profile"
+    "places"
   );
   const [mounted, setMounted] = useState(false);
   const [showGroupForm, setShowGroupForm] = useState(false);

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { X, Navigation, MapPin, Clock, Ruler } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { X, Navigation, Clock, Ruler } from "lucide-react";
 import { formatDistance, formatDuration } from "@/lib/geolocation";
 
 interface DirectionPopupProps {
@@ -44,106 +44,68 @@ export function DirectionPopup({
   }
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none">
-      {/* Backdrop */}
-      <div 
-        className={`absolute inset-0 bg-black/20 transition-opacity duration-300 ${
-          isAnimated ? "opacity-100" : "opacity-0"
-        }`}
-      />
-      
-      {/* Popup */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 pointer-events-auto">
+    <div className="fixed inset-0 z-40 pointer-events-none">
+      {/* Popup - Bottom positioned, horizontal layout */}
+      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 pointer-events-auto px-4 w-full max-w-2xl">
         <Card 
-          className={`w-80 shadow-2xl border border-neutral-700 rounded-xl overflow-hidden bg-[#111111] transition-all duration-300 ${
-            isAnimated ? "translate-y-0 opacity-100 scale-100" : "-translate-y-4 opacity-0 scale-95"
+          className={`shadow-2xl border border-neutral-600 rounded-2xl overflow-hidden bg-[#1a1a1a]/95 backdrop-blur-md transition-all duration-300 ${
+            isAnimated ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
           }`}
         >
-          {/* Header */}
-          <div className="h-16 relative bg-gradient-to-r from-blue-800 to-blue-900 px-4 py-3">
-            <div className="flex items-center justify-between h-full">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
-                  <Navigation className="h-5 w-5 text-white" strokeWidth={1.5} />
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-4">
+              {/* Icon & Title */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="p-2 bg-blue-600 rounded-full">
+                  <Navigation className="h-4 w-4 text-white" strokeWidth={2} />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-white">
+                <div className="hidden sm:block">
+                  <div className="text-sm font-semibold text-white">
                     Đang chỉ đường
                   </div>
-                  <div className="text-xs text-blue-200">
-                    Tới {destination.name}
+                  <div className="text-xs text-neutral-400 truncate max-w-[150px]">
+                    {destination.name}
                   </div>
                 </div>
               </div>
+
+              {/* Route Stats - Horizontal */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {/* Distance */}
+                <div className="flex items-center gap-2 bg-neutral-800/50 rounded-lg px-3 py-1.5 border border-neutral-700">
+                  <Ruler className="h-3.5 w-3.5 text-green-400 flex-shrink-0" strokeWidth={2} />
+                  <span className="text-sm font-bold text-green-400 whitespace-nowrap">
+                    {formatDistance(routeInfo.distance)}
+                  </span>
+                </div>
+
+                {/* Duration */}
+                <div className="flex items-center gap-2 bg-neutral-800/50 rounded-lg px-3 py-1.5 border border-neutral-700">
+                  <Clock className="h-3.5 w-3.5 text-orange-400 flex-shrink-0" strokeWidth={2} />
+                  <span className="text-sm font-bold text-orange-400 whitespace-nowrap">
+                    {formatDuration(routeInfo.duration)}
+                  </span>
+                </div>
+
+                {/* Status indicator */}
+                <div className="hidden md:flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-blue-400">Đang hiển thị</span>
+                </div>
+              </div>
+
+              {/* Close Button */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="text-white bg-black/30 hover:bg-black/50 rounded-full w-8 h-8 p-0 backdrop-blur-sm border border-white/20 flex-shrink-0"
+                className="text-white bg-red-600/80 hover:bg-red-600 rounded-full w-8 h-8 p-0 flex-shrink-0 border-none"
+                title="Tắt chỉ đường"
               >
-                <X className="h-4 w-4" strokeWidth={1.5} />
+                <X className="h-4 w-4" strokeWidth={2} />
               </Button>
             </div>
           </div>
-
-          <CardContent className="p-4 space-y-4">
-            {/* Destination Info */}
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-[#EDEDED] truncate">
-                    {destination.name}
-                  </div>
-                  <div className="text-xs text-[#A0A0A0] break-words leading-relaxed">
-                    {destination.address}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Route Stats */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Distance */}
-              <div className="bg-neutral-800/50 rounded-lg p-3 border border-neutral-700">
-                <div className="flex items-center gap-2 mb-1">
-                  <Ruler className="h-4 w-4 text-green-400" strokeWidth={1.5} />
-                  <span className="text-xs text-[#A0A0A0]">Khoảng cách</span>
-                </div>
-                <div className="text-lg font-bold text-green-400">
-                  {formatDistance(routeInfo.distance)}
-                </div>
-              </div>
-
-              {/* Duration */}
-              <div className="bg-neutral-800/50 rounded-lg p-3 border border-neutral-700">
-                <div className="flex items-center gap-2 mb-1">
-                  <Clock className="h-4 w-4 text-orange-400" strokeWidth={1.5} />
-                  <span className="text-xs text-[#A0A0A0]">Thời gian</span>
-                </div>
-                <div className="text-lg font-bold text-orange-400">
-                  {formatDuration(routeInfo.duration)}
-                </div>
-              </div>
-            </div>
-
-            {/* Status */}
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-2 bg-blue-900/30 text-blue-400 rounded-lg border border-blue-800">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">Đường đi đang được hiển thị trên bản đồ</span>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <Button
-              onClick={onClose}
-              className="w-full bg-red-600 hover:bg-red-700 text-white border-none"
-            >
-              <X className="h-4 w-4 mr-2" strokeWidth={1.5} />
-              Tắt chỉ đường
-            </Button>
-          </CardContent>
         </Card>
       </div>
     </div>
