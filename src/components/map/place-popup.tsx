@@ -164,6 +164,25 @@ export function PlacePopup({
             });
             setHasRoute(true);
 
+            // Emit route created event with destination info
+            const destinationName = isNote ? "Ghi chú của bạn" : isLocation ? "Vị trí được chọn" : place?.name || "Địa điểm";
+            const destinationAddress = isNote ? note?.address : isLocation ? location?.address : place?.address || "";
+            
+            window.dispatchEvent(new CustomEvent('routeCreated', {
+              detail: {
+                destination: {
+                  name: destinationName,
+                  address: destinationAddress,
+                  lat: destination.lat,
+                  lng: destination.lng,
+                },
+                routeInfo: {
+                  duration: route.duration,
+                  distance: route.distance,
+                }
+              }
+            }));
+
             toast.success(
               `Đường đi: ${formatDistance(route.distance)} • ${formatDuration(route.duration)}`,
               {
@@ -179,6 +198,25 @@ export function PlacePopup({
               distance: route.distance,
             });
             setHasRoute(true);
+
+            // Emit route created event even if map display fails
+            const destinationName = isNote ? "Ghi chú của bạn" : isLocation ? "Vị trí được chọn" : place?.name || "Địa điểm";
+            const destinationAddress = isNote ? note?.address : isLocation ? location?.address : place?.address || "";
+            
+            window.dispatchEvent(new CustomEvent('routeCreated', {
+              detail: {
+                destination: {
+                  name: destinationName,
+                  address: destinationAddress,
+                  lat: destination.lat,
+                  lng: destination.lng,
+                },
+                routeInfo: {
+                  duration: route.duration,
+                  distance: route.distance,
+                }
+              }
+            }));
 
             toast.success(
               `Đường đi: ${formatDistance(route.distance)} • ${formatDuration(route.duration)} (Không hiển thị được trên bản đồ)`,
@@ -234,6 +272,10 @@ export function PlacePopup({
         setRouteInfo(null);
         setShowRouteOptions(false);
         setHasRoute(false);
+        
+        // Emit route cleared event
+        window.dispatchEvent(new CustomEvent('routeCleared'));
+        
         toast.success("Đã tắt chỉ đường");
       } else {
         toast.error("Không thể tắt chỉ đường");
@@ -303,7 +345,7 @@ export function PlacePopup({
 
       try {
         // Convert lng/lat to screen coordinates
-        const point = mapRef.current.project(coordinates);
+        const point = mapRef.current.project(coordinates as [number, number]);
 
         const popupWidth = 320; // 80 * 4 (w-80)
         const popupHeight = 280; // Estimated popup height
@@ -741,7 +783,16 @@ export function PlacePopup({
                     size="sm"
                     variant="outline"
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                    onClick={() => setShowRouteOptions(true)}
+                    onClick={() =>
+                      location &&
+                      handleGetDirections(
+                        {
+                          lat: location.lat,
+                          lng: location.lng,
+                        },
+                        true
+                      )
+                    }
                     disabled={isGettingDirections}
                   >
                     <Navigation className="h-3 w-3 mr-1" strokeWidth={1.5} />

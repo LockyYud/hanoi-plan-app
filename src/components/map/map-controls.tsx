@@ -23,6 +23,7 @@ import {
 } from "@/lib/geolocation";
 import { toast } from "sonner";
 import { LocationNoteForm } from "./location-note-form";
+import { DirectionPopup } from "./direction-popup";
 
 interface MapControlsProps {
   readonly mapRef?: React.RefObject<mapboxgl.Map>;
@@ -41,6 +42,21 @@ export function MapControls({ mapRef }: MapControlsProps) {
     }>
   >([]);
   const [showClearRoute, setShowClearRoute] = useState(false);
+
+  // State for direction popup
+  const [showDirectionPopup, setShowDirectionPopup] = useState(false);
+  const [directionInfo, setDirectionInfo] = useState<{
+    destination: {
+      name: string;
+      address: string;
+      lat: number;
+      lng: number;
+    };
+    routeInfo: {
+      duration: number;
+      distance: number;
+    };
+  } | null>(null);
 
   // State for add place functionality
   const [showPlaceForm, setShowPlaceForm] = useState(false);
@@ -242,14 +258,18 @@ export function MapControls({ mapRef }: MapControlsProps) {
 
   // Handle place form submission
   const handlePlaceSubmit = async (noteData: {
+    category: string;
+    placeName: string;
+    visitTime: string;
+    content?: string;
+    mood?: "😍" | "😊" | "😐" | "🙁" | "😴";
     id?: string;
     lng: number;
     lat: number;
     address: string;
-    content: string;
-    mood?: string;
-    images?: string[];
     timestamp: Date;
+    images?: string[];
+    coverImageIndex?: number;
   }) => {
     try {
       // The LocationNoteForm already handles creating the note via API
@@ -279,6 +299,12 @@ export function MapControls({ mapRef }: MapControlsProps) {
       const success = removeRouteFromMap(mapRef);
       if (success) {
         setShowClearRoute(false);
+        setShowDirectionPopup(false);
+        setDirectionInfo(null);
+        
+        // Emit route cleared event
+        window.dispatchEvent(new CustomEvent('routeCleared'));
+        
         toast.success("Đã tắt chỉ đường");
       } else {
         toast.error("Không thể tắt chỉ đường");
@@ -295,13 +321,34 @@ export function MapControls({ mapRef }: MapControlsProps) {
       setShowClearRoute(routeExists);
     };
 
+    // Listen for route creation events
+    const handleRouteCreated = (event: CustomEvent) => {
+      const { destination, routeInfo } = event.detail;
+      setDirectionInfo({ destination, routeInfo });
+      setShowDirectionPopup(true);
+    };
+
+    // Listen for route cleared events
+    const handleRouteCleared = () => {
+      setShowDirectionPopup(false);
+      setDirectionInfo(null);
+    };
+
     // Check immediately
     checkRoute();
+
+    // Add event listeners
+    window.addEventListener('routeCreated', handleRouteCreated as EventListener);
+    window.addEventListener('routeCleared', handleRouteCleared);
 
     // Check every 1 second
     const interval = setInterval(checkRoute, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('routeCreated', handleRouteCreated as EventListener);
+      window.removeEventListener('routeCleared', handleRouteCleared);
+    };
   }, [mapRef]);
 
   return (
@@ -451,6 +498,21 @@ export function MapControls({ mapRef }: MapControlsProps) {
           onSubmit={handlePlaceSubmit}
         />
       )}
+
+      {/* Direction Popup */}
+      <DirectionPopup
+        isVisible={showDirectionPopup}
+        destination={directionInfo?.destination}
+        routeInfo={directionInfo?.routeInfo}
+        onClose={() => {
+          // Clear direction popup
+          setShowDirectionPopup(false);
+          setDirectionInfo(null);
+          
+          // Also clear the route from map
+          handleClearRoute();
+        }}
+      />
     </>
   );
 }
