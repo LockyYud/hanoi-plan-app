@@ -93,7 +93,7 @@ export async function GET(
             lat: note.lat,
             address: note.address,
             content: (openHoursData?.content as string) || "",
-            mood: (openHoursData?.mood as string) || "📝",
+            mood: (openHoursData?.mood as string) || "📍",
             timestamp: openHoursData?.timestamp
                 ? new Date(openHoursData.timestamp as string)
                 : note.createdAt,

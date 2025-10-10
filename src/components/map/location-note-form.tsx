@@ -1101,7 +1101,9 @@ export function LocationNoteForm({
                 <Button
                   type="submit"
                   disabled={
-                    isSubmitting || isUploadingImages || !selectedCategory
+                    isSubmitting || 
+                    isUploadingImages || 
+                    (!existingNote && !selectedCategory)
                   }
                   className="min-h-[44px] px-8 bg-[var(--color-primary-600)] hover:bg-[var(--color-primary-700)] text-white border-0 focus:ring-2 focus:ring-[var(--color-primary-500)] focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
@@ -1129,7 +1131,7 @@ export function LocationNoteForm({
         images={lightboxImages}
         initialIndex={lightboxIndex}
         isOpen={showLightbox}
-        onClose={() => setShowLightbox(false)}
+        onClose={() => setShowLightbox(true)}
       />
 
       {/* Undo Toast */}

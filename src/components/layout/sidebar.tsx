@@ -201,13 +201,14 @@ export function Sidebar() {
           session.user?.email
         );
 
-        const notesResponse = await fetch("/api/location-notes", {
+        const notesResponse = await fetch("/api/location-notes?includeImages=true", {
           credentials: "include", // 🔑 Include session
         });
 
         if (notesResponse.ok) {
           const notes = await notesResponse.json();
           console.log("📍 Location notes:", notes.length, "items");
+          console.log("📷 Sample note with images:", notes[0]?.images);
 
           // Convert location notes to unified place format
           // Convert location notes to unified place format
@@ -928,10 +929,34 @@ export function Sidebar() {
                                 className="h-8 w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-800 rounded-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  console.log(
-                                    "View details:",
-                                    extendedPlace.content || place.name
-                                  );
+                                  // Show note details by setting it as selected
+                                  // This will trigger PlacePopup to appear on the map
+                                  if (extendedPlace.placeType === "note") {
+                                    const noteToShow = {
+                                      id: place.id,
+                                      lng: place.lng,
+                                      lat: place.lat,
+                                      address: place.address,
+                                      content: extendedPlace.content || place.name,
+                                      mood: extendedPlace.mood,
+                                      timestamp: extendedPlace.timestamp || place.createdAt,
+                                      images: extendedPlace.images || [],
+                                      hasImages: extendedPlace.hasImages || false,
+                                      categorySlug: extendedPlace.categorySlug,
+                                    };
+                                    
+                                    console.log("👁️ Showing note popup:", noteToShow);
+                                    console.log("📷 Images in note:", noteToShow.images?.length, "images");
+                                    console.log("📷 Images data:", noteToShow.images);
+                                    setSelectedNote(noteToShow);
+                                    
+                                    // Dispatch event to center map on this location
+                                    window.dispatchEvent(new CustomEvent('focusLocation', {
+                                      detail: { lat: place.lat, lng: place.lng }
+                                    }));
+                                  } else {
+                                    setSelectedPlace(place);
+                                  }
                                 }}
                                 title="Xem chi tiết"
                               >

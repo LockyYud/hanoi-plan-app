@@ -13,6 +13,11 @@ import {
   Menu,
   Loader2,
   Navigation,
+  PlusCircle,
+  Compass,
+  UserPlus,
+  MoreVertical,
+  X,
 } from "lucide-react";
 import { useUIStore, useMapStore } from "@/lib/store";
 import {
@@ -62,6 +67,9 @@ export function MapControls({ mapRef }: MapControlsProps) {
     lat: number;
     address?: string;
   } | null>(null);
+
+  // State for FAB group
+  const [fabExpanded, setFabExpanded] = useState(false);
 
   // Search địa điểm thật qua Mapbox Geocoding API
   const searchPlaces = async (query: string) => {
@@ -201,6 +209,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
       const userLocation = await getCurrentLocation();
       setCenter([userLocation.lng, userLocation.lat]);
       setZoom(16);
+      setFabExpanded(false); // Collapse FAB after action
     } catch (error) {
       console.error("Could not get current location:", error);
       alert(
@@ -243,6 +252,9 @@ export function MapControls({ mapRef }: MapControlsProps) {
         address: address,
       });
       setShowPlaceForm(true);
+
+      // Collapse FAB after action
+      setFabExpanded(false);
 
       toast.success("Đang mở form thêm địa điểm tại vị trí hiện tại");
     } catch (error) {
@@ -287,6 +299,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
 
   // Handle create group button
   const handleCreateGroup = () => {
+    setFabExpanded(false); // Collapse FAB after action
     alert("Chức năng tạo nhóm sẽ được phát triển trong phiên bản tiếp theo.");
   };
 
@@ -348,6 +361,22 @@ export function MapControls({ mapRef }: MapControlsProps) {
     };
   }, []);
 
+  // Close FAB when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      // Check if click is outside FAB group
+      if (fabExpanded && !target.closest('.fab-group')) {
+        setFabExpanded(false);
+      }
+    };
+
+    if (fabExpanded) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [fabExpanded]);
+
 
 
   return (
@@ -365,7 +394,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
       </div>
 
       {/* Search control */}
-      <div className="absolute top-2 left-16 z-10 pointer-events-none max-w-[70%]">
+      <div className="absolute top-3 left-16 z-10 pointer-events-none max-w-[70%]">
         <div className="relative pointer-events-auto">
           <Card className="h-11 px-3 py-1.5 bg-white shadow-lg border border-gray-200 rounded-full">
             <div className="flex items-center gap-3 h-full">
@@ -438,37 +467,81 @@ export function MapControls({ mapRef }: MapControlsProps) {
         </div>
       </div>
 
-      {/* Action buttons - Mobile optimized FAB */}
-      <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-3 pointer-events-none">
-        {/* Primary FAB - Add Place */}
-        <Button
-          size="sm"
-          onClick={handleAddPlace}
-          className="w-14 h-14 md:w-12 md:h-12 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 text-white border-2 border-white pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
-          title="Thêm địa điểm"
-        >
-          <Plus className="h-6 w-6 md:h-5 md:w-5" />
-        </Button>
+      {/* FAB Group - Expandable floating action buttons */}
+      <div className="fab-group absolute bottom-10 right-4 z-10 flex flex-col items-end gap-3 pointer-events-none">
+        {/* Secondary FABs - Only show when expanded with curved animation */}
+        <div className={`flex flex-col gap-3 transition-all duration-400 ease-out ${
+          fabExpanded 
+            ? 'opacity-100 translate-y-0 scale-100' 
+            : 'opacity-0 translate-y-6 scale-90 pointer-events-none'
+        }`}>
+          {/* Current Location FAB */}
+          <div className={`transition-all duration-400 ease-out ${
+            fabExpanded 
+              ? 'translate-x-0 translate-y-0 rotate-0' 
+              : 'translate-x-8 translate-y-8 rotate-12'
+          }`} style={{ transitionDelay: fabExpanded ? '100ms' : '0ms' }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCurrentLocation}
+              className="w-12 h-12 rounded-full shadow-lg bg-white hover:bg-blue-50 text-blue-600 border-2 border-blue-200 hover:border-blue-400 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
+              title="Vị trí của tôi"
+            >
+              <Navigation className="h-5 w-5" />
+            </Button>
+          </div>
 
-        {/* Secondary FABs */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCreateGroup}
-          className="w-12 h-12 md:w-12 md:h-12 rounded-full shadow-lg bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-blue-300 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
-          title="Tạo nhóm"
-        >
-          <Users className="h-5 w-5" />
-        </Button>
+          {/* Create Group FAB */}
+          <div className={`transition-all duration-400 ease-out ${
+            fabExpanded 
+              ? 'translate-x-0 translate-y-0 rotate-0' 
+              : 'translate-x-6 translate-y-6 rotate-8'
+          }`} style={{ transitionDelay: fabExpanded ? '150ms' : '0ms' }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCreateGroup}
+              className="w-12 h-12 rounded-full shadow-lg bg-white hover:bg-purple-50 text-purple-600 border-2 border-purple-200 hover:border-purple-400 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
+              title="Tạo nhóm"
+            >
+              <UserPlus className="h-5 w-5" />
+            </Button>
+          </div>
 
+          {/* Add Place FAB */}
+          <div className={`transition-all duration-400 ease-out ${
+            fabExpanded 
+              ? 'translate-x-0 translate-y-0 rotate-0' 
+              : 'translate-x-4 translate-y-4 rotate-4'
+          }`} style={{ transitionDelay: fabExpanded ? '200ms' : '0ms' }}>
+            <Button
+              size="sm"
+              onClick={handleAddPlace}
+              className="w-12 h-12 rounded-full shadow-lg bg-green-600 hover:bg-green-700 text-white border-2 border-white pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
+              title="Thêm note"
+            >
+              <PlusCircle className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Primary FAB - Always visible */}
         <Button
-          variant="outline"
           size="sm"
-          onClick={handleCurrentLocation}
-          className="w-12 h-12 md:w-12 md:h-12 rounded-full shadow-lg bg-white hover:bg-blue-50 text-blue-600 border-2 border-blue-200 hover:border-blue-400 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
-          title="Vị trí của tôi"
+          onClick={() => setFabExpanded(!fabExpanded)}
+            className={`w-14 h-14 md:w-14 md:h-14 rounded-full shadow-lg text-white border-2 border-white pointer-events-auto transition-all duration-300 hover:scale-105 active:scale-95 touch-manipulation ${
+            fabExpanded 
+              ? 'bg-red-600 hover:bg-red-700' 
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+          title={fabExpanded ? "Đóng menu" : "Menu"}
         >
-          <Navigation className="h-5 w-5" />
+          {fabExpanded ? (
+            <X className="h-6 w-6 md:h-5 md:w-5 transition-all duration-300" />
+          ) : (
+            <Compass className="h-6 w-6 md:h-5 md:w-5 transition-all duration-300" />
+          )}
         </Button>
       </div>
 

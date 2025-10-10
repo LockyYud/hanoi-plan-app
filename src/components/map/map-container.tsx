@@ -302,6 +302,25 @@ export function MapContainer({ className }: MapContainerProps) {
     });
   }, [selectedNote, clickedLocation, showLocationForm, showDetailsDialog]);
 
+  // Listen for focus location event from sidebar
+  useEffect(() => {
+    const handleFocusLocation = (event: CustomEvent<{ lat: number; lng: number }>) => {
+      if (map.current && event.detail) {
+        console.log("🎯 Focusing map on location:", event.detail);
+        map.current.flyTo({
+          center: [event.detail.lng, event.detail.lat],
+          zoom: 16,
+          duration: 1000,
+        });
+      }
+    };
+
+    window.addEventListener('focusLocation', handleFocusLocation as EventListener);
+    return () => {
+      window.removeEventListener('focusLocation', handleFocusLocation as EventListener);
+    };
+  }, []);
+
   // Add location note markers
   useEffect(() => {
     if (!map.current || !mapLoaded) {

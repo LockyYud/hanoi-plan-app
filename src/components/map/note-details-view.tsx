@@ -19,6 +19,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
+import { ImageLightbox } from "./image-lightbox";
 
 interface LocationNote {
   id: string;
@@ -226,15 +227,11 @@ export function NoteDetailsView({
     "😤": "Không hài lòng",
   };
 
-  // Handle ESC key for accessibility
+  // Handle ESC key for dialog (lightbox handles its own ESC)
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (showLightbox) {
-          setShowLightbox(false);
-        } else if (isOpen) {
-          onClose();
-        }
+      if (event.key === "Escape" && isOpen && !showLightbox) {
+        onClose();
       }
     };
 
@@ -677,66 +674,22 @@ export function NoteDetailsView({
         </div>
       </DialogContent>
 
-      {/* Enhanced Lightbox */}
-      {showLightbox && displayNote.images && displayNote.images.length > 0 && (
-        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
-          <div className="relative max-w-4xl max-h-full">
-            <ImageDisplay
-              src={displayNote.images[currentImageIndex]}
-              alt={`Ảnh ${currentImageIndex + 1}`}
-              className="max-w-full max-h-full object-contain rounded-lg border border-neutral-600"
-            />
-
-            {/* Close button */}
-            <button
-              onClick={() => setShowLightbox(false)}
-              className="absolute top-4 right-4 bg-black/80 hover:bg-black/90 text-white p-3 rounded-full transition-colors border border-neutral-600"
-              aria-label="Đóng lightbox"
-            >
-              <X className="h-5 w-5" strokeWidth={1.5} />
-            </button>
-
-            {/* Navigation */}
-            {displayNote.images.length > 1 && (
-              <>
-                <button
-                  onClick={() => {
-                    setCurrentImageIndex((prev) =>
-                      prev === 0 ? displayNote.images!.length - 1 : prev - 1
-                    );
-                  }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/80 hover:bg-black/90 text-white p-3 rounded-full transition-colors border border-neutral-600"
-                  aria-label="Ảnh trước"
-                >
-                  <ChevronRight
-                    className="h-5 w-5 rotate-180"
-                    strokeWidth={1.5}
-                  />
-                </button>
-                <button
-                  onClick={() => {
-                    setCurrentImageIndex((prev) =>
-                      prev === displayNote.images!.length - 1 ? 0 : prev + 1
-                    );
-                  }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/80 hover:bg-black/90 text-white p-3 rounded-full transition-colors border border-neutral-600"
-                  aria-label="Ảnh tiếp theo"
-                >
-                  <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
-                </button>
-              </>
-            )}
-
-            {/* Image counter */}
-            <div
-              className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded-full border border-neutral-600"
-              style={{ fontSize: "var(--text-sm)" }}
-            >
-              {currentImageIndex + 1} / {displayNote.images.length}
-            </div>
-          </div>
-        </div>
-      )}
+      <ImageLightbox
+        images={displayNote.images || []}
+        currentIndex={currentImageIndex}
+        isOpen={showLightbox}
+        onClose={() => setShowLightbox(false)}
+        onNext={() => {
+          setCurrentImageIndex((prev) =>
+            prev === (displayNote.images?.length || 1) - 1 ? 0 : prev + 1
+          );
+        }}
+        onPrevious={() => {
+          setCurrentImageIndex((prev) =>
+            prev === 0 ? (displayNote.images?.length || 1) - 1 : prev - 1
+          );
+        }}
+      />
     </Dialog>
   );
 }

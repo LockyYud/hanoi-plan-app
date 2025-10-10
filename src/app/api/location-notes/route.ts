@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
                 lat: note.lat,
                 address: note.address,
                 content: (openHoursData.content as string) || "",
-                mood: (openHoursData.mood as string) || "📝",
+                mood: (openHoursData.mood as string) || "📍",
                 timestamp: openHoursData.timestamp ? new Date(openHoursData.timestamp as string) : note.createdAt,
                 hasImages: note.media.length > 0, // Check media relationship instead of JSON
                 categorySlug: note.categoryModel?.slug, // Map category slug from relation

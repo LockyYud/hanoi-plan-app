@@ -472,7 +472,7 @@ export function PlacePopup({
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <span className="text-2xl flex-shrink-0">
                   {isNote
-                    ? note?.mood || "📝"
+                    ? note?.mood || "📍"
                     : isLocation
                       ? "📍"
                       : place && categoryIcons[place.category]}
