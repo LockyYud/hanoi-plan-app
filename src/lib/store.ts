@@ -15,6 +15,16 @@ export interface LocationNote {
     categorySlug?: string // Category slug for filtering
 }
 
+export interface Category {
+    id: string
+    name: string
+    slug: string
+    icon?: string
+    color?: string
+    isDefault: boolean
+    userId?: string
+}
+
 interface PlaceStore {
     selectedPlace: Place | null
     setSelectedPlace: (place: Place | null) => void
@@ -65,6 +75,17 @@ interface UIStore {
 
     error: string | null
     setError: (error: string | null) => void
+}
+
+interface CategoryStore {
+    categories: Category[]
+    setCategories: (categories: Category[]) => void
+    addCategory: (category: Category) => void
+    updateCategory: (id: string, updates: Partial<Category>) => void
+    removeCategory: (id: string) => void
+    isLoadingCategories: boolean
+    setIsLoadingCategories: (loading: boolean) => void
+    fetchCategories: (session: any) => Promise<void>
 }
 
 export const usePlaceStore = create<PlaceStore>((set) => ({
@@ -133,4 +154,63 @@ export const useUIStore = create<UIStore>((set) => ({
 
     error: null,
     setError: (error) => set({ error })
+}))
+
+export const useCategoryStore = create<CategoryStore>((set, get) => ({
+    categories: [],
+    setCategories: (categories) => set({ categories }),
+    addCategory: (category) => set((state) => ({
+        categories: [...state.categories, category]
+    })),
+    updateCategory: (id, updates) => set((state) => ({
+        categories: state.categories.map(c => c.id === id ? { ...c, ...updates } : c)
+    })),
+    removeCategory: (id) => set((state) => ({
+        categories: state.categories.filter(c => c.id !== id)
+    })),
+    isLoadingCategories: false,
+    setIsLoadingCategories: (loading) => set({ isLoadingCategories: loading }),
+
+    // Fetch categories only if not authenticated or if categories are empty
+    fetchCategories: async (session) => {
+        // Don't fetch if already loading
+        if (get().isLoadingCategories) {
+            console.log("⏳ Categories already loading, skipping");
+            return;
+        }
+
+        // Don't fetch if no session
+        if (!session) {
+            console.log("🚫 No session, clearing categories");
+            set({ categories: [], isLoadingCategories: false });
+            return;
+        }
+
+        // Don't fetch if categories already loaded
+        if (get().categories.length > 0) {
+            console.log("✅ Categories already loaded, skipping fetch");
+            return;
+        }
+
+        try {
+            set({ isLoadingCategories: true });
+            console.log("🔄 Fetching categories...");
+
+            const response = await fetch("/api/categories", {
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const categoriesData = await response.json();
+                console.log("📂 Categories fetched:", categoriesData.length, "items");
+                set({ categories: categoriesData, isLoadingCategories: false });
+            } else {
+                console.error("Failed to fetch categories:", response.status);
+                set({ categories: [], isLoadingCategories: false });
+            }
+        } catch (error) {
+            console.error("❌ Error fetching categories:", error);
+            set({ categories: [], isLoadingCategories: false });
+        }
+    }
 }))

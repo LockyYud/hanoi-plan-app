@@ -1,14 +1,30 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect, type ReactNode } from "react";
+import { useCategoryStore } from "@/lib/store";
 
 interface ProvidersProps {
     children: ReactNode;
 }
 
-export function Providers({ children }: ProvidersProps) {
+// Category loader component
+function CategoryLoader({ children }: { readonly children: ReactNode }) {
+    const { data: session, status } = useSession();
+    const { fetchCategories } = useCategoryStore();
+
+    useEffect(() => {
+        // Only fetch when session status is not loading
+        if (status !== "loading") {
+            fetchCategories(session);
+        }
+    }, [session, status, fetchCategories]);
+
+    return <>{children}</>;
+}
+
+export function Providers({ children }: Readonly<ProvidersProps>) {
     const [mounted, setMounted] = useState(false);
     const [queryClient] = useState(
         () =>
@@ -48,7 +64,9 @@ export function Providers({ children }: ProvidersProps) {
             basePath="/api/auth"
         >
             <QueryClientProvider client={queryClient}>
-                {children}
+                <CategoryLoader>
+                    {children}
+                </CategoryLoader>
             </QueryClientProvider>
         </SessionProvider>
     );

@@ -25,7 +25,7 @@ import {
   Navigation,
   Download,
 } from "lucide-react";
-import { useUIStore, usePlaceStore, type LocationNote } from "@/lib/store";
+import { useUIStore, usePlaceStore, useCategoryStore, type LocationNote } from "@/lib/store";
 import { CategoryType, SourceType, VisibilityType } from "@prisma/client";
 import { cn } from "@/lib/utils";
 import { getCurrentLocation, openExternalNavigation } from "@/lib/geolocation";
@@ -95,16 +95,9 @@ export function Sidebar() {
   const [showRouteGenerator, setShowRouteGenerator] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [showFilterPopover, setShowFilterPopover] = useState(false);
-  const [categories, setCategories] = useState<
-    Array<{
-      id: string;
-      name: string;
-      slug: string;
-      icon?: string;
-      color?: string;
-      isDefault: boolean;
-    }>
-  >([]);
+  
+  // Use categories from store (shared with location-note-form)
+  const { categories } = useCategoryStore();
 
   // Define fetchGroups function
   const fetchGroups = useCallback(async () => {
@@ -129,45 +122,7 @@ export function Sidebar() {
     }
   }, [session]);
 
-  // Define fetchCategories function
-  const fetchCategories = useCallback(async () => {
-    try {
-      console.log(
-        "🔄 fetchCategories called, session:",
-        session ? "exists" : "null"
-      );
-
-      // Don't fetch if session is still loading
-      if (status === "loading") {
-        console.log("⏳ Session still loading, skipping categories fetch");
-        return;
-      }
-
-      // Don't fetch if user is not authenticated
-      if (!session) {
-        console.log("🚫 No session, skipping categories fetch");
-        setCategories([]);
-        return;
-      }
-
-      const response = await fetch("/api/categories", {
-        credentials: "include", // 🔑 Include session
-      });
-
-      if (response.ok) {
-        const categoriesData = await response.json();
-        console.log("📂 Categories fetched:", categoriesData.length, "items");
-        console.log("📂 Categories data:", categoriesData);
-        setCategories(categoriesData);
-      } else {
-        console.error("Failed to fetch categories:", response.status);
-        setCategories([]);
-      }
-    } catch (error) {
-      console.error("❌ Error fetching categories:", error);
-      setCategories([]);
-    }
-  }, [session, status]);
+  // Categories are now loaded in the provider, no need to fetch here anymore
 
   // Define fetchPlaces function with useCallback - UNIFIED LOCATION NOTES SYSTEM
   const fetchPlaces = useCallback(async () => {
@@ -288,12 +243,7 @@ export function Sidebar() {
     }
   }, [mounted, session, status, fetchPlaces]); // Include fetchPlaces but it should be stable now
 
-  // Fetch categories when session changes
-  useEffect(() => {
-    if (mounted) {
-      fetchCategories();
-    }
-  }, [mounted, fetchCategories]);
+  // Categories are loaded automatically in the provider, no need for useEffect here
 
   // Auto-switch to appropriate tab based on session status change
   useEffect(() => {
@@ -1124,7 +1074,7 @@ export function Sidebar() {
                       Thao tác nhanh
                     </div>
 
-                    <Button
+                    {/* <Button
                       variant="outline"
                       className="w-full justify-start h-12 bg-gradient-to-r from-neutral-900 to-neutral-800 border-neutral-700 text-[#EDEDED] hover:bg-gradient-to-r hover:from-neutral-800 hover:to-neutral-700 rounded-xl group transition-all duration-200"
                     >
@@ -1134,7 +1084,7 @@ export function Sidebar() {
                           <span className="font-medium">Cài đặt</span>
                         </div>
                       </div>
-                    </Button>
+                    </Button> */}
 
                     <Button
                       variant="outline"

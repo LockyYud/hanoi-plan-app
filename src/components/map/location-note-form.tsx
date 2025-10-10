@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { useImageUpload } from "@/lib/image-upload";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
+import { useCategoryStore } from "@/lib/store";
 
 const LocationNoteSchema = z.object({
   category: z.string().min(1, "Chọn một danh mục"),
@@ -33,17 +34,6 @@ const LocationNoteSchema = z.object({
 });
 
 type LocationNoteFormData = z.infer<typeof LocationNoteSchema>;
-
-// Category type from database
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  icon?: string;
-  color?: string;
-  isDefault: boolean;
-  userId?: string;
-}
 
 interface LocationNoteFormProps {
   readonly isOpen: boolean;
@@ -94,9 +84,8 @@ export function LocationNoteForm({
   // Text area ref for auto-focus
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Categories state
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  // Categories state from store (shared with sidebar)
+  const { categories, isLoadingCategories, addCategory } = useCategoryStore();
 
   // Image state
   const [images, setImages] = useState<File[]>([]);
@@ -125,30 +114,6 @@ export function LocationNoteForm({
       setTimeout(() => {
         textareaRef.current?.focus();
       }, 100);
-    }
-  }, [isOpen]);
-
-  // Fetch categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setIsLoadingCategories(true);
-        const response = await fetch("/api/categories", {
-          credentials: "include",
-        });
-        if (response.ok) {
-          const categoriesData = await response.json();
-          setCategories(categoriesData);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setIsLoadingCategories(false);
-      }
-    };
-
-    if (isOpen) {
-      fetchCategories();
     }
   }, [isOpen]);
 
@@ -271,7 +236,7 @@ export function LocationNoteForm({
 
       if (response.ok) {
         const newCategory = await response.json();
-        setCategories((prev) => [...prev, newCategory]);
+        addCategory(newCategory); // Use store action instead
         setSelectedCategory(newCategory.id);
         setValue("category", newCategory.id);
         setCustomCategoryName("");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import {
@@ -326,6 +326,8 @@ export function PlacePopup({
     "bottom"
   );
   const [arrowOffset, setArrowOffset] = useState(50); // Percentage from left
+  const popupRef = useRef<HTMLDivElement>(null);
+  const lastHeightRef = useRef<number>(280); // Cache last known height
 
   useEffect(() => {
     if (!mapRef?.current) return;
@@ -348,17 +350,46 @@ export function PlacePopup({
         const point = mapRef.current.project(coordinates as [number, number]);
 
         const popupWidth = 320; // 80 * 4 (w-80)
-        const popupHeight = 280; // Estimated popup height
+        // Get actual popup height if available, use cached height to prevent flickering
+        const currentHeight = popupRef.current?.offsetHeight;
+        if (currentHeight && currentHeight > 0) {
+          lastHeightRef.current = currentHeight;
+        }
+        const popupHeight = lastHeightRef.current;
+        
         const arrowSize = 8;
         const margin = 10;
+        const markerOffset = 80; // Space for marker
 
-        // Calculate optimal positioning
+        // Calculate space above and below the point
+        const spaceAbove = point.y - margin;
+        const spaceBelow = window.innerHeight - point.y - margin;
+
         let left = point.x - popupWidth / 2;
-        let top = point.y - popupHeight - arrowSize - 80; // Above point with much more space for marker
-        let newArrowPosition: "top" | "bottom" = "bottom"; // Arrow points down by default
+        let top: number;
+        let newArrowPosition: "top" | "bottom";
+
+        // Choose position based on available space
+        // Prefer below if there's enough space, otherwise choose the side with more space
+        if (spaceBelow >= popupHeight + markerOffset) {
+          // Position below - plenty of space
+          top = point.y + arrowSize + markerOffset;
+          newArrowPosition = "top"; // Arrow points up
+        } else if (spaceAbove >= popupHeight + markerOffset) {
+          // Position above - enough space
+          top = point.y - popupHeight - arrowSize - markerOffset;
+          newArrowPosition = "bottom"; // Arrow points down
+        } else if (spaceBelow > spaceAbove) {
+          // More space below
+          top = point.y + arrowSize + markerOffset;
+          newArrowPosition = "top";
+        } else {
+          // More space above
+          top = point.y - popupHeight - arrowSize - markerOffset;
+          newArrowPosition = "bottom";
+        }
 
         // Adjust horizontal position and calculate arrow offset
-        const originalLeft = left;
         left = Math.max(
           margin,
           Math.min(left, window.innerWidth - popupWidth - margin)
@@ -366,26 +397,11 @@ export function PlacePopup({
 
         // Calculate arrow offset as percentage (where arrow should point)
         const targetX = point.x;
-        const popupLeftBoundary = left;
-        const popupRightBoundary = left + popupWidth;
         const arrowOffsetPx = Math.max(
           arrowSize,
-          Math.min(targetX - popupLeftBoundary, popupWidth - arrowSize)
+          Math.min(targetX - left, popupWidth - arrowSize)
         );
         const newArrowOffset = (arrowOffsetPx / popupWidth) * 100;
-
-        // Check if popup should be below the point instead
-        if (top < margin) {
-          top = point.y + arrowSize + 80; // Below point with much more space for marker
-          newArrowPosition = "top"; // Arrow points up
-
-          // Double check if it fits below
-          if (top + popupHeight > window.innerHeight - margin) {
-            // If it doesn't fit below either, position at top with space
-            top = margin;
-            newArrowPosition = "bottom";
-          }
-        }
 
         const style: React.CSSProperties = {
           position: "absolute",
@@ -403,8 +419,9 @@ export function PlacePopup({
       }
     };
 
-    // Update position initially
+    // Update position initially and after a short delay to get actual height
     updatePosition();
+    const timeoutId = setTimeout(updatePosition, 100);
 
     // Update position when map moves
     const map = mapRef.current;
@@ -412,6 +429,7 @@ export function PlacePopup({
     map.on("zoom", updatePosition);
 
     return () => {
+      clearTimeout(timeoutId);
       map.off("move", updatePosition);
       map.off("zoom", updatePosition);
     };
@@ -427,7 +445,14 @@ export function PlacePopup({
   }, [mapRef]);
 
   return (
-    <div className="w-80 z-20 pointer-events-auto" style={popupStyle}>
+    <div 
+      ref={popupRef} 
+      className="w-80 z-20 pointer-events-auto transition-opacity duration-200" 
+      style={{
+        ...popupStyle,
+        opacity: popupStyle.left ? 1 : 0, // Fade in when positioned
+      }}
+    >
       {/* Smart Arrow - adapts position and direction */}
       {arrowPosition === "bottom" ? (
         // Arrow pointing down (popup above point)
@@ -587,7 +612,7 @@ export function PlacePopup({
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
-                      {note.images.slice(0, 4).map((image, index) => (
+                      {note.images.slice(0, 2).map((image, index) => (
                         <div
                           key={index}
                           className="aspect-square bg-neutral-800 rounded-lg border border-neutral-700 overflow-hidden"

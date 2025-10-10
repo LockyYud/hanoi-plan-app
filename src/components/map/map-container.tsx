@@ -38,6 +38,7 @@ export function MapContainer({ className }: MapContainerProps) {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const userLocationMarker = useRef<mapboxgl.Marker | null>(null);
+  const clickedLocationMarker = useRef<mapboxgl.Marker | null>(null);
   const [clickedLocation, setClickedLocation] = useState<{
     lng: number;
     lat: number;
@@ -207,6 +208,32 @@ export function MapContainer({ className }: MapContainerProps) {
       // Clear selected note when clicking on map
       console.log("🗺️ Clearing selectedNote due to map click");
       setSelectedNote(null);
+
+      // Remove previous clicked location marker if exists
+      if (clickedLocationMarker.current) {
+        clickedLocationMarker.current.remove();
+        clickedLocationMarker.current = null;
+      }
+
+      // Create a blue dot marker at clicked location
+      const markerElement = document.createElement("div");
+      markerElement.className = "clicked-location-marker";
+      markerElement.style.cssText = `
+        width: 16px;
+        height: 16px;
+        background: #3b82f6;
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        cursor: pointer;
+      `;
+
+      clickedLocationMarker.current = new mapboxgl.Marker({
+        element: markerElement,
+        anchor: "center",
+      })
+        .setLngLat([lng, lat])
+        .addTo(map.current!);
 
       // Get address using reverse geocoding
       try {
@@ -534,6 +561,12 @@ export function MapContainer({ className }: MapContainerProps) {
       setClickedLocation(null);
       setShowLocationForm(false);
 
+      // Remove blue dot marker after adding note
+      if (clickedLocationMarker.current) {
+        clickedLocationMarker.current.remove();
+        clickedLocationMarker.current = null;
+      }
+
       // Dispatch event to update sidebar
       window.dispatchEvent(new CustomEvent("locationNoteAdded"));
 
@@ -632,6 +665,7 @@ export function MapContainer({ className }: MapContainerProps) {
   // Handle opening location form from preview
   const handleOpenLocationForm = () => {
     setShowLocationForm(true);
+    // Keep the blue dot marker when opening form
   };
 
   // Add or update user location marker
@@ -980,7 +1014,14 @@ export function MapContainer({ className }: MapContainerProps) {
           mapRef={
             map.current ? (map as React.RefObject<mapboxgl.Map>) : undefined
           }
-          onClose={() => setClickedLocation(null)}
+          onClose={() => {
+            setClickedLocation(null);
+            // Remove blue dot marker when closing popup
+            if (clickedLocationMarker.current) {
+              clickedLocationMarker.current.remove();
+              clickedLocationMarker.current = null;
+            }
+          }}
           onAddNote={handleOpenLocationForm}
         />
       )}
@@ -991,6 +1032,11 @@ export function MapContainer({ className }: MapContainerProps) {
           onClose={() => {
             setShowLocationForm(false);
             setClickedLocation(null);
+            // Remove blue dot marker when closing form
+            if (clickedLocationMarker.current) {
+              clickedLocationMarker.current.remove();
+              clickedLocationMarker.current = null;
+            }
           }}
           location={clickedLocation}
           onSubmit={handleAddLocationNote}
