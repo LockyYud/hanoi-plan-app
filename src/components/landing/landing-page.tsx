@@ -24,9 +24,12 @@ export function LandingPage() {
                             height={40}
                             className="animate-float"
                         />
-                        <span className="text-2xl font-bold text-gray-900">
-                            Pinory
-                        </span>
+                        <Image
+                            src="/pinory-logo-full.svg"
+                            alt="Pinory"
+                            width={100}
+                            height={100}
+                        />
                     </div>
                     <button
                         onClick={handleSignIn}
@@ -346,4 +349,3 @@ export function LandingPage() {
         </div>
     );
 }
-

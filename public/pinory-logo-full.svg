@@ -1,30 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90" fill="none">
   <defs>
-    <linearGradient id="pinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#ff9a76;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#f87171;stop-opacity:1" />
-    </linearGradient>
     <filter id="textShadow">
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
     </filter>
   </defs>
   
-  <!-- Pin Icon -->
-  <g transform="translate(20, 20)">
-    <!-- Pin shape -->
-    <path d="M 40 15 C 26 15 15 26 15 40 C 15 51 40 75 40 75 C 40 75 65 51 65 40 C 65 26 54 15 40 15 Z" 
-          fill="url(#pinGrad)" 
-          stroke="#ffffff" 
-          stroke-width="2"/>
-    
-    <!-- Heart inside -->
-    <path d="M 40 30 C 38.5 28.5 36.5 28 34.5 28.5 C 32 29 30.5 31.5 30.5 34.5 C 30.5 37.5 32 39.5 35 42.5 L 40 47 L 45 42.5 C 48 39.5 49.5 37.5 49.5 34.5 C 49.5 31.5 48 29 45.5 28.5 C 43.5 28 41.5 28.5 40 30 Z" 
-          fill="#ffffff" 
-          opacity="0.95"/>
-  </g>
-  
   <!-- Text "Pinory" -->
-  <g filter="url(#textShadow)">
+  <g filter="url(#textShadow)" transform="translate(-105, -20)">
     <!-- P -->
     <path d="M 115 35 L 115 85 M 115 35 L 135 35 C 142 35 147 40 147 47 C 147 54 142 59 135 59 L 115 59" 
           stroke="#2c2c2c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -49,11 +31,11 @@
     <!-- y -->
     <path d="M 295 50 L 303 85 M 311 50 L 303 85 L 299 98 C 297 103 293 105 288 105" 
           stroke="#2c2c2c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    
+    <!-- Tagline -->
+    <text x="115" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#8c7a6b" letter-spacing="2">
+      PIN YOUR STORY
+    </text>
   </g>
-  
-  <!-- Tagline -->
-  <text x="115" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#8c7a6b" letter-spacing="2">
-    PIN YOUR STORY
-  </text>
 </svg>
 
