@@ -1,16 +1,18 @@
-# Hanoi Plan App
+# Pinory — Pin Your Story
 
-A lightweight web application that helps individuals and friend groups plan hangouts in Hà Nội. Users can save favorite places, add private notes/photos, and when a group forms, the app merges everyone's preferences and constraints to suggest optimal itineraries on an interactive map.
+**Your memories, mapped. Every pin tells a story.**
+
+Pinory is a beautiful web application that helps you pin and preserve your life's moments on an interactive map. Save memories, add personal notes and photos, and rediscover your journey through the places you've been.
 
 ## Features
 
-- 🗺️ **Interactive Map**: Mapbox GL JS integration with place markers and clustering
-- 📍 **Place Management**: Save and organize favorite places with tags, ratings, and notes
-- 👥 **Group Planning**: Create groups, set preferences, and vote on places
-- 🛣️ **Smart Routing**: AI-powered itinerary generation with travel optimization
+- 📌 **Pin Your Memories**: Mark special moments on an interactive map
+- 📸 **Photo Stories**: Attach multiple photos to each location with mood and context
+- 🗺️ **Interactive Map**: Beautiful Mapbox GL JS integration with custom markers
+- 📝 **Personal Notes**: Add rich notes, moods, and categories to your memories
+- 🎨 **Beautiful UI**: Warm, nostalgic design with cream/sand tones
 - 📱 **PWA Support**: Installable app with offline capabilities
-- 🔐 **Authentication**: Secure login with email OTP and Google OAuth
-- 🌟 **Modern UI**: Beautiful interface built with shadcn/ui and Tailwind CSS
+- 🔐 **Private & Secure**: Your memories are yours alone with Google OAuth
 
 ## Tech Stack
 

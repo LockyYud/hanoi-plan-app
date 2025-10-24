@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { User } from "lucide-react";
 import Link from "next/link";
 
 export default function SignInPage() {
@@ -35,46 +34,76 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0C0C0C] via-[#111111] to-[#0C0C0C] flex items-center justify-center p-4">
-      {/* Background decoration */}
+    <div className="min-h-screen bg-gradient-to-br from-[#0C0C0C] via-[#1a0f0f] to-[#0C0C0C] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decorations with Pinory colors */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-600/5 rounded-full blur-3xl"></div>
+        {/* Gradient spotlights */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-[#FF6B6B]/10 via-[#FFD6A5]/8 to-transparent rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-tl from-[#FF8E53]/10 via-[#FF6B6B]/8 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        
+        {/* Subtle map background */}
+        <div className="absolute inset-0 opacity-[0.08]" style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, #FF6B6B 1px, transparent 1px)`,
+          backgroundSize: '40px 40px'
+        }}></div>
+        
+        {/* Floating heart pins */}
+        <div className="absolute top-20 left-[15%] text-[#FF6B6B]/20 animate-float">❤️</div>
+        <div className="absolute top-40 right-[20%] text-[#FF6B6B]/15 animate-float" style={{ animationDelay: '2s' }}>❤️</div>
+        <div className="absolute bottom-32 left-[25%] text-[#FF6B6B]/20 animate-float" style={{ animationDelay: '4s' }}>❤️</div>
+        <div className="absolute bottom-20 right-[15%] text-[#FF6B6B]/15 animate-float" style={{ animationDelay: '3s' }}>❤️</div>
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Back button - remove or make conditional to avoid redirect loop */}
-        {/* Only show back button if coming from a specific page */}
+        {/* Logo */}
+        <div className="text-center mb-6 animate-fade-in">
+          <div className="flex justify-center mb-2">
+            <img 
+              src="/pinory-logo-full.svg" 
+              alt="Pinory - Pin Your Story" 
+              className="h-20 w-auto"
+            />
+          </div>
+        </div>
 
-        <Card className="bg-gradient-to-br from-neutral-900/80 to-neutral-800/80 border border-neutral-700/50 backdrop-blur-xl shadow-2xl p-8">
+        <Card className="bg-gradient-to-br from-neutral-900/90 to-neutral-800/90 border border-neutral-700/50 backdrop-blur-xl shadow-2xl p-8 animate-slide-up">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="relative w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mx-auto mb-6 flex items-center justify-center ring-2 ring-neutral-700 shadow-lg">
-              <User className="h-10 w-10 text-white" />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20"></div>
+            {/* Pinory icon with pulsing glow */}
+            <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center animate-glow">
+              <img 
+                src="/pinory-icon-simple.svg" 
+                alt="Pinory Icon" 
+                className="w-full h-full"
+              />
+              {/* Spotlight behind icon */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] blur-2xl opacity-40 -z-10"></div>
             </div>
 
             <h1 className="text-2xl font-bold text-[#EDEDED] mb-2">
-              Đăng nhập vào HanoiPlan 🔐
+              Chào mừng bạn trở lại 🌍
             </h1>
-            <p className="text-[#A0A0A0] leading-relaxed">
-              Bạn cần đăng nhập để sử dụng ứng dụng
+            <p className="text-[#EDEDED]/80 leading-relaxed mb-1">
+              Tiếp tục hành trình của bạn với Pinory
+            </p>
+            <p className="text-sm text-[#A0A0A0] italic">
+              Pin lại những nơi bạn đã đi qua, và câu chuyện bạn đã sống.
             </p>
           </div>
 
-          {/* Benefits */}
-          <div className="space-y-4 mb-8">
-            <div className="flex items-center gap-3 text-sm text-[#A0A0A0] bg-gradient-to-r from-blue-900/30 to-blue-800/30 border border-blue-700/30 rounded-xl p-4">
-              <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
-              <span>Lưu trữ ghi chú không giới hạn</span>
+          {/* Benefits with hover effects */}
+          <div className="space-y-3 mb-8">
+            <div className="flex items-center gap-3 text-sm text-[#EDEDED]/90 bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 border border-[#FF6B6B]/30 rounded-xl p-4 transition-all duration-300 hover:border-[#FF6B6B]/60 hover:shadow-lg hover:shadow-[#FF6B6B]/20 hover:translate-x-1 group cursor-default">
+              <div className="w-2 h-2 bg-[#FF6B6B] rounded-full flex-shrink-0 group-hover:animate-ping"></div>
+              <span className="group-hover:text-[#EDEDED]">📝 Lưu trữ ghi chú không giới hạn</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-[#A0A0A0] bg-gradient-to-r from-green-900/30 to-green-800/30 border border-green-700/30 rounded-xl p-4">
-              <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
-              <span>Tạo nhóm và chia sẻ với bạn bè</span>
+            <div className="flex items-center gap-3 text-sm text-[#EDEDED]/90 bg-gradient-to-r from-[#FFD6A5]/20 to-[#FF8E53]/20 border border-[#FFD6A5]/30 rounded-xl p-4 transition-all duration-300 hover:border-[#FFD6A5]/60 hover:shadow-lg hover:shadow-[#FFD6A5]/20 hover:translate-x-1 group cursor-default">
+              <div className="w-2 h-2 bg-[#FFD6A5] rounded-full flex-shrink-0 group-hover:animate-ping"></div>
+              <span className="group-hover:text-[#EDEDED]">👥 Tạo nhóm và chia sẻ với bạn bè</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-[#A0A0A0] bg-gradient-to-r from-purple-900/30 to-purple-800/30 border border-purple-700/30 rounded-xl p-4">
-              <div className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"></div>
-              <span>Đồng bộ trên mọi thiết bị</span>
+            <div className="flex items-center gap-3 text-sm text-[#EDEDED]/90 bg-gradient-to-r from-[#FF8E53]/20 to-[#FF6B6B]/20 border border-[#FF8E53]/30 rounded-xl p-4 transition-all duration-300 hover:border-[#FF8E53]/60 hover:shadow-lg hover:shadow-[#FF8E53]/20 hover:translate-x-1 group cursor-default">
+              <div className="w-2 h-2 bg-[#FF8E53] rounded-full flex-shrink-0 group-hover:animate-ping"></div>
+              <span className="group-hover:text-[#EDEDED]">🔄 Đồng bộ trên mọi thiết bị</span>
             </div>
           </div>
 
@@ -85,9 +114,12 @@ export default function SignInPage() {
               "demo-google-client-id" ? (
               <Button
                 onClick={() => signIn("google", { callbackUrl: "/" })}
-                className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full h-14 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white font-semibold rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-[#FF6B6B]/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group"
               >
-                <div className="flex items-center justify-center gap-3">
+                {/* Glow effect on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                
+                <div className="flex items-center justify-center gap-3 relative z-10">
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
@@ -126,20 +158,33 @@ export default function SignInPage() {
             )}
           </div>
 
+          {/* Sign up link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-[#A0A0A0]">
+              Chưa có tài khoản?{" "}
+              <button
+                onClick={() => signIn("google", { callbackUrl: "/" })}
+                className="text-[#FF6B6B] hover:text-[#FF8E53] font-medium transition-colors hover:underline"
+              >
+                Bắt đầu hành trình của bạn ngay hôm nay
+              </button>
+            </p>
+          </div>
+
           {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-neutral-700/50 text-center">
+          <div className="mt-6 pt-6 border-t border-neutral-700/50 text-center">
             <p className="text-xs text-[#A0A0A0]">
               Bằng việc đăng nhập, bạn đồng ý với{" "}
               <Link
                 href="/terms"
-                className="text-blue-400 hover:text-blue-300 transition-colors"
+                className="text-[#FF8E53] hover:text-[#FF6B6B] transition-colors"
               >
                 Điều khoản sử dụng
               </Link>{" "}
               và{" "}
               <Link
                 href="/privacy"
-                className="text-blue-400 hover:text-blue-300 transition-colors"
+                className="text-[#FF8E53] hover:text-[#FF6B6B] transition-colors"
               >
                 Chính sách bảo mật
               </Link>

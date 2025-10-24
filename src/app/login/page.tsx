@@ -61,10 +61,10 @@ export default function LoginPage() {
             </div>
 
             <h1 className="text-2xl font-bold text-[#EDEDED] mb-2">
-              Đăng nhập vào HanoiPlan �
+              Đăng nhập vào Pinory 🔐
             </h1>
             <p className="text-[#A0A0A0] leading-relaxed">
-              Bạn cần đăng nhập để sử dụng ứng dụng
+              Bắt đầu ghim câu chuyện của bạn
             </p>
           </div>
 

@@ -166,7 +166,7 @@ export function MapContainer({ className }: MapContainerProps) {
       // Add custom control
       map.current?.addControl(
         new mapboxgl.AttributionControl({
-          customAttribution: "© Hanoi Plan",
+          customAttribution: "© Pinory",
         }),
         "bottom-right"
       );

@@ -438,10 +438,11 @@ export function Sidebar() {
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="p-6 border-b border-neutral-800">
-          <h1 className="text-xl font-bold text-[#EDEDED] mb-1">Hanoi Plan</h1>
-          <p className="text-sm text-[#A0A0A0] leading-relaxed">
-            Khám phá Hà Nội cùng bạn bè
-          </p>
+          <img 
+            src="/pinory-logo-full.svg" 
+            alt="Pinory - Pin Your Story" 
+            className="h-16 w-auto"
+          />
         </div>
 
         {/* Navigation Tabs */}
@@ -753,14 +754,14 @@ export function Sidebar() {
                       ({filteredPlaces.length})
                     </span>
                   </h3>
-                  <Button
+                  {/* <Button
                     size="sm"
                     variant="ghost"
                     className="h-8 w-8 p-0 text-[#A0A0A0] hover:text-blue-400 hover:bg-blue-900/30 rounded-lg"
                     title="Thêm ghi chú"
                   >
                     <Plus className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                 </div>
 
                 <div className="space-y-3">
@@ -1107,10 +1108,10 @@ export function Sidebar() {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10"></div>
                   </div>
                   <h3 className="font-semibold text-xl text-[#EDEDED] mb-2">
-                    Chào mừng đến với HanoiPlan! 👋
+                    Chào mừng đến với Pinory! 👋
                   </h3>
                   <p className="text-sm text-[#A0A0A0] mb-6 leading-relaxed max-w-sm mx-auto">
-                    Đăng nhập để trải nghiệm đầy đủ tính năng
+                    Đăng nhập để bắt đầu ghim câu chuyện của bạn
                   </p>
 
                   {/* Login Button */}

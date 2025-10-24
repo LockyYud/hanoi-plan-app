@@ -12,21 +12,22 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-    title: "Hanoi Plan - Discover & Plan Hangouts in Hanoi",
+    title: "Pinory — Pin Your Story",
     description:
-        "A lightweight app that helps individuals and friend groups plan hangouts in Hà Nội. Save favorite places, create group plans, and get optimal itineraries.",
+        "Ghim lại những kỷ niệm của bạn trên bản đồ. Khám phá hành trình của chính mình. Every pin tells a story.",
     keywords: [
-        "Hanoi",
-        "Vietnam",
+        "Pinory",
         "travel",
-        "planning",
-        "hangout",
-        "itinerary",
-        "places",
+        "memories",
+        "photography",
+        "journey",
+        "map",
+        "stories",
+        "Vietnam",
     ],
-    authors: [{ name: "Hanoi Plan Team" }],
-    creator: "Hanoi Plan",
-    publisher: "Hanoi Plan",
+    authors: [{ name: "Pinory" }],
+    creator: "Pinory",
+    publisher: "Pinory",
     formatDetection: {
         email: false,
         address: false,
@@ -34,18 +35,18 @@ export const metadata: Metadata = {
     },
     metadataBase: new URL(process.env.NEXTAUTH_URL || "http://localhost:3000"),
     openGraph: {
-        title: "Hanoi Plan - Discover & Plan Hangouts in Hanoi",
+        title: "Pinory — Pin Your Story",
         description:
-            "Plan the perfect hangout in Hanoi with friends. Discover places, create itineraries, and explore the city together.",
+            "Ghim lại những kỷ niệm của bạn trên bản đồ. Every pin tells a story.",
         url: "/",
-        siteName: "Hanoi Plan",
+        siteName: "Pinory",
         locale: "vi_VN",
         type: "website",
     },
     twitter: {
         card: "summary_large_image",
-        title: "Hanoi Plan - Discover & Plan Hangouts in Hanoi",
-        description: "Plan the perfect hangout in Hanoi with friends.",
+        title: "Pinory — Pin Your Story",
+        description: "Your memories, mapped. Every pin tells a story.",
     },
     robots: {
         index: true,
@@ -73,13 +74,13 @@ export default function RootLayout({
                     rel="stylesheet"
                 />
                 <link rel="manifest" href="/manifest.json" />
-                <meta name="theme-color" content="#3b82f6" />
+                <meta name="theme-color" content="#f8f1e5" />
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta
                     name="apple-mobile-web-app-status-bar-style"
                     content="default"
                 />
-                <meta name="apple-mobile-web-app-title" content="Hanoi Plan" />
+                <meta name="apple-mobile-web-app-title" content="Pinory" />
                 <link rel="apple-touch-icon" href="/icon.svg" />
                 <link rel="icon" href="/icon.svg" type="image/svg+xml" />
             </head>

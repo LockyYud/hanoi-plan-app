@@ -320,7 +320,7 @@ export default function SharedItineraryPage({
                                     Thích lộ trình này?
                                 </h3>
                                 <p className="text-sm text-blue-700 mb-4">
-                                    Tạo lộ trình của riêng bạn với Hanoi Plan
+                                    Tạo lộ trình của riêng bạn với Pinory
                                 </p>
                                 <Link href="/">
                                     <Button className="w-full">

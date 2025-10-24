@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
         // Generate ICS calendar content
         const icsContent = generateICSContent({
-            title: title || "Hanoi Plan Itinerary",
+            title: title || "Pinory Itinerary",
             stops,
             startDate,
         })
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
             status: 200,
             headers: {
                 'Content-Type': 'text/calendar',
-                'Content-Disposition': `attachment; filename="${title || 'hanoi-plan'}.ics"`,
+                'Content-Disposition': `attachment; filename="${title || 'pinory'}.ics"`,
                 'Cache-Control': 'no-cache',
             },
         })
@@ -39,7 +39,7 @@ function generateICSContent({ title, stops, startDate }: any): string {
     let icsContent = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
-        'PRODID:-//Hanoi Plan//Hanoi Plan App//EN',
+        'PRODID:-//Pinory//Pinory App//EN',
         'CALSCALE:GREGORIAN',
         'METHOD:PUBLISH',
         `X-WR-CALNAME:${title}`,
@@ -66,7 +66,7 @@ function generateICSContent({ title, stops, startDate }: any): string {
 
         icsContent += '\r\n' + [
             'BEGIN:VEVENT',
-            `UID:${stop.id}@hanoiplan.com`,
+            `UID:${stop.id}@pinory.app`,
             `DTSTAMP:${formatDate(now)}`,
             `DTSTART;TZID=Asia/Ho_Chi_Minh:${formatDate(startTime).replace('Z', '')}`,
             `DTEND;TZID=Asia/Ho_Chi_Minh:${formatDate(endTime).replace('Z', '')}`,
