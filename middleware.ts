@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt"
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl
 
-    console.log(`🔍 ROOT MIDDLEWARE: Processing ${pathname}`)
+    console.log(`🔍 MIDDLEWARE: Processing ${pathname}`)
 
     // Skip API routes and static assets
     if (pathname.startsWith('/api/') || pathname.startsWith('/_next/') || pathname.includes('.')) {
@@ -12,12 +12,33 @@ export async function middleware(req: NextRequest) {
         return NextResponse.next()
     }
 
-    console.log(`🍪 COOKIES: ${req.headers.get('cookie')}`)
+    // Public routes that don't require authentication
+    const publicRoutes = [
+        '/',              // Home page (landing page for unauthenticated users)
+        '/auth/signin',   // Sign in page
+        '/login',         // Login page
+        '/public',        // Public page
+        '/share',         // Share pages (will be checked in detail below)
+    ]
 
-    // Get token
+    // Check if pathname starts with any public route
+    const isPublicRoute = publicRoutes.some(route => {
+        if (route === '/') {
+            return pathname === '/'
+        }
+        return pathname.startsWith(route)
+    })
+
+    // Allow public routes without authentication
+    if (isPublicRoute) {
+        console.log(`✅ Public route, allowing access: ${pathname}`)
+        return NextResponse.next()
+    }
+
+    // For protected routes, check authentication
     let token = null;
     try {
-        console.log(`🔄 Getting token...`)
+        console.log(`🔄 Getting token for protected route...`)
         token = await getToken({
             req,
             secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development"
@@ -32,23 +53,11 @@ export async function middleware(req: NextRequest) {
         console.log(`👤 User: ${token.email}`)
     }
 
-    // If user is on signin page but already authenticated, redirect to home
-    if ((pathname === '/auth/signin' || pathname === '/login') && token) {
-        console.log(`🏠 User already authenticated, redirecting to home`)
-        const homeUrl = new URL("/", req.url)
-        return NextResponse.redirect(homeUrl)
-    }
-
-    // Allow signin page for unauthenticated users
-    if (pathname === '/auth/signin' || pathname === '/login') {
-        console.log(`✅ Allowing auth page: ${pathname}`)
-        return NextResponse.next()
-    }
-
-    // For all other routes, require authentication
+    // If no token for protected route, redirect to signin
     if (!token) {
-        console.log(`🔒 Redirecting to signin: ${pathname}`)
+        console.log(`🔒 Protected route requires auth, redirecting to signin: ${pathname}`)
         const signInUrl = new URL("/auth/signin", req.url)
+        signInUrl.searchParams.set('callbackUrl', pathname)
         return NextResponse.redirect(signInUrl)
     }
 

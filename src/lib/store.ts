@@ -143,7 +143,7 @@ export const useGroupStore = create<GroupStore>((set) => ({
 }))
 
 export const useUIStore = create<UIStore>((set) => ({
-    sidebarOpen: true,
+    sidebarOpen: false,
     setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
     mapLoaded: false,
