@@ -75,6 +75,19 @@ interface UIStore {
 
     error: string | null
     setError: (error: string | null) => void
+
+    showMemoryLane: boolean
+    setShowMemoryLane: (show: boolean) => void
+}
+
+interface MemoryLaneStore {
+    routeNotes: LocationNote[]
+    setRouteNotes: (notes: LocationNote[]) => void
+    routeSortBy: "time" | "custom"
+    setRouteSortBy: (sortBy: "time" | "custom") => void
+    showRoute: boolean
+    setShowRoute: (show: boolean) => void
+    clearRoute: () => void
 }
 
 interface CategoryStore {
@@ -153,7 +166,20 @@ export const useUIStore = create<UIStore>((set) => ({
     setLoading: (loading) => set({ loading }),
 
     error: null,
-    setError: (error) => set({ error })
+    setError: (error) => set({ error }),
+
+    showMemoryLane: false,
+    setShowMemoryLane: (show) => set({ showMemoryLane: show })
+}))
+
+export const useMemoryLaneStore = create<MemoryLaneStore>((set) => ({
+    routeNotes: [],
+    setRouteNotes: (notes) => set({ routeNotes: notes }),
+    routeSortBy: "time",
+    setRouteSortBy: (sortBy) => set({ routeSortBy: sortBy }),
+    showRoute: false,
+    setShowRoute: (show) => set({ showRoute: show }),
+    clearRoute: () => set({ routeNotes: [], showRoute: false })
 }))
 
 export const useCategoryStore = create<CategoryStore>((set, get) => ({

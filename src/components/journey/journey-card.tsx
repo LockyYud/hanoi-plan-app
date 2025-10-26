@@ -1,0 +1,159 @@
+"use client";
+
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+    MapPin,
+    Calendar,
+    Eye,
+    Edit,
+    Trash2,
+    Map as MapIcon,
+} from "lucide-react";
+import { Journey } from "@/lib/types";
+
+interface JourneyCardProps {
+    readonly journey: Journey;
+    readonly onView: (journey: Journey) => void;
+    readonly onEdit: (journey: Journey) => void;
+    readonly onDelete: (journey: Journey) => void;
+    readonly onShowOnMap: (journey: Journey) => void;
+}
+
+export function JourneyCard({
+    journey,
+    onView,
+    onEdit,
+    onDelete,
+    onShowOnMap,
+}: JourneyCardProps) {
+    const formatDate = (date?: Date) => {
+        if (!date) return null;
+        return new Intl.DateTimeFormat("vi-VN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        }).format(new Date(date));
+    };
+
+    const coverImage =
+        journey.coverImage || journey.stops[0]?.place?.media?.[0]?.url || null;
+
+    return (
+        <Card className="group relative p-4 bg-gradient-to-br from-neutral-900/70 to-neutral-800/70 border border-neutral-800/70 hover:border-[#FF6B6B]/40 hover:shadow-xl hover:shadow-[#FF6B6B]/10 transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden hover:scale-[1.02]">
+            {/* Hover gradient effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FF6B6B]/0 via-[#FF6B6B]/5 to-[#FF6B6B]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+            <div className="relative flex gap-4">
+                {/* Cover Image */}
+                {coverImage && (
+                    <div className="flex-shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={coverImage}
+                            alt={journey.title}
+                            className="w-24 h-24 rounded-xl object-cover"
+                        />
+                    </div>
+                )}
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-[#EDEDED] mb-2 truncate group-hover:text-[#FF6B6B] transition-colors duration-200">
+                        {journey.title}
+                    </h3>
+
+                    {journey.description && (
+                        <p className="text-sm text-[#A0A0A0] mb-3 line-clamp-2">
+                            {journey.description}
+                        </p>
+                    )}
+
+                    {/* Meta Info */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                        <Badge
+                            variant="outline"
+                            className="px-2.5 py-1 bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 text-[#FF6B6B] border-[#FF6B6B]/30 rounded-lg font-semibold text-xs"
+                        >
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {journey.stops.length} địa điểm
+                        </Badge>
+
+                        {journey.startDate && journey.endDate && (
+                            <Badge
+                                variant="outline"
+                                className="px-2.5 py-1 bg-neutral-800 border-neutral-700 text-[#EDEDED] rounded-lg text-xs"
+                            >
+                                <Calendar className="h-3 w-3 mr-1" />
+                                {formatDate(journey.startDate)} -{" "}
+                                {formatDate(journey.endDate)}
+                            </Badge>
+                        )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-3 text-xs bg-[#FF6B6B] hover:bg-[#FF5555] text-white border-0 flex-shrink-0"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onShowOnMap(journey);
+                            }}
+                        >
+                            <MapIcon className="h-3 w-3 mr-1" />
+                            Xem trên map
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-700 flex-shrink-0"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onView(journey);
+                            }}
+                            title="Xem chi tiết"
+                        >
+                            <Eye className="h-4 w-4" />
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 flex-shrink-0"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit(journey);
+                            }}
+                            title="Chỉnh sửa"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/30 flex-shrink-0"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (
+                                    confirm(
+                                        "Bạn có chắc muốn xóa hành trình này?"
+                                    )
+                                ) {
+                                    onDelete(journey);
+                                }
+                            }}
+                            title="Xóa"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Card>
+    );
+}

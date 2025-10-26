@@ -59,6 +59,7 @@ model User {
   accounts        Account[]
   sessions        Session[]
   categories      Category[]
+  journeys        Journey[]
 
   @@map("users")
 }
@@ -110,6 +111,7 @@ model Place {
   media           Media[]
   votes           GroupVote[]
   itineraryStops  ItineraryStop[]
+  journeyStops    JourneyStop[]
 
   @@index([lat, lng])
   @@index([district, category])
@@ -304,4 +306,43 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verificationtokens")
+}
+
+// Personal Journey models
+model Journey {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  userId      String    @map("user_id")
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  coverImage  String?   @map("cover_image")
+  isPublic    Boolean   @default(false) @map("is_public")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stops JourneyStop[]
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("journeys")
+}
+
+model JourneyStop {
+  id        String   @id @default(cuid())
+  journeyId String   @map("journey_id")
+  placeId   String   @map("place_id")
+  sequence  Int
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  journey Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  place   Place   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@unique([journeyId, sequence])
+  @@index([journeyId])
+  @@map("journey_stops")
 }

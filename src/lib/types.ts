@@ -119,6 +119,31 @@ export interface User {
     createdAt: Date
 }
 
+// Journey types (personal travel journal)
+export interface Journey {
+    id: string
+    title: string
+    description?: string
+    userId: string
+    startDate?: Date
+    endDate?: Date
+    coverImage?: string
+    isPublic: boolean
+    createdAt: Date
+    updatedAt: Date
+    stops: JourneyStop[]
+}
+
+export interface JourneyStop {
+    id: string
+    journeyId: string
+    placeId: string
+    sequence: number
+    note?: string
+    createdAt: Date
+    place: Place
+}
+
 export interface RoutePreferences {
     maxStops: number
     minStops: number
