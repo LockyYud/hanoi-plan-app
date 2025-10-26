@@ -227,38 +227,49 @@ export function RouteDisplay({
     }, 0);
 
     return (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 w-auto max-w-md">
-            <div className="bg-[#0C0C0C]/95 backdrop-blur-lg rounded-2xl p-4 border border-neutral-800 shadow-2xl">
-                <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                        <h3 className="text-sm font-bold text-[#EDEDED] mb-1 flex items-center gap-2">
-                            <Navigation className="h-4 w-4 text-[#FF6B6B]" />
-                            Lộ trình kỷ niệm
+        <div className="absolute top-2 sm:top-4 left-1/2 transform -translate-x-1/2 z-10 w-[90vw] xs:w-auto xs:max-w-sm sm:max-w-md px-2 xs:px-0">
+            <div className="bg-[#0C0C0C]/95 backdrop-blur-lg rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-neutral-800 shadow-2xl">
+                <div className="flex items-start justify-between mb-2 sm:mb-3">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="text-xs sm:text-sm font-bold text-[#EDEDED] mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2">
+                            <Navigation className="h-3 w-3 sm:h-4 sm:w-4 text-[#FF6B6B] flex-shrink-0" />
+                            <span className="truncate">Lộ trình kỷ niệm</span>
                         </h3>
-                        <p className="text-xs text-[#A0A0A0]">
-                            {notes.length} điểm • ~{totalDistance.toFixed(1)} km
+                        <p className="text-[10px] sm:text-xs text-[#A0A0A0]">
+                            {notes.length} điểm •{" "}
+                            <span className="hidden xs:inline">~</span>
+                            {totalDistance.toFixed(1)} km
                         </p>
                     </div>
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={onClose}
-                        className="h-8 w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-800"
+                        className="h-6 w-6 sm:h-8 sm:w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-800 flex-shrink-0"
                     >
-                        <X className="h-4 w-4" />
+                        <X className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                 </div>
 
                 {/* Info */}
-                <div className="flex items-center justify-between text-xs text-[#A0A0A0]">
-                    <div className="flex items-center gap-2">
-                        <span className="text-base">▶ ▶ ▶</span>
-                        <span>Hướng đi</span>
+                <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#A0A0A0]">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                        <span className="text-sm sm:text-base">▶ ▶ ▶</span>
+                        <span className="hidden xs:inline">Hướng đi</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <MapPin className="h-3 w-3" />
+                    <div className="flex items-center gap-1 sm:gap-2">
+                        <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         <span>
-                            {sortBy === "time" ? "Theo thời gian" : "Tùy chỉnh"}
+                            {sortBy === "time" ? (
+                                <>
+                                    <span className="hidden xs:inline">
+                                        Theo thời gian
+                                    </span>
+                                    <span className="xs:hidden">Thời gian</span>
+                                </>
+                            ) : (
+                                "Tùy chỉnh"
+                            )}
                         </span>
                     </div>
                 </div>

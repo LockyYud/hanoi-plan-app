@@ -49,8 +49,8 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
     // Show loading placeholder on server/initial render
     if (!mounted) {
         return (
-            <div suppressHydrationWarning className="min-h-screen bg-gray-50">
-                <div className="flex items-center justify-center h-screen">
+            <div suppressHydrationWarning className="min-h-svh bg-gray-50">
+                <div className="flex items-center justify-center h-svh">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
             </div>
@@ -64,9 +64,7 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
             basePath="/api/auth"
         >
             <QueryClientProvider client={queryClient}>
-                <CategoryLoader>
-                    {children}
-                </CategoryLoader>
+                <CategoryLoader>{children}</CategoryLoader>
             </QueryClientProvider>
         </SessionProvider>
     );

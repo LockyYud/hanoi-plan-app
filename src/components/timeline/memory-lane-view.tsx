@@ -222,20 +222,20 @@ export function MemoryLaneView({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-[#0C0C0C] border-neutral-800">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-[#0C0C0C] border-neutral-800 w-[95vw] sm:w-full">
                 <DialogHeader>
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="text-2xl font-bold text-[#EDEDED] flex items-center gap-2">
-                            <Calendar className="h-6 w-6 text-[#FF6B6B]" />
-                            Xem lại kỷ niệm
+                        <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#EDEDED] flex items-center gap-1.5 sm:gap-2">
+                            <Calendar className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-[#FF6B6B]" />
+                            <span className="truncate">Xem lại kỷ niệm</span>
                         </DialogTitle>
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={onClose}
-                            className="text-[#A0A0A0] hover:text-[#EDEDED]"
+                            className="text-[#A0A0A0] hover:text-[#EDEDED] flex-shrink-0"
                         >
-                            <X className="h-5 w-5" />
+                            <X className="h-4 w-4 sm:h-5 sm:w-5" />
                         </Button>
                     </div>
                 </DialogHeader>
@@ -332,20 +332,20 @@ export function MemoryLaneView({
 
                     {/* Stats */}
                     {notes.length > 0 && (
-                        <div className="grid grid-cols-3 gap-3">
-                            <Card className="p-4 bg-gradient-to-br from-[#FF6B6B]/20 to-[#FF6B6B]/5 border-[#FF6B6B]/30">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                            <Card className="p-2 sm:p-3 md:p-4 bg-gradient-to-br from-[#FF6B6B]/20 to-[#FF6B6B]/5 border-[#FF6B6B]/30">
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold text-[#FF6B6B]">
+                                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#FF6B6B]">
                                         {notes.length}
                                     </div>
-                                    <div className="text-xs text-[#A0A0A0]">
+                                    <div className="text-[10px] sm:text-xs text-[#A0A0A0]">
                                         Địa điểm
                                     </div>
                                 </div>
                             </Card>
-                            <Card className="p-4 bg-gradient-to-br from-green-500/20 to-green-500/5 border-green-500/30">
+                            <Card className="p-2 sm:p-3 md:p-4 bg-gradient-to-br from-green-500/20 to-green-500/5 border-green-500/30">
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold text-green-400">
+                                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-green-400">
                                         {
                                             notes.filter(
                                                 (n) =>
@@ -354,18 +354,28 @@ export function MemoryLaneView({
                                             ).length
                                         }
                                     </div>
-                                    <div className="text-xs text-[#A0A0A0]">
+                                    <div className="text-[10px] sm:text-xs text-[#A0A0A0]">
                                         Có ảnh
                                     </div>
                                 </div>
                             </Card>
-                            <Card className="p-4 bg-gradient-to-br from-blue-500/20 to-blue-500/5 border-blue-500/30">
+                            <Card className="p-2 sm:p-3 md:p-4 bg-gradient-to-br from-blue-500/20 to-blue-500/5 border-blue-500/30">
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold text-blue-400">
-                                        {totalDistance.toFixed(1)} km
+                                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-400">
+                                        <span className="hidden xs:inline">
+                                            {totalDistance.toFixed(1)} km
+                                        </span>
+                                        <span className="xs:hidden">
+                                            {totalDistance.toFixed(0)}km
+                                        </span>
                                     </div>
-                                    <div className="text-xs text-[#A0A0A0]">
-                                        Tổng quãng đường
+                                    <div className="text-[10px] sm:text-xs text-[#A0A0A0]">
+                                        <span className="hidden xs:inline">
+                                            Tổng quãng đường
+                                        </span>
+                                        <span className="xs:hidden">
+                                            Khoảng cách
+                                        </span>
                                     </div>
                                 </div>
                             </Card>
@@ -374,12 +384,12 @@ export function MemoryLaneView({
 
                     {/* Sort Options */}
                     {notes.length > 0 && (
-                        <Card className="p-4 bg-neutral-900/50 border-neutral-800">
-                            <div className="flex items-center justify-between">
-                                <div className="text-sm text-[#EDEDED] font-medium">
+                        <Card className="p-3 sm:p-4 bg-neutral-900/50 border-neutral-800">
+                            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2">
+                                <div className="text-xs sm:text-sm text-[#EDEDED] font-medium">
                                     Sắp xếp:
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1.5 sm:gap-2 w-full xs:w-auto">
                                     <Button
                                         variant={
                                             sortBy === "time"
@@ -389,14 +399,19 @@ export function MemoryLaneView({
                                         size="sm"
                                         onClick={() => setSortBy("time")}
                                         className={cn(
-                                            "text-xs",
+                                            "text-[10px] sm:text-xs h-7 sm:h-8 flex-1 xs:flex-initial",
                                             sortBy === "time"
                                                 ? "bg-[#FF6B6B] hover:bg-[#FF5555]"
                                                 : "bg-neutral-800 text-[#A0A0A0]"
                                         )}
                                     >
-                                        <Clock className="h-3 w-3 mr-1" />
-                                        Theo thời gian
+                                        <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                                        <span className="hidden xs:inline">
+                                            Theo thời gian
+                                        </span>
+                                        <span className="xs:hidden">
+                                            Thời gian
+                                        </span>
                                     </Button>
                                     <Button
                                         variant={
@@ -414,19 +429,19 @@ export function MemoryLaneView({
                                             setSortBy("custom");
                                         }}
                                         className={cn(
-                                            "text-xs",
+                                            "text-[10px] sm:text-xs h-7 sm:h-8 flex-1 xs:flex-initial",
                                             sortBy === "custom"
                                                 ? "bg-[#FF6B6B] hover:bg-[#FF5555]"
                                                 : "bg-neutral-800 text-[#A0A0A0]"
                                         )}
                                     >
-                                        <Navigation className="h-3 w-3 mr-1" />
+                                        <Navigation className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                                         Tùy chỉnh
                                     </Button>
                                 </div>
                             </div>
                             {sortBy === "custom" && (
-                                <div className="mt-2 text-xs text-[#A0A0A0]">
+                                <div className="mt-2 text-[10px] sm:text-xs text-[#A0A0A0]">
                                     💡 Kéo thả các ghi chú để sắp xếp lại lộ
                                     trình
                                 </div>
@@ -461,54 +476,73 @@ export function MemoryLaneView({
                                     onDragOver={handleDragOver}
                                     onDrop={(e) => handleDrop(e, note.id)}
                                     className={cn(
-                                        "p-4 bg-neutral-900/70 border-neutral-800 hover:border-[#FF6B6B]/40 transition-all duration-200",
+                                        "p-3 sm:p-4 bg-neutral-900/70 border-neutral-800 hover:border-[#FF6B6B]/40 transition-all duration-200",
                                         sortBy === "custom" &&
                                             "cursor-move hover:bg-neutral-800/70"
                                     )}
                                     onClick={() => setSelectedNote(note)}
                                 >
-                                    <div className="flex items-start gap-3">
+                                    <div className="flex items-start gap-2 sm:gap-3">
                                         {/* Index/Number */}
                                         <div className="flex-shrink-0">
-                                            <div className="w-10 h-10 rounded-full bg-[#FF6B6B] flex items-center justify-center text-white font-bold">
+                                            <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-[#FF6B6B] flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                                                 {index + 1}
                                             </div>
                                         </div>
 
                                         {/* Mood */}
                                         <div className="flex-shrink-0">
-                                            <div className="w-12 h-12 rounded-2xl bg-neutral-800 flex items-center justify-center text-2xl">
+                                            <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-2xl bg-neutral-800 flex items-center justify-center text-xl sm:text-2xl">
                                                 {note.mood || "📍"}
                                             </div>
                                         </div>
 
                                         {/* Content */}
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-semibold text-[#EDEDED] mb-1 line-clamp-2">
+                                            <div className="text-xs sm:text-sm font-semibold text-[#EDEDED] mb-1 line-clamp-2">
                                                 {note.content ||
                                                     "Không có nội dung"}
                                             </div>
-                                            <div className="text-xs text-[#A0A0A0] mb-2 flex items-center gap-1">
-                                                <MapPin className="h-3 w-3" />
-                                                {note.address}
+                                            <div className="text-[10px] sm:text-xs text-[#A0A0A0] mb-2 flex items-center gap-1 line-clamp-1">
+                                                <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+                                                <span className="truncate">
+                                                    {note.address}
+                                                </span>
                                             </div>
-                                            <div className="flex items-center gap-2 flex-wrap">
+                                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                                 <Badge
                                                     variant="outline"
-                                                    className="text-xs bg-neutral-800 border-neutral-700"
+                                                    className="text-[10px] sm:text-xs bg-neutral-800 border-neutral-700 px-1.5 sm:px-2 py-0.5"
                                                 >
-                                                    <Clock className="h-3 w-3 mr-1" />
-                                                    {formatDate(note.timestamp)}
+                                                    <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                                                    <span className="hidden sm:inline">
+                                                        {formatDate(
+                                                            note.timestamp
+                                                        )}
+                                                    </span>
+                                                    <span className="sm:hidden">
+                                                        {new Date(
+                                                            note.timestamp
+                                                        ).toLocaleDateString(
+                                                            "vi-VN",
+                                                            {
+                                                                month: "short",
+                                                                day: "numeric",
+                                                            }
+                                                        )}
+                                                    </span>
                                                 </Badge>
                                                 {note.images &&
                                                     note.images.length > 0 && (
                                                         <Badge
                                                             variant="outline"
-                                                            className="text-xs bg-green-900/30 text-green-400 border-green-600/40"
+                                                            className="text-[10px] sm:text-xs bg-green-900/30 text-green-400 border-green-600/40 px-1.5 sm:px-2 py-0.5"
                                                         >
-                                                            <ImageIcon className="h-3 w-3 mr-1" />
+                                                            <ImageIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                                                             {note.images.length}{" "}
-                                                            ảnh
+                                                            <span className="hidden xs:inline">
+                                                                ảnh
+                                                            </span>
                                                         </Badge>
                                                     )}
                                             </div>
@@ -517,12 +551,12 @@ export function MemoryLaneView({
                                         {/* Preview Image */}
                                         {note.images &&
                                             note.images.length > 0 && (
-                                                <div className="flex-shrink-0">
+                                                <div className="flex-shrink-0 hidden xs:block">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                                     <img
                                                         src={note.images[0]}
                                                         alt="Preview"
-                                                        className="w-16 h-16 rounded-xl object-cover"
+                                                        className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl object-cover"
                                                     />
                                                 </div>
                                             )}
@@ -536,10 +570,16 @@ export function MemoryLaneView({
                     {sortedNotes.length >= 2 && (
                         <Button
                             onClick={() => onShowRoute(sortedNotes, sortBy)}
-                            className="w-full h-12 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white font-bold rounded-xl"
+                            className="w-full h-10 sm:h-11 md:h-12 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white font-bold rounded-xl text-xs sm:text-sm"
                         >
-                            <Route className="h-5 w-5 mr-2" />
-                            Xem lộ trình trên bản đồ ({sortedNotes.length} điểm)
+                            <Route className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                            <span className="hidden xs:inline">
+                                Xem lộ trình trên bản đồ ({sortedNotes.length}{" "}
+                                điểm)
+                            </span>
+                            <span className="xs:hidden">
+                                Xem lộ trình ({sortedNotes.length})
+                            </span>
                         </Button>
                     )}
                 </div>

@@ -23,12 +23,17 @@ export function LandingPage() {
                             width={40}
                             height={40}
                             className="animate-float"
+                            priority
+                            unoptimized
                         />
                         <Image
                             src="/pinory-logo-full.svg"
                             alt="Pinory"
-                            width={100}
-                            height={100}
+                            width={120}
+                            height={32}
+                            className="h-8 w-auto"
+                            priority
+                            unoptimized
                         />
                     </div>
                     <button
@@ -331,6 +336,7 @@ export function LandingPage() {
                             alt="Pinory"
                             width={32}
                             height={32}
+                            unoptimized
                         />
                         <div>
                             <div className="font-bold text-gray-900">

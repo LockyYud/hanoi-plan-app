@@ -41,11 +41,11 @@ export function JourneyCard({
         journey.coverImage || journey.stops[0]?.place?.media?.[0]?.url || null;
 
     return (
-        <Card className="group relative p-4 bg-gradient-to-br from-neutral-900/70 to-neutral-800/70 border border-neutral-800/70 hover:border-[#FF6B6B]/40 hover:shadow-xl hover:shadow-[#FF6B6B]/10 transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden hover:scale-[1.02]">
+        <Card className="group relative p-3 sm:p-4 bg-gradient-to-br from-neutral-900/70 to-neutral-800/70 border border-neutral-800/70 hover:border-[#FF6B6B]/40 hover:shadow-xl hover:shadow-[#FF6B6B]/10 transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden hover:scale-[1.02]">
             {/* Hover gradient effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#FF6B6B]/0 via-[#FF6B6B]/5 to-[#FF6B6B]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-            <div className="relative flex gap-4">
+            <div className="relative flex gap-2.5 sm:gap-4">
                 {/* Cover Image */}
                 {coverImage && (
                     <div className="flex-shrink-0">
@@ -53,90 +53,102 @@ export function JourneyCard({
                         <img
                             src={coverImage}
                             alt={journey.title}
-                            className="w-24 h-24 rounded-xl object-cover"
+                            className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover"
                         />
                     </div>
                 )}
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-[#EDEDED] mb-2 truncate group-hover:text-[#FF6B6B] transition-colors duration-200">
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-[#EDEDED] mb-1.5 sm:mb-2 truncate group-hover:text-[#FF6B6B] transition-colors duration-200">
                         {journey.title}
                     </h3>
 
                     {journey.description && (
-                        <p className="text-sm text-[#A0A0A0] mb-3 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-[#A0A0A0] mb-2 sm:mb-3 line-clamp-2">
                             {journey.description}
                         </p>
                     )}
 
                     {/* Meta Info */}
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3">
                         <Badge
                             variant="outline"
-                            className="px-2.5 py-1 bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 text-[#FF6B6B] border-[#FF6B6B]/30 rounded-lg font-semibold text-xs"
+                            className="px-2 sm:px-2.5 py-0.5 sm:py-1 bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 text-[#FF6B6B] border-[#FF6B6B]/30 rounded-lg font-semibold text-[10px] sm:text-xs"
                         >
-                            <MapPin className="h-3 w-3 mr-1" />
+                            <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                             {journey.stops.length} địa điểm
                         </Badge>
 
                         {journey.startDate && journey.endDate && (
                             <Badge
                                 variant="outline"
-                                className="px-2.5 py-1 bg-neutral-800 border-neutral-700 text-[#EDEDED] rounded-lg text-xs"
+                                className="px-2 sm:px-2.5 py-0.5 sm:py-1 bg-neutral-800 border-neutral-700 text-[#EDEDED] rounded-lg text-[10px] sm:text-xs hidden xs:flex items-center"
                             >
-                                <Calendar className="h-3 w-3 mr-1" />
-                                {formatDate(journey.startDate)} -{" "}
-                                {formatDate(journey.endDate)}
+                                <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                                <span className="hidden sm:inline">
+                                    {formatDate(journey.startDate)} -{" "}
+                                    {formatDate(journey.endDate)}
+                                </span>
+                                <span className="sm:hidden">
+                                    {new Date(
+                                        journey.startDate
+                                    ).toLocaleDateString("vi-VN", {
+                                        month: "short",
+                                        day: "numeric",
+                                    })}
+                                </span>
                             </Badge>
                         )}
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
                         <Button
                             size="sm"
                             variant="outline"
-                            className="h-8 px-3 text-xs bg-[#FF6B6B] hover:bg-[#FF5555] text-white border-0 flex-shrink-0"
+                            className="h-7 sm:h-8 px-2 sm:px-3 text-[10px] sm:text-xs bg-[#FF6B6B] hover:bg-[#FF5555] text-white border-0 flex-shrink-0"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onShowOnMap(journey);
                             }}
                         >
-                            <MapIcon className="h-3 w-3 mr-1" />
-                            Xem trên map
+                            <MapIcon className="h-3 w-3 sm:mr-1" />
+                            <span className="hidden sm:inline">
+                                Xem trên map
+                            </span>
                         </Button>
 
                         <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-700 flex-shrink-0"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-700 flex-shrink-0"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onView(journey);
                             }}
                             title="Xem chi tiết"
                         >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
 
                         <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 flex-shrink-0"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 flex-shrink-0"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onEdit(journey);
                             }}
                             title="Chỉnh sửa"
                         >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
 
                         <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/30 flex-shrink-0"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/30 flex-shrink-0"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 if (
@@ -149,7 +161,7 @@ export function JourneyCard({
                             }}
                             title="Xóa"
                         >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                     </div>
                 </div>
