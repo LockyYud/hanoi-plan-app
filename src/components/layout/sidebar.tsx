@@ -69,7 +69,7 @@ export function Sidebar() {
         });
     }, [session, status]);
 
-    const { sidebarOpen } = useUIStore();
+    const { sidebarOpen, setSidebarOpen } = useUIStore();
     const {
         places,
         filter,
@@ -499,7 +499,7 @@ export function Sidebar() {
     return (
         <div
             className={cn(
-                "fixed left-0 top-0 h-full w-80 md:w-80 sm:w-72 xs:w-full bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] border-r border-neutral-800/50 transition-transform duration-300 z-20 shadow-2xl backdrop-blur-xl",
+                "fixed left-0 top-0 h-full w-full md:w-80 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] border-r border-neutral-800/50 transition-transform duration-300 z-20 shadow-2xl backdrop-blur-xl",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
             suppressHydrationWarning
@@ -509,6 +509,15 @@ export function Sidebar() {
                 <div className="relative p-6 border-b border-neutral-800/50 bg-gradient-to-r from-neutral-900/30 to-neutral-800/30">
                     {/* Decorative gradient line */}
                     <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#FF6B6B]/30 to-transparent"></div>
+
+                    {/* Close button */}
+                    <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-lg bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] transition-all duration-300 hover:scale-110"
+                        title="Đóng sidebar"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
 
                     <div className="flex items-center justify-center">
                         <img

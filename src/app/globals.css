@@ -88,40 +88,20 @@ body {
 }
 
 /* Mapbox controls styling */
-.mapboxgl-ctrl-group {
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(10px);
-  border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-.mapboxgl-ctrl-group button {
-  background: transparent !important;
-  border: none !important;
-  color: #374151 !important;
-  font-weight: 600 !important;
-}
-
-.mapboxgl-ctrl-group button:hover {
-  background: rgba(59, 130, 246, 0.1) !important;
-  color: #3b82f6 !important;
-}
-
-.mapboxgl-ctrl-group button:focus {
-  outline: 2px solid #3b82f6 !important;
-  outline-offset: 2px !important;
-}
-
-/* Position mapbox controls to avoid search bar */
-.mapboxgl-ctrl-top-right {
-  top: 20px !important;
-  right: 20px !important;
-}
-
-.mapboxgl-ctrl-bottom-right {
-  bottom: 20px !important;
-  right: 20px !important;
+/* Hide ALL default Mapbox controls */
+.mapboxgl-control-container,
+.mapboxgl-ctrl-group,
+.mapboxgl-ctrl-top-left,
+.mapboxgl-ctrl-top-right,
+.mapboxgl-ctrl-bottom-left,
+.mapboxgl-ctrl-bottom-right,
+.mapboxgl-ctrl-attrib-button,
+.mapboxgl-ctrl-attrib,
+.mapboxgl-ctrl-logo {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* User location marker animations and stability */

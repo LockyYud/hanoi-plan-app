@@ -337,6 +337,17 @@ export function MapContainer({ className }: MapContainerProps) {
                 note.content?.substring(0, 20)
             );
             setSelectedNote(note);
+
+            // On mobile, auto-open details view instead of popup
+            const isMobile = globalThis.innerWidth < 768;
+            if (isMobile) {
+                console.log("📱 Mobile detected, auto-opening details dialog");
+                // Small delay to ensure selectedNote is set
+                setTimeout(() => {
+                    setShowDetailsDialog(true);
+                }, 50);
+            }
+
             console.log(
                 "🎯 After setSelectedNote, current selectedNote should be:",
                 note.id

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 import { ImageLightbox } from "./image-lightbox";
+import { cn } from "@/lib/utils";
 
 interface LocationNote {
     id: string;
@@ -58,6 +59,10 @@ export function NoteDetailsView({
     const [loadError, setLoadError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showLightbox, setShowLightbox] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [dragStartY, setDragStartY] = useState(0);
+    const [currentY, setCurrentY] = useState(0);
 
     const loadFullNote = useCallback(async () => {
         setIsLoadingImages(true);
@@ -229,6 +234,16 @@ export function NoteDetailsView({
         "😤": "Không hài lòng",
     };
 
+    // Detect mobile
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(globalThis.innerWidth < 768);
+        };
+        checkMobile();
+        globalThis.addEventListener("resize", checkMobile);
+        return () => globalThis.removeEventListener("resize", checkMobile);
+    }, []);
+
     // Handle ESC key for dialog (lightbox handles its own ESC)
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
@@ -243,6 +258,289 @@ export function NoteDetailsView({
         }
     }, [isOpen, showLightbox, onClose]);
 
+    // Mobile drag handlers
+    const handleDragStart = (e: React.TouchEvent) => {
+        setDragStartY(e.touches[0].clientY);
+        setCurrentY(e.touches[0].clientY);
+    };
+
+    const handleDragMove = (e: React.TouchEvent) => {
+        setCurrentY(e.touches[0].clientY);
+    };
+
+    const handleDragEnd = () => {
+        const deltaY = currentY - dragStartY;
+        if (deltaY > 100 && isExpanded) {
+            setIsExpanded(false);
+        } else if (deltaY < -100 && !isExpanded) {
+            setIsExpanded(true);
+        } else if (deltaY > 200 && !isExpanded) {
+            // Swipe down to close when collapsed
+            onClose();
+        }
+        setDragStartY(0);
+        setCurrentY(0);
+    };
+
+    // MOBILE: Bottom Sheet UI
+    if (isMobile && isOpen) {
+        return (
+            <>
+                {/* Backdrop */}
+                <button
+                    type="button"
+                    className="fixed inset-0 bg-black/50 z-40 cursor-default"
+                    onClick={onClose}
+                    onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                            onClose();
+                        }
+                    }}
+                    aria-label="Đóng"
+                />
+
+                {/* Bottom Sheet */}
+                <div
+                    className={cn(
+                        "fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] rounded-t-[32px] shadow-2xl overflow-hidden flex flex-col transition-all duration-300",
+                        isExpanded ? "h-[90vh]" : "h-[50vh]"
+                    )}
+                >
+                    {/* Drag Handle */}
+                    <button
+                        type="button"
+                        className="w-full py-2.5 flex justify-center cursor-grab active:cursor-grabbing flex-shrink-0"
+                        onTouchStart={handleDragStart}
+                        onTouchMove={handleDragMove}
+                        onTouchEnd={handleDragEnd}
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
+                    >
+                        <div className="w-10 h-1 bg-neutral-600 rounded-full"></div>
+                    </button>
+
+                    {/* Cover Image */}
+                    {displayNote.images && displayNote.images.length > 0 && (
+                        <div className="mx-4 mb-3 h-44 bg-gradient-to-r from-neutral-800 to-neutral-900 relative overflow-hidden flex-shrink-0 rounded-2xl shadow-lg">
+                            {isValidImageUrl(
+                                displayNote.images[
+                                    displayNote.coverImageIndex || 0
+                                ]
+                            ) ? (
+                                <ImageDisplay
+                                    src={
+                                        displayNote.images[
+                                            displayNote.coverImageIndex || 0
+                                        ]
+                                    }
+                                    alt="Cover"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <span className="text-4xl text-[#A0A0A0]">
+                                        📷
+                                    </span>
+                                </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/10"></div>
+
+                            {/* Close button */}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={onClose}
+                                className="absolute top-3 right-3 text-white bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 p-0 backdrop-blur-md"
+                            >
+                                <X className="h-4 w-4" strokeWidth={2.5} />
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* Header Info */}
+                    <div className="px-5 py-3 flex-shrink-0">
+                        <div className="flex items-start gap-2.5">
+                            <span className="text-2xl flex-shrink-0 leading-none">
+                                {displayNote.mood || "📍"}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-lg font-bold text-[#EDEDED] mb-1 leading-tight">
+                                    {displayNote.placeName ||
+                                        "Ghi chú địa điểm"}
+                                </h2>
+                                <p className="text-xs text-[#A0A0A0] flex items-center gap-1.5 leading-relaxed">
+                                    <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                                    <span className="line-clamp-1">
+                                        {note.address}
+                                    </span>
+                                </p>
+                                {displayNote.visitTime && (
+                                    <p className="text-xs text-[#A0A0A0] mt-1 flex items-center gap-1.5">
+                                        <Clock className="h-3 w-3 flex-shrink-0" />
+                                        {formatVisitTime(displayNote.visitTime)}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto px-5 py-3 space-y-4">
+                        {/* Tags */}
+                        {(displayNote.categoryName || displayNote.mood) && (
+                            <div className="flex flex-wrap gap-2">
+                                {displayNote.categoryName && (
+                                    <div className="flex items-center gap-1.5 bg-purple-900/30 text-purple-400 px-2.5 py-1 rounded-full border border-purple-800">
+                                        <Tag className="h-3 w-3" />
+                                        <span className="text-xs font-medium">
+                                            {displayNote.categoryName}
+                                        </span>
+                                    </div>
+                                )}
+                                {displayNote.mood && (
+                                    <div className="flex items-center gap-1.5 bg-amber-900/30 text-amber-400 px-2.5 py-1 rounded-full border border-amber-800">
+                                        <span className="text-sm">
+                                            {displayNote.mood}
+                                        </span>
+                                        <span className="text-xs font-medium">
+                                            {moodLabels[displayNote.mood] ||
+                                                "Khác"}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Content */}
+                        {displayNote.content && (
+                            <div>
+                                <h3 className="text-xs font-semibold text-[#A0A0A0] mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+                                    <Heart className="h-3.5 w-3.5" />
+                                    Nội dung
+                                </h3>
+                                <p className="text-sm text-[#EDEDED] leading-relaxed whitespace-pre-wrap">
+                                    {displayNote.content}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* All Images Grid */}
+                        {displayNote.images &&
+                            displayNote.images.length > 0 && (
+                                <div>
+                                    <h3 className="text-xs font-semibold text-[#A0A0A0] mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+                                        <Eye className="h-3.5 w-3.5" />
+                                        Hình ảnh ({displayNote.images.length})
+                                    </h3>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {displayNote.images.map(
+                                            (image, index) => (
+                                                <button
+                                                    key={`${displayNote.id || note.id}-img-${index}-${image.substring(0, 20)}`}
+                                                    className="aspect-square bg-neutral-800 rounded-xl border border-neutral-700 overflow-hidden hover:border-neutral-600 transition-colors"
+                                                    onClick={() => {
+                                                        setCurrentImageIndex(
+                                                            index
+                                                        );
+                                                        setShowLightbox(true);
+                                                    }}
+                                                >
+                                                    {isValidImageUrl(image) ? (
+                                                        <ImageDisplay
+                                                            src={image}
+                                                            alt={`Ảnh ${index + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center">
+                                                            <span className="text-2xl text-[#A0A0A0]">
+                                                                📷
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="sticky bottom-0 bg-gradient-to-t from-[#0a0a0a] via-[#0C0C0C]/95 to-transparent backdrop-blur-xl border-t border-neutral-800/50 px-5 py-3 flex-shrink-0">
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={onEdit}
+                                className="flex-1 h-11 bg-gradient-to-br from-[#FF6B6B]/20 to-[#FF8E53]/20 hover:from-[#FF6B6B]/30 hover:to-[#FF8E53]/30 border-[#FF6B6B]/40 text-[#FFD6A5] font-semibold text-sm rounded-xl"
+                            >
+                                <Edit className="h-4 w-4 mr-1.5" />
+                                Chỉnh sửa
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    if (navigator.share) {
+                                        navigator.share({
+                                            title: "Ghi chú địa điểm",
+                                            text:
+                                                note.content ||
+                                                displayNote.placeName ||
+                                                "Ghi chú",
+                                            url: globalThis.location.href,
+                                        });
+                                    }
+                                }}
+                                className="flex-1 h-11 bg-gradient-to-br from-green-900/40 to-emerald-900/40 hover:from-green-800/50 hover:to-emerald-800/50 border-green-700/50 text-green-300 font-semibold text-sm rounded-xl"
+                            >
+                                <Share className="h-4 w-4 mr-1.5" />
+                                Chia sẻ
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    if (
+                                        globalThis.confirm(
+                                            "Bạn có chắc muốn xóa ghi chú này?"
+                                        )
+                                    ) {
+                                        onDelete?.();
+                                    }
+                                }}
+                                className="h-11 px-3.5 bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Lightbox */}
+                <ImageLightbox
+                    images={displayNote.images || []}
+                    currentIndex={currentImageIndex}
+                    isOpen={showLightbox}
+                    onClose={() => setShowLightbox(false)}
+                    onNext={() => {
+                        setCurrentImageIndex((prev) =>
+                            prev === (displayNote.images?.length || 1) - 1
+                                ? 0
+                                : prev + 1
+                        );
+                    }}
+                    onPrevious={() => {
+                        setCurrentImageIndex((prev) =>
+                            prev === 0
+                                ? (displayNote.images?.length || 1) - 1
+                                : prev - 1
+                        );
+                    }}
+                />
+            </>
+        );
+    }
+
+    // DESKTOP: Original Dialog
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] border border-neutral-700/50 shadow-2xl flex flex-col backdrop-blur-xl">

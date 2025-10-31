@@ -258,9 +258,9 @@ export function CreateJourneyDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-[#0C0C0C] border-neutral-800">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-[#0C0C0C] border-neutral-800 w-[95vw] sm:w-full">
                 <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold text-[#EDEDED]">
+                    <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#EDEDED]">
                         {editingJourney
                             ? "Chỉnh sửa hành trình"
                             : "Tạo hành trình mới"}
@@ -269,11 +269,14 @@ export function CreateJourneyDialog({
 
                 <form
                     onSubmit={handleSubmit}
-                    className="flex-1 overflow-y-auto space-y-4"
+                    className="flex-1 overflow-y-auto space-y-3 sm:space-y-4"
                 >
                     {/* Title */}
                     <div>
-                        <Label htmlFor="title" className="text-[#EDEDED]">
+                        <Label
+                            htmlFor="title"
+                            className="text-xs sm:text-sm text-[#EDEDED]"
+                        >
                             Tên hành trình *
                         </Label>
                         <Input
@@ -281,14 +284,17 @@ export function CreateJourneyDialog({
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="Ví dụ: Hà Nội - Tuần 1"
-                            className="bg-neutral-800 border-neutral-700 text-[#EDEDED]"
+                            className="bg-neutral-800 border-neutral-700 text-[#EDEDED] h-9 sm:h-10 text-sm"
                             required
                         />
                     </div>
 
                     {/* Description */}
                     <div>
-                        <Label htmlFor="description" className="text-[#EDEDED]">
+                        <Label
+                            htmlFor="description"
+                            className="text-xs sm:text-sm text-[#EDEDED]"
+                        >
                             Mô tả
                         </Label>
                         <Input
@@ -296,14 +302,14 @@ export function CreateJourneyDialog({
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Mô tả ngắn về hành trình"
-                            className="bg-neutral-800 border-neutral-700 text-[#EDEDED]"
+                            className="bg-neutral-800 border-neutral-700 text-[#EDEDED] h-9 sm:h-10 text-sm"
                         />
                     </div>
 
                     {/* Date Range */}
                     <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-[#EDEDED]">
+                        <div className="flex items-center justify-between gap-2">
+                            <Label className="text-xs sm:text-sm text-[#EDEDED]">
                                 Thời gian hành trình
                             </Label>
                             {selectedNotes.length > 0 && (
@@ -312,19 +318,22 @@ export function CreateJourneyDialog({
                                     variant="ghost"
                                     size="sm"
                                     onClick={setBothDatesFromSelection}
-                                    className="h-6 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                                    className="h-6 sm:h-7 text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 px-2"
                                 >
-                                    <Sparkles className="h-3 w-3 mr-1" />
-                                    Lấy từ địa điểm
+                                    <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                                    <span className="hidden xs:inline">
+                                        Lấy từ địa điểm
+                                    </span>
+                                    <span className="xs:hidden">Auto</span>
                                 </Button>
                             )}
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <div className="flex items-center justify-between">
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3">
+                            <div className="space-y-1 sm:space-y-1.5">
+                                <div className="flex items-center justify-between gap-2">
                                     <Label
                                         htmlFor="start-date"
-                                        className="text-sm text-[#A0A0A0]"
+                                        className="text-xs sm:text-sm text-[#A0A0A0]"
                                     >
                                         Ngày bắt đầu
                                     </Label>
@@ -332,7 +341,7 @@ export function CreateJourneyDialog({
                                         <button
                                             type="button"
                                             onClick={setStartDateFromSelection}
-                                            className="text-xs text-blue-400 hover:text-blue-300 hover:underline"
+                                            className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:underline"
                                             title="Lấy ngày sớm nhất từ địa điểm đã chọn"
                                         >
                                             ← Lấy
@@ -346,14 +355,14 @@ export function CreateJourneyDialog({
                                     onChange={(e) =>
                                         setStartDate(e.target.value)
                                     }
-                                    className="bg-neutral-800 border-neutral-700 text-[#EDEDED]"
+                                    className="bg-neutral-800 border-neutral-700 text-[#EDEDED] h-9 sm:h-10 text-sm"
                                 />
                             </div>
-                            <div className="space-y-1.5">
-                                <div className="flex items-center justify-between">
+                            <div className="space-y-1 sm:space-y-1.5">
+                                <div className="flex items-center justify-between gap-2">
                                     <Label
                                         htmlFor="end-date"
-                                        className="text-sm text-[#A0A0A0]"
+                                        className="text-xs sm:text-sm text-[#A0A0A0]"
                                     >
                                         Ngày kết thúc
                                     </Label>
@@ -361,7 +370,7 @@ export function CreateJourneyDialog({
                                         <button
                                             type="button"
                                             onClick={setEndDateFromSelection}
-                                            className="text-xs text-blue-400 hover:text-blue-300 hover:underline"
+                                            className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:underline"
                                             title="Lấy ngày muộn nhất từ địa điểm đã chọn"
                                         >
                                             ← Lấy
@@ -373,16 +382,16 @@ export function CreateJourneyDialog({
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="bg-neutral-800 border-neutral-700 text-[#EDEDED]"
+                                    className="bg-neutral-800 border-neutral-700 text-[#EDEDED] h-9 sm:h-10 text-sm"
                                 />
                             </div>
                         </div>
                         {(startDate || endDate) &&
                             filteredAvailableNotes.length <
                                 availableNotes.length && (
-                                <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                                    <Calendar className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                                    <p className="text-xs text-blue-300">
+                                <div className="flex items-start gap-1.5 sm:gap-2 p-2 sm:p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                                    <p className="text-[10px] sm:text-xs text-blue-300">
                                         Đang lọc {filteredAvailableNotes.length}
                                         /{availableNotes.length} địa điểm trong
                                         khoảng thời gian này
@@ -394,21 +403,21 @@ export function CreateJourneyDialog({
                     {/* Selected Places (with ordering) */}
                     {selectedNotes.length > 0 && (
                         <div className="space-y-2">
-                            <Label className="text-[#EDEDED]">
+                            <Label className="text-xs sm:text-sm text-[#EDEDED]">
                                 Lộ trình ({selectedNotes.length} địa điểm)
                             </Label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto p-2 bg-neutral-900/50 rounded-xl">
+                            <div className="space-y-1.5 sm:space-y-2 max-h-40 sm:max-h-48 overflow-y-auto p-1.5 sm:p-2 bg-neutral-900/50 rounded-xl">
                                 {selectedNotes.map((note, index) => (
                                     <div
                                         key={note.id}
-                                        className="flex items-center gap-2 p-2 bg-neutral-800 rounded-lg"
+                                        className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-neutral-800 rounded-lg"
                                     >
-                                        <div className="flex flex-col gap-1">
+                                        <div className="flex flex-col gap-0.5 sm:gap-1">
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-4 w-6 p-0"
+                                                className="h-3 w-5 sm:h-4 sm:w-6 p-0 text-[10px] sm:text-xs"
                                                 onClick={() =>
                                                     movePlace(index, "up")
                                                 }
@@ -420,7 +429,7 @@ export function CreateJourneyDialog({
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-4 w-6 p-0"
+                                                className="h-3 w-5 sm:h-4 sm:w-6 p-0 text-[10px] sm:text-xs"
                                                 onClick={() =>
                                                     movePlace(index, "down")
                                                 }
@@ -432,15 +441,15 @@ export function CreateJourneyDialog({
                                                 ▼
                                             </Button>
                                         </div>
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#FF6B6B] flex items-center justify-center text-white font-bold text-sm">
+                                        <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-[#FF6B6B] flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                                             {index + 1}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-sm text-[#EDEDED] truncate">
+                                            <div className="text-xs sm:text-sm text-[#EDEDED] truncate">
                                                 {note.content ||
                                                     "Không có tiêu đề"}
                                             </div>
-                                            <div className="text-xs text-[#A0A0A0] truncate">
+                                            <div className="text-[10px] sm:text-xs text-[#A0A0A0] truncate">
                                                 {note.address}
                                             </div>
                                         </div>
@@ -449,9 +458,9 @@ export function CreateJourneyDialog({
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => togglePlace(note.id)}
-                                            className="h-8 w-8 p-0 text-red-400 hover:text-red-300"
+                                            className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0 text-red-400 hover:text-red-300 flex-shrink-0"
                                         >
-                                            <X className="h-4 w-4" />
+                                            <X className="h-3 w-3 sm:h-4 sm:w-4" />
                                         </Button>
                                     </div>
                                 ))}
@@ -461,31 +470,45 @@ export function CreateJourneyDialog({
 
                     {/* Available Places */}
                     <div className="space-y-2">
-                        <Label className="text-[#EDEDED]">
-                            Chọn địa điểm ({filteredAvailableNotes.length}{" "}
-                            {(startDate || endDate) &&
-                            filteredAvailableNotes.length <
-                                availableNotes.length
-                                ? `/ ${availableNotes.length} `
-                                : ""}
-                            có sẵn)
+                        <Label className="text-xs sm:text-sm text-[#EDEDED]">
+                            Chọn địa điểm (
+                            <span className="hidden xs:inline">
+                                {filteredAvailableNotes.length}{" "}
+                                {(startDate || endDate) &&
+                                filteredAvailableNotes.length <
+                                    availableNotes.length
+                                    ? `/ ${availableNotes.length} `
+                                    : ""}
+                                có sẵn
+                            </span>
+                            <span className="xs:hidden">
+                                {filteredAvailableNotes.length}{" "}
+                                {(startDate || endDate) &&
+                                filteredAvailableNotes.length <
+                                    availableNotes.length
+                                    ? `/ ${availableNotes.length}`
+                                    : ""}
+                            </span>
+                            )
                         </Label>
                         {loadingNotes ? (
-                            <div className="text-center py-4 text-[#A0A0A0]">
+                            <div className="text-center py-4 text-[#A0A0A0] text-xs sm:text-sm">
                                 Đang tải...
                             </div>
                         ) : filteredAvailableNotes.length === 0 ? (
-                            <div className="text-center py-8 text-[#A0A0A0] bg-neutral-900/50 rounded-xl">
-                                <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                <p className="text-sm">Không có địa điểm nào</p>
+                            <div className="text-center py-6 sm:py-8 text-[#A0A0A0] bg-neutral-900/50 rounded-xl">
+                                <MapPin className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 opacity-50" />
+                                <p className="text-xs sm:text-sm">
+                                    Không có địa điểm nào
+                                </p>
                                 {(startDate || endDate) && (
-                                    <p className="text-xs mt-1">
+                                    <p className="text-[10px] sm:text-xs mt-1">
                                         trong khoảng thời gian này
                                     </p>
                                 )}
                             </div>
                         ) : (
-                            <div className="space-y-2 max-h-64 overflow-y-auto p-2 bg-neutral-900/50 rounded-xl">
+                            <div className="space-y-1.5 sm:space-y-2 max-h-56 sm:max-h-64 overflow-y-auto p-1.5 sm:p-2 bg-neutral-900/50 rounded-xl">
                                 {filteredAvailableNotes.map((note) => {
                                     const isSelected =
                                         selectedPlaceIds.includes(note.id);
@@ -505,26 +528,28 @@ export function CreateJourneyDialog({
                                             role="button"
                                             tabIndex={0}
                                             className={cn(
-                                                "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all",
+                                                "flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg cursor-pointer transition-all",
                                                 isSelected
                                                     ? "bg-[#FF6B6B]/20 border border-[#FF6B6B]/50"
                                                     : "bg-neutral-800 hover:bg-neutral-700 border border-transparent"
                                             )}
                                         >
-                                            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-neutral-700 flex items-center justify-center text-2xl">
+                                            <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-neutral-700 flex items-center justify-center text-xl sm:text-2xl">
                                                 {note.mood || "📍"}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="text-sm font-medium text-[#EDEDED] truncate">
+                                                <div className="text-xs sm:text-sm font-medium text-[#EDEDED] truncate">
                                                     {note.content ||
                                                         "Không có tiêu đề"}
                                                 </div>
-                                                <div className="text-xs text-[#A0A0A0] truncate flex items-center gap-1">
-                                                    <MapPin className="h-3 w-3" />
-                                                    {note.address}
+                                                <div className="text-[10px] sm:text-xs text-[#A0A0A0] truncate flex items-center gap-1">
+                                                    <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                                                    <span className="truncate">
+                                                        {note.address}
+                                                    </span>
                                                 </div>
-                                                <div className="text-xs text-[#666] flex items-center gap-1 mt-0.5">
-                                                    <Calendar className="h-3 w-3" />
+                                                <div className="text-[10px] sm:text-xs text-[#666] flex items-center gap-1 mt-0.5">
+                                                    <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                                     {new Date(
                                                         note.timestamp
                                                     ).toLocaleDateString(
@@ -533,7 +558,7 @@ export function CreateJourneyDialog({
                                                 </div>
                                             </div>
                                             {isSelected && (
-                                                <Badge className="bg-[#FF6B6B] text-white">
+                                                <Badge className="bg-[#FF6B6B] text-white text-xs px-2 py-0.5 flex-shrink-0">
                                                     ✓
                                                 </Badge>
                                             )}
@@ -545,19 +570,19 @@ export function CreateJourneyDialog({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-2 pt-4 border-t border-neutral-800">
+                    <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-neutral-800">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={onClose}
-                            className="flex-1 bg-neutral-800 text-[#EDEDED] border-neutral-700"
+                            className="flex-1 bg-neutral-800 text-[#EDEDED] border-neutral-700 h-9 sm:h-10 text-sm"
                         >
                             Hủy
                         </Button>
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white"
+                            className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white h-9 sm:h-10 text-sm"
                         >
                             {loading
                                 ? "Đang lưu..."
