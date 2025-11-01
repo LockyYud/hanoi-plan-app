@@ -63,6 +63,8 @@ export function NoteDetailsView({
     const [isExpanded, setIsExpanded] = useState(false);
     const [dragStartY, setDragStartY] = useState(0);
     const [currentY, setCurrentY] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragOffset, setDragOffset] = useState(0);
 
     const loadFullNote = useCallback(async () => {
         setIsLoadingImages(true);
@@ -258,32 +260,71 @@ export function NoteDetailsView({
         }
     }, [isOpen, showLightbox, onClose]);
 
-    // Mobile drag handlers
+    // Mobile drag handlers - Apple Maps style
     const handleDragStart = (e: React.TouchEvent) => {
-        e.stopPropagation(); // Ngăn event bubble xuống map
+        e.stopPropagation();
+        setIsDragging(true);
         setDragStartY(e.touches[0].clientY);
         setCurrentY(e.touches[0].clientY);
+        setDragOffset(0);
     };
 
     const handleDragMove = (e: React.TouchEvent) => {
-        e.preventDefault(); // Ngăn scroll mặc định của browser
-        e.stopPropagation(); // Ngăn event bubble xuống map
-        setCurrentY(e.touches[0].clientY);
+        if (!isDragging) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const newY = e.touches[0].clientY;
+        let deltaY = newY - dragStartY;
+
+        // Rubber band effect: giảm tốc độ kéo khi vượt ngưỡng
+        if (isExpanded && deltaY < 0) {
+            // Đang expanded và kéo lên -> resistance
+            deltaY = deltaY * 0.3;
+        } else if (!isExpanded && deltaY < 0) {
+            // Đang collapsed và kéo lên -> cho phép nhưng có resistance nhẹ
+            deltaY = deltaY * 0.8;
+        } else if (!isExpanded && deltaY > 0) {
+            // Đang collapsed và kéo xuống -> resistance để tránh đóng quá dễ
+            deltaY = deltaY * 0.6;
+        }
+
+        setCurrentY(newY);
+        setDragOffset(deltaY);
     };
 
     const handleDragEnd = (e: React.TouchEvent) => {
-        e.stopPropagation(); // Ngăn event bubble xuống map
-        const deltaY = currentY - dragStartY;
-        if (deltaY > 100 && isExpanded) {
-            setIsExpanded(false);
-        } else if (deltaY < -100 && !isExpanded) {
-            setIsExpanded(true);
-        } else if (deltaY > 200 && !isExpanded) {
-            // Swipe down to close when collapsed
-            onClose();
+        e.stopPropagation();
+
+        if (!isDragging) return;
+
+        const rawDeltaY = currentY - dragStartY; // Raw delta chưa qua resistance
+        const velocity = Math.abs(rawDeltaY);
+
+        // Vuốt xuống (rawDeltaY > 0)
+        if (rawDeltaY > 0) {
+            if (isExpanded) {
+                // Đang expanded: Vuốt xuống > 50px hoặc velocity cao -> collapse
+                if (rawDeltaY > 50 || velocity > 100) {
+                    setIsExpanded(false);
+                }
+            } else if (rawDeltaY > 80 || velocity > 120) {
+                // Đang collapsed: Vuốt xuống > 80px hoặc velocity cao -> đóng
+                onClose();
+            }
+        } else if (rawDeltaY < 0 && !isExpanded) {
+            // Vuốt lên: Đang collapsed -> Vuốt lên > 50px hoặc velocity cao -> expand
+            if (Math.abs(rawDeltaY) > 50 || velocity > 100) {
+                setIsExpanded(true);
+            }
         }
+
+        // Reset states
+        setIsDragging(false);
         setDragStartY(0);
         setCurrentY(0);
+        setDragOffset(0);
     };
 
     // MOBILE: Bottom Sheet UI
@@ -312,10 +353,19 @@ export function NoteDetailsView({
                 {/* Bottom Sheet */}
                 <div
                     className={cn(
-                        "fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] rounded-t-[32px] shadow-2xl overflow-hidden flex flex-col transition-all duration-300",
+                        "fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] rounded-t-[32px] shadow-2xl overflow-hidden flex flex-col",
                         isExpanded ? "h-[90vh]" : "h-[50vh]"
                     )}
-                    style={{ touchAction: "none" }}
+                    style={{
+                        touchAction: "none",
+                        transform: (() => {
+                            if (!isDragging) return "translateY(0)";
+                            if (isExpanded)
+                                return `translateY(${Math.max(0, dragOffset)}px)`; // Expanded: chỉ cho kéo xuống
+                            return `translateY(${dragOffset}px)`; // Collapsed: cho kéo cả 2 hướng
+                        })(),
+                        transition: isDragging ? "none" : "all 0.3s ease-out",
+                    }}
                     onTouchMove={(e) => {
                         // Ngăn scroll của map khi touch vào bottom sheet
                         e.stopPropagation();
@@ -373,7 +423,12 @@ export function NoteDetailsView({
                     )}
 
                     {/* Header Info */}
-                    <div className="px-5 py-3 flex-shrink-0">
+                    <div
+                        className="px-5 py-3 flex-shrink-0"
+                        onTouchStart={handleDragStart}
+                        onTouchMove={handleDragMove}
+                        onTouchEnd={handleDragEnd}
+                    >
                         <div className="flex items-start gap-2.5">
                             <span className="text-2xl flex-shrink-0 leading-none">
                                 {displayNote.mood || "📍"}
@@ -403,6 +458,18 @@ export function NoteDetailsView({
                     <div
                         className="flex-1 overflow-y-auto px-5 py-3 space-y-4"
                         style={{ touchAction: "pan-y" }}
+                        onTouchStart={(e) => {
+                            const target = e.currentTarget;
+                            const isAtTop = target.scrollTop === 0;
+                            const isAtBottom =
+                                target.scrollTop + target.clientHeight >=
+                                target.scrollHeight - 1;
+
+                            // Nếu ở top và vuốt xuống, hoặc ở bottom và vuốt lên -> cho phép drag popup
+                            if (isAtTop || isAtBottom) {
+                                // Sẽ được xử lý bởi drag handle
+                            }
+                        }}
                         onTouchMove={(e) => e.stopPropagation()}
                     >
                         {/* Tags */}
