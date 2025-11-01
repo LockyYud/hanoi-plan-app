@@ -260,15 +260,19 @@ export function NoteDetailsView({
 
     // Mobile drag handlers
     const handleDragStart = (e: React.TouchEvent) => {
+        e.stopPropagation(); // Ngăn event bubble xuống map
         setDragStartY(e.touches[0].clientY);
         setCurrentY(e.touches[0].clientY);
     };
 
     const handleDragMove = (e: React.TouchEvent) => {
+        e.preventDefault(); // Ngăn scroll mặc định của browser
+        e.stopPropagation(); // Ngăn event bubble xuống map
         setCurrentY(e.touches[0].clientY);
     };
 
-    const handleDragEnd = () => {
+    const handleDragEnd = (e: React.TouchEvent) => {
+        e.stopPropagation(); // Ngăn event bubble xuống map
         const deltaY = currentY - dragStartY;
         if (deltaY > 100 && isExpanded) {
             setIsExpanded(false);
@@ -296,6 +300,12 @@ export function NoteDetailsView({
                             onClose();
                         }
                     }}
+                    onTouchMove={(e) => {
+                        // Ngăn scroll map khi touch vào backdrop
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                    style={{ touchAction: "none" }}
                     aria-label="Đóng"
                 />
 
@@ -305,6 +315,11 @@ export function NoteDetailsView({
                         "fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] rounded-t-[32px] shadow-2xl overflow-hidden flex flex-col transition-all duration-300",
                         isExpanded ? "h-[90vh]" : "h-[50vh]"
                     )}
+                    style={{ touchAction: "none" }}
+                    onTouchMove={(e) => {
+                        // Ngăn scroll của map khi touch vào bottom sheet
+                        e.stopPropagation();
+                    }}
                 >
                     {/* Drag Handle */}
                     <button
@@ -385,7 +400,11 @@ export function NoteDetailsView({
                     </div>
 
                     {/* Scrollable Content */}
-                    <div className="flex-1 overflow-y-auto px-5 py-3 space-y-4">
+                    <div
+                        className="flex-1 overflow-y-auto px-5 py-3 space-y-4"
+                        style={{ touchAction: "pan-y" }}
+                        onTouchMove={(e) => e.stopPropagation()}
+                    >
                         {/* Tags */}
                         {(displayNote.categoryName || displayNote.mood) && (
                             <div className="flex flex-wrap gap-2">
