@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,10 +17,13 @@ import {
     X,
     ChevronRight,
     ChevronDown,
+    Navigation,
 } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 import { ImageLightbox } from "./image-lightbox";
 import { cn } from "@/lib/utils";
+import { getCurrentLocation, openExternalNavigation } from "@/lib/geolocation";
+import { toast } from "sonner";
 
 interface LocationNote {
     id: string;
@@ -61,10 +64,17 @@ export function NoteDetailsView({
     const [showLightbox, setShowLightbox] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [dragStartY, setDragStartY] = useState(0);
-    const [currentY, setCurrentY] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [dragOffset, setDragOffset] = useState(0);
+    const [isGettingDirections, setIsGettingDirections] = useState(false);
+
+    // Use refs for intermediate drag values to avoid re-renders
+    const dragStartYRef = useRef(0);
+    const currentYRef = useRef(0);
+    const dragStartTimeRef = useRef(0);
+    const lastUpdateTimeRef = useRef(0);
+    const velocityRef = useRef(0);
+    const rafIdRef = useRef<number | null>(null);
 
     const loadFullNote = useCallback(async () => {
         setIsLoadingImages(true);
@@ -260,12 +270,18 @@ export function NoteDetailsView({
         }
     }, [isOpen, showLightbox, onClose]);
 
-    // Mobile drag handlers - Apple Maps style
+    // Mobile drag handlers - Optimized for smooth 60fps
     const handleDragStart = (e: React.TouchEvent) => {
         e.stopPropagation();
+
+        const touchY = e.touches[0].clientY;
+        dragStartYRef.current = touchY;
+        currentYRef.current = touchY;
+        dragStartTimeRef.current = Date.now();
+        lastUpdateTimeRef.current = Date.now();
+        velocityRef.current = 0;
+
         setIsDragging(true);
-        setDragStartY(e.touches[0].clientY);
-        setCurrentY(e.touches[0].clientY);
         setDragOffset(0);
     };
 
@@ -275,23 +291,45 @@ export function NoteDetailsView({
         e.preventDefault();
         e.stopPropagation();
 
-        const newY = e.touches[0].clientY;
-        let deltaY = newY - dragStartY;
+        const touchY = e.touches[0].clientY;
+        const now = Date.now();
+        const deltaTime = now - lastUpdateTimeRef.current;
 
-        // Rubber band effect: giảm tốc độ kéo khi vượt ngưỡng
-        if (isExpanded && deltaY < 0) {
-            // Đang expanded và kéo lên -> resistance
-            deltaY = deltaY * 0.3;
-        } else if (!isExpanded && deltaY < 0) {
-            // Đang collapsed và kéo lên -> cho phép nhưng có resistance nhẹ
-            deltaY = deltaY * 0.8;
-        } else if (!isExpanded && deltaY > 0) {
-            // Đang collapsed và kéo xuống -> resistance để tránh đóng quá dễ
-            deltaY = deltaY * 0.6;
+        // Calculate velocity (pixels per millisecond)
+        if (deltaTime > 0) {
+            const deltaY = touchY - currentYRef.current;
+            velocityRef.current = deltaY / deltaTime;
         }
 
-        setCurrentY(newY);
-        setDragOffset(deltaY);
+        currentYRef.current = touchY;
+        lastUpdateTimeRef.current = now;
+
+        // Use requestAnimationFrame for smooth 60fps updates
+        if (rafIdRef.current) {
+            cancelAnimationFrame(rafIdRef.current);
+        }
+
+        rafIdRef.current = requestAnimationFrame(() => {
+            let rawDeltaY = touchY - dragStartYRef.current;
+            let deltaY = rawDeltaY;
+
+            // Rubber band effect with smooth damping
+            if (isExpanded && deltaY < 0) {
+                // Đang expanded và kéo lên -> strong resistance
+                deltaY = deltaY * 0.25;
+            } else if (!isExpanded && deltaY < 0) {
+                // Đang collapsed và kéo lên -> moderate resistance
+                deltaY = deltaY * 0.7;
+            } else if (!isExpanded && deltaY > 0) {
+                // Đang collapsed và kéo xuống -> light resistance
+                deltaY = deltaY * 0.5;
+            } else if (isExpanded && deltaY > 0) {
+                // Đang expanded và kéo xuống -> very light resistance
+                deltaY = deltaY * 0.85;
+            }
+
+            setDragOffset(deltaY);
+        });
     };
 
     const handleDragEnd = (e: React.TouchEvent) => {
@@ -299,32 +337,101 @@ export function NoteDetailsView({
 
         if (!isDragging) return;
 
-        const rawDeltaY = currentY - dragStartY; // Raw delta chưa qua resistance
-        const velocity = Math.abs(rawDeltaY);
+        // Cancel any pending animation frame
+        if (rafIdRef.current) {
+            cancelAnimationFrame(rafIdRef.current);
+            rafIdRef.current = null;
+        }
+
+        const rawDeltaY = currentYRef.current - dragStartYRef.current;
+        const timeDelta = Date.now() - dragStartTimeRef.current;
+
+        // Calculate average velocity (px/ms) and convert to px/s
+        const velocity = Math.abs((rawDeltaY / Math.max(timeDelta, 1)) * 1000);
+
+        // More sensitive thresholds for better UX
+        const SWIPE_VELOCITY_THRESHOLD = 800; // px/s
+        const DISTANCE_THRESHOLD_COLLAPSE = 60; // px
+        const DISTANCE_THRESHOLD_CLOSE = 100; // px
+        const DISTANCE_THRESHOLD_EXPAND = 60; // px
 
         // Vuốt xuống (rawDeltaY > 0)
         if (rawDeltaY > 0) {
             if (isExpanded) {
-                // Đang expanded: Vuốt xuống > 50px hoặc velocity cao -> collapse
-                if (rawDeltaY > 50 || velocity > 100) {
+                // Đang expanded: Vuốt xuống với velocity cao hoặc distance đủ -> collapse
+                if (
+                    velocity > SWIPE_VELOCITY_THRESHOLD ||
+                    rawDeltaY > DISTANCE_THRESHOLD_COLLAPSE
+                ) {
                     setIsExpanded(false);
                 }
-            } else if (rawDeltaY > 80 || velocity > 120) {
-                // Đang collapsed: Vuốt xuống > 80px hoặc velocity cao -> đóng
+            } else if (
+                velocity > SWIPE_VELOCITY_THRESHOLD ||
+                rawDeltaY > DISTANCE_THRESHOLD_CLOSE
+            ) {
+                // Đang collapsed: Vuốt xuống mạnh -> đóng
                 onClose();
             }
         } else if (rawDeltaY < 0 && !isExpanded) {
-            // Vuốt lên: Đang collapsed -> Vuốt lên > 50px hoặc velocity cao -> expand
-            if (Math.abs(rawDeltaY) > 50 || velocity > 100) {
+            // Vuốt lên: Đang collapsed -> velocity cao hoặc distance đủ -> expand
+            if (
+                velocity > SWIPE_VELOCITY_THRESHOLD ||
+                Math.abs(rawDeltaY) > DISTANCE_THRESHOLD_EXPAND
+            ) {
                 setIsExpanded(true);
             }
         }
 
         // Reset states
         setIsDragging(false);
-        setDragStartY(0);
-        setCurrentY(0);
         setDragOffset(0);
+        dragStartYRef.current = 0;
+        currentYRef.current = 0;
+        velocityRef.current = 0;
+    };
+
+    // Cleanup animation frame on unmount
+    useEffect(() => {
+        return () => {
+            if (rafIdRef.current) {
+                cancelAnimationFrame(rafIdRef.current);
+            }
+        };
+    }, []);
+
+    // Handle get directions
+    const handleGetDirections = async () => {
+        setIsGettingDirections(true);
+
+        try {
+            toast.loading("Đang lấy vị trí hiện tại...", {
+                id: "note-directions",
+            });
+
+            const currentLocation = await getCurrentLocation();
+
+            toast.success("Đã tìm thấy vị trí của bạn!", {
+                id: "note-directions",
+            });
+
+            // Open external navigation app
+            const destination = { lat: note.lat, lng: note.lng };
+            openExternalNavigation(destination, currentLocation);
+        } catch (error) {
+            console.error("❌ Error getting directions:", error);
+            toast.error("Không thể lấy vị trí hiện tại", {
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "Vui lòng thử lại sau",
+                id: "note-directions",
+            });
+
+            // Fallback: open without current location
+            openExternalNavigation({ lat: note.lat, lng: note.lng });
+        } finally {
+            setIsGettingDirections(false);
+        }
     };
 
     // MOBILE: Bottom Sheet UI
@@ -334,7 +441,7 @@ export function NoteDetailsView({
                 {/* Backdrop */}
                 <button
                     type="button"
-                    className="fixed inset-0 bg-black/50 z-40 cursor-default"
+                    className="fixed inset-0 bg-black/50 z-40 cursor-default transition-opacity duration-300"
                     onClick={onClose}
                     onKeyDown={(e) => {
                         if (e.key === "Escape") {
@@ -346,7 +453,10 @@ export function NoteDetailsView({
                         e.preventDefault();
                         e.stopPropagation();
                     }}
-                    style={{ touchAction: "none" }}
+                    style={{
+                        touchAction: "none",
+                        willChange: "opacity",
+                    }}
                     aria-label="Đóng"
                 />
 
@@ -358,13 +468,19 @@ export function NoteDetailsView({
                     )}
                     style={{
                         touchAction: "none",
+                        // Use translate3d for hardware acceleration
                         transform: (() => {
-                            if (!isDragging) return "translateY(0)";
+                            if (!isDragging) return "translate3d(0, 0, 0)";
                             if (isExpanded)
-                                return `translateY(${Math.max(0, dragOffset)}px)`; // Expanded: chỉ cho kéo xuống
-                            return `translateY(${dragOffset}px)`; // Collapsed: cho kéo cả 2 hướng
+                                return `translate3d(0, ${Math.max(0, dragOffset)}px, 0)`; // Expanded: chỉ cho kéo xuống
+                            return `translate3d(0, ${dragOffset}px, 0)`; // Collapsed: cho kéo cả 2 hướng
                         })(),
-                        transition: isDragging ? "none" : "all 0.3s ease-out",
+                        // Better spring animation with cubic-bezier
+                        transition: isDragging
+                            ? "none"
+                            : "transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), height 0.4s cubic-bezier(0.32, 0.72, 0, 1)",
+                        // Enable hardware acceleration
+                        willChange: isDragging ? "transform" : "auto",
                     }}
                     onTouchMove={(e) => {
                         // Ngăn scroll của map khi touch vào bottom sheet
@@ -557,30 +673,22 @@ export function NoteDetailsView({
                         <div className="flex gap-2">
                             <Button
                                 variant="outline"
+                                onClick={handleGetDirections}
+                                disabled={isGettingDirections}
+                                className="flex-1 h-11 bg-gradient-to-br from-blue-900/40 to-cyan-900/40 hover:from-blue-800/50 hover:to-cyan-800/50 border-blue-700/50 text-blue-300 font-semibold text-sm rounded-xl"
+                            >
+                                <Navigation
+                                    className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
+                                />
+                                Chỉ đường
+                            </Button>
+                            <Button
+                                variant="outline"
                                 onClick={onEdit}
                                 className="flex-1 h-11 bg-gradient-to-br from-[#FF6B6B]/20 to-[#FF8E53]/20 hover:from-[#FF6B6B]/30 hover:to-[#FF8E53]/30 border-[#FF6B6B]/40 text-[#FFD6A5] font-semibold text-sm rounded-xl"
                             >
                                 <Edit className="h-4 w-4 mr-1.5" />
                                 Chỉnh sửa
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    if (navigator.share) {
-                                        navigator.share({
-                                            title: "Ghi chú địa điểm",
-                                            text:
-                                                note.content ||
-                                                displayNote.placeName ||
-                                                "Ghi chú",
-                                            url: globalThis.location.href,
-                                        });
-                                    }
-                                }}
-                                className="flex-1 h-11 bg-gradient-to-br from-green-900/40 to-emerald-900/40 hover:from-green-800/50 hover:to-emerald-800/50 border-green-700/50 text-green-300 font-semibold text-sm rounded-xl"
-                            >
-                                <Share className="h-4 w-4 mr-1.5" />
-                                Chia sẻ
                             </Button>
                             <Button
                                 variant="destructive"
@@ -594,6 +702,7 @@ export function NoteDetailsView({
                                     }
                                 }}
                                 className="h-11 px-3.5 bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl"
+                                title="Xóa ghi chú"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>

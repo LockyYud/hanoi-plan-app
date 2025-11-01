@@ -970,6 +970,16 @@ export function Sidebar() {
                                                                 place
                                                             );
                                                         }
+
+                                                        // Close sidebar on mobile after selecting place
+                                                        if (
+                                                            window.innerWidth <
+                                                            768
+                                                        ) {
+                                                            setSidebarOpen(
+                                                                false
+                                                            );
+                                                        }
                                                     }}
                                                 >
                                                     {/* Hover gradient effect */}
@@ -1128,6 +1138,16 @@ export function Sidebar() {
                                                                     } else {
                                                                         setSelectedPlace(
                                                                             place
+                                                                        );
+                                                                    }
+
+                                                                    // Close sidebar on mobile after viewing details
+                                                                    if (
+                                                                        window.innerWidth <
+                                                                        768
+                                                                    ) {
+                                                                        setSidebarOpen(
+                                                                            false
                                                                         );
                                                                     }
                                                                 }}
