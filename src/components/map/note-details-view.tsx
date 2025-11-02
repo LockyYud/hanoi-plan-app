@@ -310,25 +310,48 @@ export function NoteDetailsView({
         }
 
         rafIdRef.current = requestAnimationFrame(() => {
-            let rawDeltaY = touchY - dragStartYRef.current;
-            let deltaY = rawDeltaY;
+            const rawDeltaY = touchY - dragStartYRef.current;
 
-            // Rubber band effect with smooth damping
-            if (isExpanded && deltaY < 0) {
-                // Đang expanded và kéo lên -> strong resistance
-                deltaY = deltaY * 0.25;
-            } else if (!isExpanded && deltaY < 0) {
-                // Đang collapsed và kéo lên -> moderate resistance
-                deltaY = deltaY * 0.7;
-            } else if (!isExpanded && deltaY > 0) {
-                // Đang collapsed và kéo xuống -> light resistance
-                deltaY = deltaY * 0.5;
-            } else if (isExpanded && deltaY > 0) {
-                // Đang expanded và kéo xuống -> very light resistance
-                deltaY = deltaY * 0.85;
+            // Đang collapsed và vuốt lên -> expand ngay lập tức, không visual drag
+            if (!isExpanded && rawDeltaY < -30) {
+                // Quick expand threshold
+                setIsExpanded(true);
+                setIsDragging(false);
+                setDragOffset(0);
+                if (rafIdRef.current) {
+                    cancelAnimationFrame(rafIdRef.current);
+                    rafIdRef.current = null;
+                }
+                return;
             }
 
-            setDragOffset(deltaY);
+            // Đang expanded và vuốt xuống -> collapse ngay lập tức
+            if (isExpanded && rawDeltaY > 40) {
+                // Quick collapse threshold
+                setIsExpanded(false);
+                setIsDragging(false);
+                setDragOffset(0);
+                if (rafIdRef.current) {
+                    cancelAnimationFrame(rafIdRef.current);
+                    rafIdRef.current = null;
+                }
+                return;
+            }
+
+            // Đang collapsed và vuốt xuống -> đóng ngay lập tức
+            if (!isExpanded && rawDeltaY > 60) {
+                // Quick close threshold
+                onClose();
+                setIsDragging(false);
+                setDragOffset(0);
+                if (rafIdRef.current) {
+                    cancelAnimationFrame(rafIdRef.current);
+                    rafIdRef.current = null;
+                }
+            }
+
+            // Nếu chưa đạt threshold, không có visual drag effect
+            // Component sẽ snap ngay khi đạt threshold ở trên
         });
     };
 
@@ -343,46 +366,8 @@ export function NoteDetailsView({
             rafIdRef.current = null;
         }
 
-        const rawDeltaY = currentYRef.current - dragStartYRef.current;
-        const timeDelta = Date.now() - dragStartTimeRef.current;
-
-        // Calculate average velocity (px/ms) and convert to px/s
-        const velocity = Math.abs((rawDeltaY / Math.max(timeDelta, 1)) * 1000);
-
-        // More sensitive thresholds for better UX
-        const SWIPE_VELOCITY_THRESHOLD = 800; // px/s
-        const DISTANCE_THRESHOLD_COLLAPSE = 60; // px
-        const DISTANCE_THRESHOLD_CLOSE = 100; // px
-        const DISTANCE_THRESHOLD_EXPAND = 60; // px
-
-        // Vuốt xuống (rawDeltaY > 0)
-        if (rawDeltaY > 0) {
-            if (isExpanded) {
-                // Đang expanded: Vuốt xuống với velocity cao hoặc distance đủ -> collapse
-                if (
-                    velocity > SWIPE_VELOCITY_THRESHOLD ||
-                    rawDeltaY > DISTANCE_THRESHOLD_COLLAPSE
-                ) {
-                    setIsExpanded(false);
-                }
-            } else if (
-                velocity > SWIPE_VELOCITY_THRESHOLD ||
-                rawDeltaY > DISTANCE_THRESHOLD_CLOSE
-            ) {
-                // Đang collapsed: Vuốt xuống mạnh -> đóng
-                onClose();
-            }
-        } else if (rawDeltaY < 0 && !isExpanded) {
-            // Vuốt lên: Đang collapsed -> velocity cao hoặc distance đủ -> expand
-            if (
-                velocity > SWIPE_VELOCITY_THRESHOLD ||
-                Math.abs(rawDeltaY) > DISTANCE_THRESHOLD_EXPAND
-            ) {
-                setIsExpanded(true);
-            }
-        }
-
-        // Reset states
+        // Actions đã được xử lý trong handleDragMove với snap thresholds
+        // Chỉ cần reset states
         setIsDragging(false);
         setDragOffset(0);
         dragStartYRef.current = 0;
@@ -502,7 +487,12 @@ export function NoteDetailsView({
 
                     {/* Cover Image */}
                     {displayNote.images && displayNote.images.length > 0 && (
-                        <div className="mx-4 mb-3 h-44 bg-gradient-to-r from-neutral-800 to-neutral-900 relative overflow-hidden flex-shrink-0 rounded-2xl shadow-lg">
+                        <div
+                            className="mx-4 mb-3 h-44 bg-gradient-to-r from-neutral-800 to-neutral-900 relative overflow-hidden flex-shrink-0 rounded-2xl shadow-lg"
+                            onTouchStart={handleDragStart}
+                            onTouchMove={handleDragMove}
+                            onTouchEnd={handleDragEnd}
+                        >
                             {isValidImageUrl(
                                 displayNote.images[
                                     displayNote.coverImageIndex || 0
@@ -515,23 +505,26 @@ export function NoteDetailsView({
                                         ]
                                     }
                                     alt="Cover"
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover pointer-events-none"
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center">
+                                <div className="w-full h-full flex items-center justify-center pointer-events-none">
                                     <span className="text-4xl text-[#A0A0A0]">
                                         📷
                                     </span>
                                 </div>
                             )}
-                            <div className="absolute inset-0 bg-black/10"></div>
+                            <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
 
                             {/* Close button */}
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={onClose}
-                                className="absolute top-3 right-3 text-white bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 p-0 backdrop-blur-md"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onClose();
+                                }}
+                                className="absolute top-3 right-3 text-white bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 p-0 backdrop-blur-md z-10"
                             >
                                 <X className="h-4 w-4" strokeWidth={2.5} />
                             </Button>
@@ -573,20 +566,61 @@ export function NoteDetailsView({
                     {/* Scrollable Content */}
                     <div
                         className="flex-1 overflow-y-auto px-5 py-3 space-y-4"
-                        style={{ touchAction: "pan-y" }}
+                        style={{ touchAction: isExpanded ? "pan-y" : "none" }}
                         onTouchStart={(e) => {
+                            // Nếu chưa expanded, intercept touch để expand
+                            if (!isExpanded) {
+                                handleDragStart(e);
+                                return;
+                            }
+
+                            // Nếu đã expanded, check scroll position
                             const target = e.currentTarget;
                             const isAtTop = target.scrollTop === 0;
-                            const isAtBottom =
-                                target.scrollTop + target.clientHeight >=
-                                target.scrollHeight - 1;
 
-                            // Nếu ở top và vuốt xuống, hoặc ở bottom và vuốt lên -> cho phép drag popup
-                            if (isAtTop || isAtBottom) {
-                                // Sẽ được xử lý bởi drag handle
+                            // Nếu ở top -> cho phép drag để collapse
+                            if (isAtTop) {
+                                // Store this info for touch move
+                                target.dataset.allowDrag = "true";
+                            } else {
+                                target.dataset.allowDrag = "false";
                             }
                         }}
-                        onTouchMove={(e) => e.stopPropagation()}
+                        onTouchMove={(e) => {
+                            // Nếu chưa expanded, dùng drag handler
+                            if (!isExpanded) {
+                                handleDragMove(e);
+                                return;
+                            }
+
+                            const target = e.currentTarget;
+                            const allowDrag =
+                                target.dataset.allowDrag === "true";
+                            const isAtTop = target.scrollTop <= 1; // Small tolerance for precision
+
+                            // Nếu đang ở top và được phép drag
+                            if (allowDrag && isAtTop) {
+                                // Check if dragging down
+                                const touchY = e.touches[0].clientY;
+                                const startY = dragStartYRef.current || touchY;
+                                if (touchY > startY + 5) {
+                                    // 5px threshold
+                                    // Dragging down from top -> handle as drag to collapse
+                                    e.preventDefault();
+                                    handleDragMove(e);
+                                    return;
+                                }
+                            }
+
+                            // Otherwise allow normal scroll
+                            e.stopPropagation();
+                        }}
+                        onTouchEnd={(e) => {
+                            if (!isExpanded) {
+                                handleDragEnd(e);
+                            }
+                            delete e.currentTarget.dataset.allowDrag;
+                        }}
                     >
                         {/* Tags */}
                         {(displayNote.categoryName || displayNote.mood) && (
