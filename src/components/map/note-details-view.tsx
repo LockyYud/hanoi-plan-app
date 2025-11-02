@@ -633,17 +633,6 @@ export function NoteDetailsView({
                                         </span>
                                     </div>
                                 )}
-                                {displayNote.mood && (
-                                    <div className="flex items-center gap-1.5 bg-amber-900/30 text-amber-400 px-2.5 py-1 rounded-full border border-amber-800">
-                                        <span className="text-sm">
-                                            {displayNote.mood}
-                                        </span>
-                                        <span className="text-xs font-medium">
-                                            {moodLabels[displayNote.mood] ||
-                                                "Khác"}
-                                        </span>
-                                    </div>
-                                )}
                             </div>
                         )}
 
