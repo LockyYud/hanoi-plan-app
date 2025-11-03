@@ -3,14 +3,11 @@
 import { MapContainer } from "@/components/map/map-container";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LandingPage } from "@/components/landing/landing-page";
-import { useUIStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
 export default function Home() {
     const [mounted, setMounted] = useState(false);
-    const { sidebarOpen } = useUIStore();
     const { data: session, status } = useSession();
 
     useEffect(() => {
@@ -38,12 +35,8 @@ export default function Home() {
         <div className="h-svh flex overflow-hidden" suppressHydrationWarning>
             <Sidebar />
 
-            <main
-                className={cn(
-                    "flex-1 transition-all duration-300 relative",
-                    sidebarOpen ? "ml-80" : "ml-0"
-                )}
-            >
+            {/* Map container takes full width, sidebar overlays on top */}
+            <main className="flex-1 relative w-full h-full">
                 <MapContainer className="h-full" />
             </main>
         </div>

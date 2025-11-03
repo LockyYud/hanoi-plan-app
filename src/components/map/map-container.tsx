@@ -64,7 +64,7 @@ export function MapContainer({ className }: MapContainerProps) {
     } | null>(null);
 
     const { center, zoom, setCenter, setZoom, setBounds } = useMapStore();
-    const { sidebarOpen, showMemoryLane, setShowMemoryLane } = useUIStore();
+    const { showMemoryLane, setShowMemoryLane } = useUIStore();
     const { selectedNote, setSelectedNote } = usePlaceStore();
     const {
         routeNotes,
@@ -1117,20 +1117,7 @@ export function MapContainer({ className }: MapContainerProps) {
         }
     }, [mapLoaded, session, updateUserLocationMarker]);
 
-    // Handle map resize when sidebar toggles
-    useEffect(() => {
-        if (!map.current || !mapLoaded) return;
-
-        // Add a small delay to allow CSS transition to complete
-        const timeoutId = setTimeout(() => {
-            console.log("🔄 Resizing map after sidebar toggle");
-            map.current?.resize();
-        }, 350); // Slightly longer than the 300ms transition
-
-        return () => clearTimeout(timeoutId);
-    }, [sidebarOpen, mapLoaded]);
-
-    // Add ResizeObserver as additional safeguard for map container resizing
+    // Add ResizeObserver as safeguard for map container resizing (e.g., window resize)
     useEffect(() => {
         if (!map.current || !mapLoaded || !mapContainer.current) return;
 
