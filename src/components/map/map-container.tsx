@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { flushSync } from "react-dom";
 import { useSession } from "next-auth/react";
 import mapboxgl from "mapbox-gl";
+import Supercluster from "supercluster";
 import {
     useMapStore,
     useUIStore,
@@ -26,6 +27,8 @@ import {
     destroyMapPinElement,
     type ReactMapPinElement,
 } from "./marker-helper";
+import { createRoot } from "react-dom/client";
+import { ClusterMarker } from "./cluster-marker";
 
 // Set the Mapbox access token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
@@ -155,6 +158,74 @@ export function MapContainer({ className }: MapContainerProps) {
     // State for details view (unified with places)
     const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
+    // Current map bounds and zoom for clustering
+    const [mapBounds, setMapBounds] = useState<mapboxgl.LngLatBounds | null>(
+        null
+    );
+    const [currentZoom, setCurrentZoom] = useState(zoom);
+    const [clusterIndex, setClusterIndex] =
+        useState<Supercluster<LocationNote> | null>(null);
+
+    // Track rendered markers to avoid unnecessary re-renders
+    const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+
+    // Track last bounds update to throttle cluster updates
+    const lastBoundsUpdate = useRef<number>(0);
+    const BOUNDS_UPDATE_THROTTLE = 100; // ms
+
+    // Convert location notes to GeoJSON features
+    const points = useMemo(() => {
+        return locationNotes.map((note) => ({
+            type: "Feature" as const,
+            properties: note,
+            geometry: {
+                type: "Point" as const,
+                coordinates: [note.lng, note.lat] as [number, number],
+            },
+        }));
+    }, [locationNotes]);
+
+    // Initialize and load supercluster when points change
+    useEffect(() => {
+        if (points.length === 0) {
+            setClusterIndex(null);
+            return;
+        }
+
+        const index = new Supercluster<LocationNote>({
+            radius: 60, // Cluster radius in pixels
+            maxZoom: 16, // Max zoom to cluster points on
+            minZoom: 0,
+            minPoints: 2, // Minimum points to form a cluster
+        });
+
+        index.load(points);
+        setClusterIndex(index);
+    }, [points]);
+
+    // Get clusters for current viewport (with optimization to reduce recalculations)
+    const clusters = useMemo(() => {
+        if (!mapBounds || !clusterIndex || points.length === 0) return [];
+
+        try {
+            // Round zoom to reduce unnecessary recalculations for tiny zoom changes
+            const roundedZoom = Math.floor(currentZoom);
+
+            return clusterIndex.getClusters(
+                [
+                    mapBounds.getWest(),
+                    mapBounds.getSouth(),
+                    mapBounds.getEast(),
+                    mapBounds.getNorth(),
+                ],
+                roundedZoom
+            );
+        } catch (error) {
+            console.error("Error getting clusters:", error);
+            return [];
+        }
+    }, [mapBounds, clusterIndex, points.length, Math.floor(currentZoom)]);
+
     // Check if Mapbox token is available
     const hasMapboxToken =
         process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN &&
@@ -201,17 +272,37 @@ export function MapContainer({ className }: MapContainerProps) {
                 new mapboxgl.NavigationControl(),
                 "top-right"
             );
+
+            // Set initial bounds for clustering
+            if (map.current) {
+                const bounds = map.current.getBounds();
+                const zoom = map.current.getZoom();
+                setMapBounds(bounds);
+                setCurrentZoom(zoom);
+            }
         });
 
         map.current.on("moveend", () => {
-            if (!map.current || isUserInteracting.current) return;
+            if (!map.current) return;
 
             const newCenter = map.current.getCenter();
             const newZoom = map.current.getZoom();
             const bounds = map.current.getBounds();
 
-            setCenter([newCenter.lng, newCenter.lat]);
-            setZoom(newZoom);
+            if (!isUserInteracting.current) {
+                setCenter([newCenter.lng, newCenter.lat]);
+                setZoom(newZoom);
+            }
+
+            // Throttle bounds updates to reduce cluster recalculations
+            const now = Date.now();
+            const timeSinceLastUpdate = now - lastBoundsUpdate.current;
+
+            if (timeSinceLastUpdate >= BOUNDS_UPDATE_THROTTLE || !mapBounds) {
+                setMapBounds(bounds);
+                setCurrentZoom(newZoom);
+                lastBoundsUpdate.current = now;
+            }
 
             if (bounds) {
                 setBounds({
@@ -303,6 +394,17 @@ export function MapContainer({ className }: MapContainerProps) {
         });
 
         return () => {
+            // Clean up all markers
+            for (const marker of markersRef.current.values()) {
+                const element = marker.getElement();
+                const reactMarker = element as ReactMapPinElement;
+                if (reactMarker._reactRoot) {
+                    destroyMapPinElement(reactMarker);
+                }
+                marker.remove();
+            }
+            markersRef.current.clear();
+
             map.current?.remove();
             map.current = null;
         };
@@ -398,99 +500,184 @@ export function MapContainer({ className }: MapContainerProps) {
         };
     }, []);
 
-    // Add location note markers
+    // Add clustered location note markers (optimized to avoid unnecessary re-renders)
     useEffect(() => {
         if (!map.current || !mapLoaded) {
-            console.log("🗺️ Map not ready for markers:", {
-                mapExists: !!map.current,
-                mapLoaded,
-            });
             return;
         }
 
-        console.log(
-            "🗺️ Adding markers for",
-            locationNotes.length,
-            "location notes"
-        );
-
-        if (locationNotes.length === 0) {
-            console.log("⚠️ No location notes to display on map");
+        if (clusters.length === 0 && locationNotes.length > 0) {
             return;
         }
 
-        // Remove existing markers (including React markers)
-        const existingMarkers = document.querySelectorAll(
-            ".place-marker, .react-map-pin"
-        );
-        console.log("🧹 Removing", existingMarkers.length, "existing markers");
-        existingMarkers.forEach((marker) => {
-            // Clean up React roots if any
-            const reactMarker = marker as ReactMapPinElement;
-            if (reactMarker._reactRoot) {
-                destroyMapPinElement(reactMarker);
-            }
-            marker.remove();
-        });
+        // Create a set of current cluster/marker IDs
+        const currentIds = new Set<string>();
+        const newMarkers = new Map<string, mapboxgl.Marker>();
 
-        // Add new markers using React components
-        locationNotes.forEach((note) => {
-            console.log(
-                "📍 Creating marker for note:",
-                note.content?.substring(0, 20),
-                "at",
-                note.lat,
-                note.lng,
-                "images:",
-                note.images?.length || 0
-            );
+        for (const cluster of clusters) {
+            if (!map.current) continue;
 
-            // Determine if this marker is selected
-            const isSelected = selectedNote && selectedNote.id === note.id;
+            const [lng, lat] = cluster.geometry.coordinates;
+            const props = cluster.properties as any;
+            const isCluster =
+                props.cluster === true || props.point_count !== undefined;
 
-            // Create React marker element
-            const markerElement = createMapPinElement({
-                category: "cafe" as CategoryType, // Default category for location notes
-                note: note,
-                mood: note.mood,
-                isSelected: !!isSelected,
-                onClick: () => handleMarkerClick(note),
-            });
+            // Generate unique ID for this marker
+            const markerId = isCluster
+                ? `cluster-${props.cluster_id || cluster.id}`
+                : `note-${(cluster.properties as LocationNote).id}`;
 
-            new mapboxgl.Marker(markerElement)
-                .setLngLat([note.lng, note.lat])
-                .addTo(map.current!);
-        });
+            currentIds.add(markerId);
 
-        console.log(
-            "✅ Successfully added",
-            locationNotes.length,
-            "markers to map"
-        );
+            // Check if marker already exists and hasn't changed
+            const existingMarker = markersRef.current.get(markerId);
 
-        // Auto focus on first result if there's a search
-        if (locationNotes.length > 0 && locationNotes.length <= 5) {
-            const bounds = new mapboxgl.LngLatBounds();
-            locationNotes.forEach((note) => {
-                bounds.extend([note.lng, note.lat]);
-            });
+            if (isCluster) {
+                const pointCount =
+                    props.point_count || props.cluster_count || 0;
+                const clusterId = props.cluster_id || cluster.id;
 
-            if (locationNotes.length === 1) {
-                // Single result - fly to it
-                map.current?.flyTo({
-                    center: [locationNotes[0].lng, locationNotes[0].lat],
-                    zoom: 16,
-                    duration: 1000,
-                });
+                // For clusters, recreate if doesn't exist or point count changed
+                if (!existingMarker) {
+                    const clusterElement = document.createElement("div");
+                    const root = createRoot(clusterElement);
+                    const mapRef = map.current;
+
+                    // Get image URLs from cluster leaves
+                    let imageUrls: string[] = [];
+                    if (clusterIndex) {
+                        try {
+                            const leaves = clusterIndex.getLeaves(
+                                clusterId,
+                                Infinity
+                            );
+                            imageUrls = leaves
+                                .map((leaf) => {
+                                    const note =
+                                        leaf.properties as LocationNote;
+                                    return note.images?.[0];
+                                })
+                                .filter(Boolean) as string[];
+                        } catch (error) {
+                            console.error(
+                                "Error getting cluster leaves:",
+                                error
+                            );
+                        }
+                    }
+
+                    root.render(
+                        <ClusterMarker
+                            pointCount={pointCount}
+                            imageUrls={imageUrls}
+                            onClick={() => {
+                                if (!mapRef || !clusterIndex) return;
+
+                                try {
+                                    const expansionZoom = Math.min(
+                                        clusterIndex.getClusterExpansionZoom(
+                                            clusterId
+                                        ),
+                                        20
+                                    );
+
+                                    mapRef.flyTo({
+                                        center: [lng, lat],
+                                        zoom: expansionZoom,
+                                        duration: 500,
+                                    });
+                                } catch (error) {
+                                    console.error(
+                                        "Error expanding cluster:",
+                                        error
+                                    );
+                                }
+                            }}
+                        />
+                    );
+
+                    const marker = new mapboxgl.Marker(clusterElement)
+                        .setLngLat([lng, lat])
+                        .addTo(map.current);
+
+                    newMarkers.set(markerId, marker);
+                }
             } else {
-                // Multiple results - fit bounds
-                map.current?.fitBounds(bounds, {
-                    padding: 50,
-                    duration: 1000,
-                });
+                // Individual marker
+                const note = cluster.properties as LocationNote;
+                const isSelected = selectedNote && selectedNote.id === note.id;
+
+                // Check if we need to update the marker (selection state changed)
+                const needsUpdate =
+                    !existingMarker ||
+                    (existingMarker as any)._isSelected !== isSelected;
+
+                if (needsUpdate) {
+                    // Remove old marker if exists
+                    if (existingMarker) {
+                        const element = existingMarker.getElement();
+                        const reactMarker = element as ReactMapPinElement;
+                        if (reactMarker._reactRoot) {
+                            destroyMapPinElement(reactMarker);
+                        }
+                        existingMarker.remove();
+                    }
+
+                    // Create new marker with updated state
+                    const markerElement = createMapPinElement({
+                        category: "cafe" as CategoryType,
+                        note: note,
+                        mood: note.mood,
+                        isSelected: !!isSelected,
+                        onClick: () => handleMarkerClick(note),
+                    });
+
+                    const marker = new mapboxgl.Marker(markerElement)
+                        .setLngLat([lng, lat])
+                        .addTo(map.current);
+
+                    // Store selection state for comparison
+                    (marker as any)._isSelected = isSelected;
+
+                    newMarkers.set(markerId, marker);
+                }
             }
         }
-    }, [locationNotes, mapLoaded, selectedNote, handleMarkerClick]);
+
+        // Remove markers that are no longer in view
+        for (const [id, marker] of markersRef.current.entries()) {
+            if (!currentIds.has(id)) {
+                const element = marker.getElement();
+                const reactMarker = element as ReactMapPinElement;
+                if (reactMarker._reactRoot) {
+                    destroyMapPinElement(reactMarker);
+                }
+                marker.remove();
+            }
+        }
+
+        // Update markers ref with current markers (keep existing + add new)
+        for (const id of currentIds) {
+            if (newMarkers.has(id)) {
+                markersRef.current.set(id, newMarkers.get(id)!);
+            }
+            // Keep existing markers that weren't recreated
+        }
+
+        // Clean up removed markers from ref
+        for (const id of Array.from(markersRef.current.keys())) {
+            if (!currentIds.has(id)) {
+                markersRef.current.delete(id);
+            }
+        }
+    }, [
+        clusters,
+        locationNotes.length,
+        mapLoaded,
+        selectedNote,
+        handleMarkerClick,
+        clusterIndex,
+    ]);
 
     // Location note markers are now the main marker system
     // This useEffect is disabled to prevent duplicate markers
