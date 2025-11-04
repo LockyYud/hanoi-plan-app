@@ -11,10 +11,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { X, MapPin, Calendar, Sparkles } from "lucide-react";
+import {
+    X,
+    MapPin,
+    Calendar,
+    Sparkles,
+    Route,
+    Clock,
+    Search,
+} from "lucide-react";
 import { LocationNote } from "@/lib/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CreateJourneyDialogProps {
     readonly isOpen: boolean;
@@ -44,6 +53,9 @@ export function CreateJourneyDialog({
     const [selectedPlaceIds, setSelectedPlaceIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingNotes, setLoadingNotes] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     // Load available location notes
     useEffect(() => {
@@ -163,44 +175,82 @@ export function CreateJourneyDialog({
         );
     };
 
-    const movePlace = (index: number, direction: "up" | "down") => {
-        const newOrder = [...selectedPlaceIds];
-        const targetIndex = direction === "up" ? index - 1 : index + 1;
-
-        if (targetIndex < 0 || targetIndex >= newOrder.length) return;
-
-        [newOrder[index], newOrder[targetIndex]] = [
-            newOrder[targetIndex],
-            newOrder[index],
-        ];
-        setSelectedPlaceIds(newOrder);
+    // Drag and drop handlers
+    const handleDragStart = (index: number) => {
+        setDraggedIndex(index);
     };
 
-    // Filter available notes by date range if dates are selected
-    const filteredAvailableNotes = useMemo(() => {
-        if (!startDate && !endDate) {
-            return availableNotes;
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === index) return;
+        setDragOverIndex(index);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverIndex(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === dropIndex) {
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+            return;
         }
 
-        const start = startDate ? new Date(startDate).getTime() : null;
-        const end = endDate
-            ? new Date(endDate).setHours(23, 59, 59, 999)
-            : null;
+        const newOrder = [...selectedPlaceIds];
+        const draggedItem = newOrder[draggedIndex];
+        newOrder.splice(draggedIndex, 1);
+        newOrder.splice(dropIndex, 0, draggedItem);
 
-        return availableNotes.filter((note) => {
-            const noteTime = new Date(note.timestamp).getTime();
+        setSelectedPlaceIds(newOrder);
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
 
-            if (start && end) {
-                return noteTime >= start && noteTime <= end;
-            } else if (start) {
-                return noteTime >= start;
-            } else if (end) {
-                return noteTime <= end;
-            }
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
 
-            return true;
-        });
-    }, [availableNotes, startDate, endDate]);
+    // Filter available notes by date range and search query
+    const filteredAvailableNotes = useMemo(() => {
+        let filtered = availableNotes;
+
+        // Filter by date range
+        if (startDate || endDate) {
+            const start = startDate ? new Date(startDate).getTime() : null;
+            const end = endDate
+                ? new Date(endDate).setHours(23, 59, 59, 999)
+                : null;
+
+            filtered = filtered.filter((note) => {
+                const noteTime = new Date(note.timestamp).getTime();
+
+                if (start && end) {
+                    return noteTime >= start && noteTime <= end;
+                } else if (start) {
+                    return noteTime >= start;
+                } else if (end) {
+                    return noteTime <= end;
+                }
+
+                return true;
+            });
+        }
+
+        // Filter by search query
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(
+                (note) =>
+                    note.content?.toLowerCase().includes(query) ||
+                    note.address?.toLowerCase().includes(query)
+            );
+        }
+
+        return filtered;
+    }, [availableNotes, startDate, endDate, searchQuery]);
 
     const selectedNotes = selectedPlaceIds
         .map((id) => availableNotes.find((n) => n.id === id))
@@ -258,82 +308,112 @@ export function CreateJourneyDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-[#0C0C0C] border-neutral-800 w-[95vw] sm:w-full">
-                <DialogHeader>
-                    <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#EDEDED]">
-                        {editingJourney
-                            ? "Chỉnh sửa hành trình"
-                            : "Tạo hành trình mới"}
-                    </DialogTitle>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col bg-gradient-to-br from-[#0C0C0C] to-neutral-900 border-neutral-800 w-[95vw] sm:w-full rounded-2xl shadow-2xl">
+                {/* Modern Header with Icon */}
+                <DialogHeader className="border-b border-neutral-800/50 pb-4 sm:pb-5 px-1">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] shadow-lg">
+                            <Route className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                            <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#EDEDED] mb-0.5">
+                                {editingJourney
+                                    ? "Chỉnh sửa hành trình"
+                                    : "Tạo hành trình mới"}
+                            </DialogTitle>
+                            <p className="text-xs sm:text-sm text-neutral-400">
+                                {editingJourney
+                                    ? "Cập nhật thông tin và địa điểm"
+                                    : "Tạo hành trình từ các địa điểm đã lưu"}
+                            </p>
+                        </div>
+                    </div>
                 </DialogHeader>
 
                 <form
                     onSubmit={handleSubmit}
-                    className="flex-1 overflow-y-auto space-y-3 sm:space-y-4"
+                    className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 custom-scrollbar"
                 >
-                    {/* Title */}
-                    <div>
-                        <Label
-                            htmlFor="title"
-                            className="text-xs sm:text-sm text-[#EDEDED]"
-                        >
-                            Tên hành trình *
-                        </Label>
-                        <Input
-                            id="title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Ví dụ: Hà Nội - Tuần 1"
-                            className="bg-neutral-800 border-neutral-700 text-[#EDEDED] h-9 sm:h-10 text-sm"
-                            required
-                        />
-                    </div>
+                    {/* Basic Info Section */}
+                    <div className="space-y-4 p-4 sm:p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                        <div className="flex items-center gap-2 mb-1">
+                            <div className="h-1 w-1 rounded-full bg-[#FF6B6B]"></div>
+                            <h3 className="text-sm sm:text-base font-semibold text-[#EDEDED]">
+                                Thông tin cơ bản
+                            </h3>
+                        </div>
 
-                    {/* Description */}
-                    <div>
-                        <Label
-                            htmlFor="description"
-                            className="text-xs sm:text-sm text-[#EDEDED]"
-                        >
-                            Mô tả
-                        </Label>
-                        <Input
-                            id="description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Mô tả ngắn về hành trình"
-                            className="bg-neutral-800 border-neutral-700 text-[#EDEDED] h-9 sm:h-10 text-sm"
-                        />
-                    </div>
-
-                    {/* Date Range */}
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                            <Label className="text-xs sm:text-sm text-[#EDEDED]">
-                                Thời gian hành trình
+                        {/* Title */}
+                        <div className="space-y-2">
+                            <Label
+                                htmlFor="title"
+                                className="text-xs sm:text-sm text-neutral-300 font-medium flex items-center gap-1.5"
+                            >
+                                <span>Tên hành trình</span>
+                                <span className="text-[#FF6B6B]">*</span>
                             </Label>
+                            <Input
+                                id="title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Ví dụ: Khám phá Hà Nội - Tuần 1"
+                                className="bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] h-10 sm:h-11 text-sm transition-colors rounded-lg"
+                                required
+                            />
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-2">
+                            <Label
+                                htmlFor="description"
+                                className="text-xs sm:text-sm text-neutral-300 font-medium"
+                            >
+                                Mô tả
+                            </Label>
+                            <Textarea
+                                id="description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="Mô tả ngắn về hành trình của bạn..."
+                                rows={2}
+                                className="bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] text-sm resize-none transition-colors rounded-lg"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Date Range Section */}
+                    <div className="space-y-3 p-4 sm:p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                                <div className="h-1 w-1 rounded-full bg-[#FF6B6B]"></div>
+                                <h3 className="text-sm sm:text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                    <Clock className="h-4 w-4" />
+                                    Thời gian hành trình
+                                </h3>
+                            </div>
                             {selectedNotes.length > 0 && (
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
                                     onClick={setBothDatesFromSelection}
-                                    className="h-6 sm:h-7 text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 px-2"
+                                    className="h-7 sm:h-8 text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 px-2 sm:px-3 rounded-lg transition-colors"
                                 >
-                                    <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                                    <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1" />
                                     <span className="hidden xs:inline">
-                                        Lấy từ địa điểm
+                                        Tự động điền
                                     </span>
                                     <span className="xs:hidden">Auto</span>
                                 </Button>
                             )}
                         </div>
-                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3">
-                            <div className="space-y-1 sm:space-y-1.5">
+
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
+                            <div className="space-y-2">
                                 <div className="flex items-center justify-between gap-2">
                                     <Label
                                         htmlFor="start-date"
-                                        className="text-xs sm:text-sm text-[#A0A0A0]"
+                                        className="text-xs sm:text-sm text-neutral-300 font-medium"
                                     >
                                         Ngày bắt đầu
                                     </Label>
@@ -341,10 +421,10 @@ export function CreateJourneyDialog({
                                         <button
                                             type="button"
                                             onClick={setStartDateFromSelection}
-                                            className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:underline"
+                                            className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors"
                                             title="Lấy ngày sớm nhất từ địa điểm đã chọn"
                                         >
-                                            ← Lấy
+                                            ← Lấy ngày
                                         </button>
                                     )}
                                 </div>
@@ -355,14 +435,14 @@ export function CreateJourneyDialog({
                                     onChange={(e) =>
                                         setStartDate(e.target.value)
                                     }
-                                    className="bg-neutral-800 border-neutral-700 text-[#EDEDED] h-9 sm:h-10 text-sm"
+                                    className="bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] h-10 sm:h-11 text-sm transition-colors rounded-lg"
                                 />
                             </div>
-                            <div className="space-y-1 sm:space-y-1.5">
+                            <div className="space-y-2">
                                 <div className="flex items-center justify-between gap-2">
                                     <Label
                                         htmlFor="end-date"
-                                        className="text-xs sm:text-sm text-[#A0A0A0]"
+                                        className="text-xs sm:text-sm text-neutral-300 font-medium"
                                     >
                                         Ngày kết thúc
                                     </Label>
@@ -370,10 +450,10 @@ export function CreateJourneyDialog({
                                         <button
                                             type="button"
                                             onClick={setEndDateFromSelection}
-                                            className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:underline"
+                                            className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors"
                                             title="Lấy ngày muộn nhất từ địa điểm đã chọn"
                                         >
-                                            ← Lấy
+                                            ← Lấy ngày
                                         </button>
                                     )}
                                 </div>
@@ -382,19 +462,23 @@ export function CreateJourneyDialog({
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="bg-neutral-800 border-neutral-700 text-[#EDEDED] h-9 sm:h-10 text-sm"
+                                    className="bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] h-10 sm:h-11 text-sm transition-colors rounded-lg"
                                 />
                             </div>
                         </div>
+
                         {(startDate || endDate) &&
                             filteredAvailableNotes.length <
                                 availableNotes.length && (
-                                <div className="flex items-start gap-1.5 sm:gap-2 p-2 sm:p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                                    <p className="text-[10px] sm:text-xs text-blue-300">
-                                        Đang lọc {filteredAvailableNotes.length}
+                                <div className="flex items-start gap-2 p-3 bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-lg">
+                                    <Calendar className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs text-blue-300">
+                                        Đang hiển thị{" "}
+                                        <span className="font-semibold">
+                                            {filteredAvailableNotes.length}
+                                        </span>
                                         /{availableNotes.length} địa điểm trong
-                                        khoảng thời gian này
+                                        khoảng thời gian đã chọn
                                     </p>
                                 </div>
                             )}
@@ -402,113 +486,207 @@ export function CreateJourneyDialog({
 
                     {/* Selected Places (with ordering) */}
                     {selectedNotes.length > 0 && (
-                        <div className="space-y-2">
-                            <Label className="text-xs sm:text-sm text-[#EDEDED]">
-                                Lộ trình ({selectedNotes.length} địa điểm)
-                            </Label>
-                            <div className="space-y-1.5 sm:space-y-2 max-h-40 sm:max-h-48 overflow-y-auto p-1.5 sm:p-2 bg-neutral-900/50 rounded-xl">
-                                {selectedNotes.map((note, index) => (
-                                    <div
-                                        key={note.id}
-                                        className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-neutral-800 rounded-lg"
-                                    >
-                                        <div className="flex flex-col gap-0.5 sm:gap-1">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-3 w-5 sm:h-4 sm:w-6 p-0 text-[10px] sm:text-xs"
-                                                onClick={() =>
-                                                    movePlace(index, "up")
-                                                }
-                                                disabled={index === 0}
-                                            >
-                                                ▲
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-3 w-5 sm:h-4 sm:w-6 p-0 text-[10px] sm:text-xs"
-                                                onClick={() =>
-                                                    movePlace(index, "down")
-                                                }
-                                                disabled={
-                                                    index ===
-                                                    selectedNotes.length - 1
-                                                }
-                                            >
-                                                ▼
-                                            </Button>
-                                        </div>
-                                        <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-[#FF6B6B] flex items-center justify-center text-white font-bold text-xs sm:text-sm">
-                                            {index + 1}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-xs sm:text-sm text-[#EDEDED] truncate">
-                                                {note.content ||
-                                                    "Không có tiêu đề"}
-                                            </div>
-                                            <div className="text-[10px] sm:text-xs text-[#A0A0A0] truncate">
-                                                {note.address}
-                                            </div>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => togglePlace(note.id)}
-                                            className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0 text-red-400 hover:text-red-300 flex-shrink-0"
+                        <div className="space-y-3 p-4 sm:p-5 bg-gradient-to-br from-[#FF6B6B]/10 to-[#FF8E53]/10 rounded-xl border border-[#FF6B6B]/30">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-1 w-1 rounded-full bg-[#FF6B6B]"></div>
+                                    <h3 className="text-sm sm:text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                        <Route className="h-4 w-4" />
+                                        Lộ trình đã chọn
+                                    </h3>
+                                </div>
+                                <Badge className="bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] text-white border-0 text-xs px-2.5 py-0.5">
+                                    {selectedNotes.length} điểm
+                                </Badge>
+                            </div>
+
+                            <div className="space-y-2 max-h-52 sm:max-h-64 overflow-y-auto custom-scrollbar pr-1">
+                                {selectedNotes.map((note, index) => {
+                                    const isDragging = draggedIndex === index;
+                                    const isDragOver = dragOverIndex === index;
+
+                                    return (
+                                        <div
+                                            key={note.id}
+                                            draggable
+                                            onDragStart={() =>
+                                                handleDragStart(index)
+                                            }
+                                            onDragOver={(e) =>
+                                                handleDragOver(e, index)
+                                            }
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={(e) => handleDrop(e, index)}
+                                            onDragEnd={handleDragEnd}
+                                            className={cn(
+                                                "group flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg border transition-all cursor-move",
+                                                isDragging &&
+                                                    "opacity-50 scale-95 rotate-2",
+                                                isDragOver &&
+                                                    !isDragging &&
+                                                    "border-[#FF6B6B] bg-[#FF6B6B]/20 scale-105",
+                                                !isDragging &&
+                                                    !isDragOver &&
+                                                    "bg-neutral-900/80 hover:bg-neutral-800/80 border-neutral-700/50 hover:border-[#FF6B6B]/30"
+                                            )}
                                         >
-                                            <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
+                                            {/* Drag handle icon */}
+                                            <div className="flex-shrink-0 text-neutral-500 group-hover:text-[#FF6B6B] transition-colors touch-none">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    className="w-4 h-4"
+                                                >
+                                                    <circle
+                                                        cx="9"
+                                                        cy="5"
+                                                        r="1"
+                                                    />
+                                                    <circle
+                                                        cx="9"
+                                                        cy="12"
+                                                        r="1"
+                                                    />
+                                                    <circle
+                                                        cx="9"
+                                                        cy="19"
+                                                        r="1"
+                                                    />
+                                                    <circle
+                                                        cx="15"
+                                                        cy="5"
+                                                        r="1"
+                                                    />
+                                                    <circle
+                                                        cx="15"
+                                                        cy="12"
+                                                        r="1"
+                                                    />
+                                                    <circle
+                                                        cx="15"
+                                                        cy="19"
+                                                        r="1"
+                                                    />
+                                                </svg>
+                                            </div>
+
+                                            {/* Order number */}
+                                            <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-lg">
+                                                {index + 1}
+                                            </div>
+
+                                            {/* Place info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-xs sm:text-sm font-medium text-[#EDEDED] truncate">
+                                                    {note.content ||
+                                                        "Không có tiêu đề"}
+                                                </div>
+                                                <div className="text-[10px] sm:text-xs text-neutral-400 truncate flex items-center gap-1 mt-0.5">
+                                                    <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+                                                    <span>{note.address}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Remove button */}
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    togglePlace(note.id);
+                                                }}
+                                                className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10 flex-shrink-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                            </Button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
 
-                    {/* Available Places */}
-                    <div className="space-y-2">
-                        <Label className="text-xs sm:text-sm text-[#EDEDED]">
-                            Chọn địa điểm (
-                            <span className="hidden xs:inline">
-                                {filteredAvailableNotes.length}{" "}
-                                {(startDate || endDate) &&
-                                filteredAvailableNotes.length <
-                                    availableNotes.length
-                                    ? `/ ${availableNotes.length} `
-                                    : ""}
-                                có sẵn
-                            </span>
-                            <span className="xs:hidden">
-                                {filteredAvailableNotes.length}{" "}
-                                {(startDate || endDate) &&
-                                filteredAvailableNotes.length <
-                                    availableNotes.length
-                                    ? `/ ${availableNotes.length}`
-                                    : ""}
-                            </span>
-                            )
-                        </Label>
-                        {loadingNotes ? (
-                            <div className="text-center py-4 text-[#A0A0A0] text-xs sm:text-sm">
-                                Đang tải...
+                    {/* Available Places Section */}
+                    <div className="space-y-3 p-4 sm:p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                                <div className="h-1 w-1 rounded-full bg-[#FF6B6B]"></div>
+                                <h3 className="text-sm sm:text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                    <MapPin className="h-4 w-4" />
+                                    Chọn địa điểm
+                                </h3>
                             </div>
-                        ) : filteredAvailableNotes.length === 0 ? (
-                            <div className="text-center py-6 sm:py-8 text-[#A0A0A0] bg-neutral-900/50 rounded-xl">
-                                <MapPin className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 opacity-50" />
-                                <p className="text-xs sm:text-sm">
-                                    Không có địa điểm nào
-                                </p>
-                                {(startDate || endDate) && (
-                                    <p className="text-[10px] sm:text-xs mt-1">
-                                        trong khoảng thời gian này
+                            <Badge
+                                variant="outline"
+                                className="bg-neutral-800 border-neutral-700 text-neutral-300 text-xs px-2.5 py-0.5"
+                            >
+                                {filteredAvailableNotes.length}
+                                {(startDate || endDate || searchQuery) &&
+                                filteredAvailableNotes.length <
+                                    availableNotes.length
+                                    ? `/${availableNotes.length}`
+                                    : ""}{" "}
+                                sẵn
+                            </Badge>
+                        </div>
+
+                        {/* Search Bar */}
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Input
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Tìm theo tên hoặc địa chỉ..."
+                                className="pl-9 bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] h-10 text-sm transition-colors rounded-lg"
+                            />
+                            {searchQuery && (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setSearchQuery("")}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-neutral-400 hover:text-[#EDEDED]"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </Button>
+                            )}
+                        </div>
+
+                        {/* Places List */}
+                        {loadingNotes && (
+                            <div className="text-center py-8 text-neutral-400 text-sm">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF6B6B] mx-auto mb-2"></div>
+                                Đang tải địa điểm...
+                            </div>
+                        )}
+
+                        {!loadingNotes &&
+                            filteredAvailableNotes.length === 0 && (
+                                <div className="text-center py-8 sm:py-10 bg-neutral-800/50 rounded-xl">
+                                    <MapPin className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-neutral-600" />
+                                    <p className="text-sm sm:text-base text-neutral-400 font-medium">
+                                        Không có địa điểm nào
                                     </p>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="space-y-1.5 sm:space-y-2 max-h-56 sm:max-h-64 overflow-y-auto p-1.5 sm:p-2 bg-neutral-900/50 rounded-xl">
+                                    {(startDate || endDate || searchQuery) && (
+                                        <p className="text-xs sm:text-sm text-neutral-500 mt-1">
+                                            {searchQuery && "với từ khóa này"}
+                                            {!searchQuery &&
+                                                "trong khoảng thời gian này"}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                        {!loadingNotes && filteredAvailableNotes.length > 0 && (
+                            <div className="space-y-2 max-h-64 sm:max-h-72 overflow-y-auto custom-scrollbar pr-1">
                                 {filteredAvailableNotes.map((note) => {
                                     const isSelected =
                                         selectedPlaceIds.includes(note.id);
@@ -528,13 +706,13 @@ export function CreateJourneyDialog({
                                             role="button"
                                             tabIndex={0}
                                             className={cn(
-                                                "flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg cursor-pointer transition-all",
+                                                "group flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all border",
                                                 isSelected
-                                                    ? "bg-[#FF6B6B]/20 border border-[#FF6B6B]/50"
-                                                    : "bg-neutral-800 hover:bg-neutral-700 border border-transparent"
+                                                    ? "bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 border-[#FF6B6B]/50 shadow-sm"
+                                                    : "bg-neutral-800/80 hover:bg-neutral-700/80 border-neutral-700/50 hover:border-neutral-600"
                                             )}
                                         >
-                                            <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-neutral-700 flex items-center justify-center text-xl sm:text-2xl">
+                                            <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-700/80 group-hover:bg-neutral-600/80 flex items-center justify-center text-xl sm:text-2xl transition-colors">
                                                 {note.mood || "📍"}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -542,14 +720,14 @@ export function CreateJourneyDialog({
                                                     {note.content ||
                                                         "Không có tiêu đề"}
                                                 </div>
-                                                <div className="text-[10px] sm:text-xs text-[#A0A0A0] truncate flex items-center gap-1">
-                                                    <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                                                <div className="text-[10px] sm:text-xs text-neutral-400 truncate flex items-center gap-1 mt-0.5">
+                                                    <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                                                     <span className="truncate">
                                                         {note.address}
                                                     </span>
                                                 </div>
-                                                <div className="text-[10px] sm:text-xs text-[#666] flex items-center gap-1 mt-0.5">
-                                                    <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                                                <div className="text-[10px] sm:text-xs text-neutral-500 flex items-center gap-1 mt-0.5">
+                                                    <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                                                     {new Date(
                                                         note.timestamp
                                                     ).toLocaleDateString(
@@ -558,7 +736,7 @@ export function CreateJourneyDialog({
                                                 </div>
                                             </div>
                                             {isSelected && (
-                                                <Badge className="bg-[#FF6B6B] text-white text-xs px-2 py-0.5 flex-shrink-0">
+                                                <Badge className="bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] text-white border-0 text-xs px-2 py-0.5 flex-shrink-0 shadow-sm">
                                                     ✓
                                                 </Badge>
                                             )}
@@ -570,25 +748,32 @@ export function CreateJourneyDialog({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-neutral-800">
+                    <div className="flex gap-2.5 sm:gap-3 pt-4 sm:pt-5 border-t border-neutral-800/50">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={onClose}
-                            className="flex-1 bg-neutral-800 text-[#EDEDED] border-neutral-700 h-9 sm:h-10 text-sm"
+                            className="flex-1 bg-neutral-800/80 hover:bg-neutral-700 text-[#EDEDED] border-neutral-700 hover:border-neutral-600 h-10 sm:h-11 text-sm font-medium rounded-lg transition-all"
                         >
                             Hủy
                         </Button>
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white h-9 sm:h-10 text-sm"
+                            className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white border-0 h-10 sm:h-11 text-sm font-semibold shadow-lg hover:shadow-xl transition-all rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loading
-                                ? "Đang lưu..."
-                                : editingJourney
-                                  ? "Cập nhật"
-                                  : "Tạo hành trình"}
+                            {loading ? (
+                                <span className="flex items-center gap-2">
+                                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Đang lưu...
+                                </span>
+                            ) : (
+                                <>
+                                    {editingJourney
+                                        ? "Cập nhật hành trình"
+                                        : "Tạo hành trình"}
+                                </>
+                            )}
                         </Button>
                     </div>
                 </form>

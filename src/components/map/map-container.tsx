@@ -29,6 +29,8 @@ import {
 } from "./marker-helper";
 import { createRoot } from "react-dom/client";
 import { ClusterMarker } from "./cluster-marker";
+import { FloatingActionButton } from "./floating-action-button";
+import { CreateJourneyDialog } from "@/components/journey/create-journey-dialog";
 
 // Set the Mapbox access token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
@@ -52,6 +54,7 @@ export function MapContainer({ className }: MapContainerProps) {
     } | null>(null);
     const [showLocationForm, setShowLocationForm] = useState(false);
     const [showEditForm, setShowEditForm] = useState(false);
+    const [showJourneyDialog, setShowJourneyDialog] = useState(false);
     const [editingNote, setEditingNote] = useState<{
         id: string;
         lng: number;
@@ -917,6 +920,71 @@ export function MapContainer({ className }: MapContainerProps) {
         // Keep the blue dot marker when opening form
     };
 
+    // Handle creating note at current location (from FAB)
+    const handleCreateNoteAtLocation = useCallback(
+        (location: { lng: number; lat: number; address?: string }) => {
+            // Clear any existing selected note
+            setSelectedNote(null);
+
+            // Set the location and open form
+            setClickedLocation({
+                lng: location.lng,
+                lat: location.lat,
+                address: location.address,
+            });
+            setShowLocationForm(true);
+
+            // Fly to the location
+            if (map.current) {
+                map.current.flyTo({
+                    center: [location.lng, location.lat],
+                    zoom: 16,
+                    duration: 1500,
+                });
+            }
+
+            // Add a temporary marker at the location
+            if (clickedLocationMarker.current) {
+                clickedLocationMarker.current.remove();
+            }
+
+            const markerElement = document.createElement("div");
+            markerElement.className = "clicked-location-marker";
+            markerElement.style.cssText = `
+                width: 16px;
+                height: 16px;
+                background: #3b82f6;
+                border: 3px solid white;
+                border-radius: 50%;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                cursor: pointer;
+            `;
+
+            if (map.current) {
+                clickedLocationMarker.current = new mapboxgl.Marker({
+                    element: markerElement,
+                    anchor: "center",
+                })
+                    .setLngLat([location.lng, location.lat])
+                    .addTo(map.current);
+            }
+        },
+        [setSelectedNote]
+    );
+
+    // Handle creating journey (from FAB)
+    const handleCreateJourney = useCallback(() => {
+        setShowJourneyDialog(true);
+    }, []);
+
+    // Handle journey dialog success
+    const handleJourneySuccess = useCallback(() => {
+        // Reload location notes to reflect any changes
+        loadLocationNotes();
+        // Dispatch event to update sidebar
+        window.dispatchEvent(new CustomEvent("journeyCreated"));
+    }, []);
+
     // Add or update user location marker
     const updateUserLocationMarker = useCallback(async () => {
         if (!map.current || !session) return;
@@ -1192,6 +1260,12 @@ export function MapContainer({ className }: MapContainerProps) {
         <div className={cn("relative", className)} suppressHydrationWarning>
             <div ref={mapContainer} className="w-full h-full relative z-0" />
             <MapControls mapRef={map} />
+
+            {/* Floating Action Button for quick actions */}
+            <FloatingActionButton
+                onCreateNote={handleCreateNoteAtLocation}
+                onCreateJourney={handleCreateJourney}
+            />
             {/* Unified popup system - only 2 types: My Notes or New Location */}
             {selectedNote && (
                 <PlacePopup
@@ -1362,6 +1436,13 @@ export function MapContainer({ className }: MapContainerProps) {
                     }}
                 />
             )}
+
+            {/* Create Journey Dialog */}
+            <CreateJourneyDialog
+                isOpen={showJourneyDialog}
+                onClose={() => setShowJourneyDialog(false)}
+                onSuccess={handleJourneySuccess}
+            />
         </div>
     );
 }
