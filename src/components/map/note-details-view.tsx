@@ -8,15 +8,12 @@ import {
     Clock,
     Edit,
     Trash2,
-    Share,
     Heart,
     Eye,
     Tag,
     CalendarDays,
     Star,
     X,
-    ChevronRight,
-    ChevronDown,
     Navigation,
 } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
@@ -761,7 +758,7 @@ export function NoteDetailsView({
     // DESKTOP: Original Dialog
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] border border-neutral-700/50 shadow-2xl flex flex-col backdrop-blur-xl">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0 bg-[#0C0C0C] border border-neutral-800 shadow-2xl flex flex-col rounded-2xl">
                 {/* Accessible title for screen readers */}
                 <DialogTitle className="sr-only">
                     Chi tiết ghi chú:{" "}
@@ -770,554 +767,325 @@ export function NoteDetailsView({
                         "Ghi chú địa điểm"}
                 </DialogTitle>
 
-                {/* Compact Header - Enhanced */}
-                <div className="relative bg-gradient-to-r from-neutral-900/90 to-neutral-800/90 border-b border-neutral-700/50 px-6 py-4 flex-shrink-0">
-                    {/* Decorative gradient line */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B6B] via-[#FF8E53] to-[#FFD6A5]"></div>
-
+                {/* Modern Header */}
+                <div className="relative bg-neutral-900/80 border-b border-neutral-800/50 px-6 py-5 flex-shrink-0">
                     <div className="flex items-center justify-between">
-                        {/* Breadcrumb */}
-                        <div
-                            className="flex items-center gap-2 text-[#A0A0A0]"
-                            style={{ fontSize: "var(--text-sm)" }}
-                        >
-                            <MapPin
-                                className="h-4 w-4 text-[#FF6B6B]"
-                                strokeWidth={2}
-                            />
-                            <span>Địa điểm</span>
-                            <ChevronRight className="h-3 w-3" strokeWidth={2} />
-                            <span className="text-[#EDEDED] font-semibold">
-                                {displayNote.placeName || "Ghi chú"}
-                            </span>
+                        {/* Title with emoji */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                                <span className="text-xl">
+                                    {displayNote.mood || "📍"}
+                                </span>
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-[#EDEDED]">
+                                    {displayNote.placeName ||
+                                        "Ghi chú địa điểm"}
+                                </h2>
+                                <p className="text-xs text-neutral-400 flex items-center gap-1.5 mt-0.5">
+                                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                                    <span className="line-clamp-1">
+                                        {note.address}
+                                    </span>
+                                </p>
+                            </div>
                         </div>
-
-                        {/* Close Button - Enhanced */}
-                        <button
-                            onClick={onClose}
-                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-red-600/20 to-red-700/20 hover:from-red-600/40 hover:to-red-700/40 border border-red-700/50 hover:border-red-600 transition-all duration-200 hover:scale-105"
-                            aria-label="Đóng modal"
-                        >
-                            <X
-                                className="h-5 w-5 text-red-400 hover:text-red-300"
-                                strokeWidth={2}
-                            />
-                        </button>
                     </div>
                 </div>
 
                 {/* Scrollable content area */}
-                <div className="flex-1 overflow-y-auto bg-[#0C0C0C]">
-                    <div className="space-y-4">
-                        {/* HERO: Images Section - Full width gallery */}
+                <div className="flex-1 overflow-y-auto bg-[#0C0C0C] custom-scrollbar">
+                    <div className="space-y-5 p-6">
+                        {/* Images Section */}
                         {(displayNote.hasImages ||
                             (displayNote.images &&
                                 displayNote.images.length > 0)) && (
-                            <div className="bg-[#111111] border-b border-neutral-800">
-                                <div className="p-4 pb-3">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h3 className="font-semibold text-[#EDEDED] flex items-center gap-2">
-                                            <Eye
-                                                className="h-4 w-4 text-[#A0A0A0]"
-                                                strokeWidth={1.5}
-                                            />
+                            <div className="space-y-3 p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                                        <h3 className="text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                            <Eye className="h-4 w-4" />
                                             Hình ảnh
                                         </h3>
-                                        {displayNote.images &&
-                                            displayNote.images.length > 0 && (
-                                                <span
-                                                    className="px-3 py-1.5 bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 text-[#FFD6A5] rounded-xl font-bold border border-[#FF6B6B]/40 shadow-lg"
-                                                    style={{
-                                                        fontSize:
-                                                            "var(--text-xs)",
-                                                    }}
-                                                >
-                                                    📷{" "}
-                                                    {displayNote.images
-                                                        ?.length || 0}{" "}
-                                                    ảnh
-                                                </span>
-                                            )}
                                     </div>
+                                    {displayNote.images &&
+                                        displayNote.images.length > 0 && (
+                                            <span className="px-2.5 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-lg font-medium border border-blue-500/30">
+                                                {displayNote.images.length} ảnh
+                                            </span>
+                                        )}
                                 </div>
 
-                                <div className="px-4 pb-4">
-                                    {(() => {
-                                        if (loadError) {
-                                            return (
-                                                <div className="flex flex-col items-center justify-center py-12 text-red-400">
-                                                    <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mb-4 border border-red-800">
-                                                        <div className="text-2xl">
-                                                            ⚠️
-                                                        </div>
+                                {(() => {
+                                    if (loadError) {
+                                        return (
+                                            <div className="flex flex-col items-center justify-center py-10 text-red-400">
+                                                <div className="w-14 h-14 bg-red-900/20 rounded-xl flex items-center justify-center mb-3 border border-red-800/50">
+                                                    <div className="text-2xl">
+                                                        ⚠️
                                                     </div>
-                                                    <span
-                                                        className="text-center font-medium"
-                                                        style={{
-                                                            fontSize:
-                                                                "var(--text-sm)",
-                                                        }}
-                                                    >
-                                                        {loadError}
-                                                    </span>
-                                                    <button
-                                                        onClick={loadFullNote}
-                                                        className="mt-3 px-4 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded-lg transition-colors font-medium border border-red-800"
-                                                        style={{
-                                                            fontSize:
-                                                                "var(--text-sm)",
-                                                        }}
-                                                    >
-                                                        Thử lại
-                                                    </button>
                                                 </div>
-                                            );
-                                        }
+                                                <span className="text-sm font-medium mb-3">
+                                                    {loadError}
+                                                </span>
+                                                <Button
+                                                    onClick={loadFullNote}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="bg-red-900/20 hover:bg-red-900/30 text-red-400 border-red-800/50 rounded-lg"
+                                                >
+                                                    Thử lại
+                                                </Button>
+                                            </div>
+                                        );
+                                    }
 
-                                        if (isLoadingImages) {
-                                            return (
-                                                <div className="flex flex-col items-center justify-center py-12 text-[#A0A0A0]">
-                                                    <div className="relative mb-4">
-                                                        <div className="animate-spin h-8 w-8 border-3 border-blue-500 border-t-transparent rounded-full"></div>
-                                                        <div className="absolute inset-0 animate-ping h-8 w-8 border border-blue-400/30 rounded-full"></div>
-                                                    </div>
-                                                    <span
-                                                        className="text-center font-medium text-[#EDEDED]"
-                                                        style={{
-                                                            fontSize:
-                                                                "var(--text-sm)",
-                                                        }}
-                                                    >
-                                                        Đang tải ảnh...
-                                                    </span>
-                                                    <span
-                                                        className="text-[#A0A0A0] mt-1"
-                                                        style={{
-                                                            fontSize:
-                                                                "var(--text-xs)",
-                                                        }}
-                                                    >
-                                                        Có thể mất vài giây do
-                                                        ảnh lớn
-                                                    </span>
-                                                </div>
-                                            );
-                                        }
+                                    if (isLoadingImages) {
+                                        return (
+                                            <div className="flex flex-col items-center justify-center py-10">
+                                                <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                                                <span className="text-sm font-medium text-[#EDEDED] mb-1">
+                                                    Đang tải ảnh...
+                                                </span>
+                                                <span className="text-xs text-neutral-400">
+                                                    Vui lòng đợi trong giây lát
+                                                </span>
+                                            </div>
+                                        );
+                                    }
 
-                                        if (
-                                            displayNote.images &&
-                                            displayNote.images.length > 0
-                                        ) {
-                                            return (
-                                                <div className="space-y-3">
-                                                    {/* Main image carousel */}
-                                                    <div className="grid grid-cols-1 gap-3">
-                                                        {displayNote.images.map(
-                                                            (image, index) => {
-                                                                const isCoverImage =
-                                                                    index ===
-                                                                    (displayNote.coverImageIndex ||
-                                                                        0);
-                                                                return (
-                                                                    <button
-                                                                        key={`image-${displayNote.id}-${index}`}
-                                                                        className="group relative aspect-[4/3] bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-lg border border-neutral-700 overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer w-full hover:border-neutral-600"
-                                                                        onClick={() => {
-                                                                            setCurrentImageIndex(
-                                                                                index
-                                                                            );
-                                                                            setShowLightbox(
-                                                                                true
-                                                                            );
-                                                                        }}
-                                                                        aria-label={`Xem ảnh ${index + 1} trong lightbox`}
-                                                                    >
-                                                                        {isValidImageUrl(
-                                                                            image
-                                                                        ) ? (
-                                                                            <>
-                                                                                <ImageDisplay
-                                                                                    src={
-                                                                                        image
-                                                                                    }
-                                                                                    alt={`Ảnh ${index + 1}`}
-                                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                                                />
-                                                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
+                                    if (
+                                        displayNote.images &&
+                                        displayNote.images.length > 0
+                                    ) {
+                                        return (
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {displayNote.images.map(
+                                                    (image, index) => {
+                                                        const isCoverImage =
+                                                            index ===
+                                                            (displayNote.coverImageIndex ||
+                                                                0);
+                                                        return (
+                                                            <button
+                                                                key={`image-${displayNote.id}-${index}`}
+                                                                className="group relative aspect-square bg-neutral-800/80 rounded-xl border border-neutral-700/50 overflow-hidden hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
+                                                                onClick={() => {
+                                                                    setCurrentImageIndex(
+                                                                        index
+                                                                    );
+                                                                    setShowLightbox(
+                                                                        true
+                                                                    );
+                                                                }}
+                                                                aria-label={`Xem ảnh ${index + 1}`}
+                                                            >
+                                                                {isValidImageUrl(
+                                                                    image
+                                                                ) ? (
+                                                                    <>
+                                                                        <ImageDisplay
+                                                                            src={
+                                                                                image
+                                                                            }
+                                                                            alt={`Ảnh ${index + 1}`}
+                                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                                                        />
+                                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200"></div>
 
-                                                                                {/* Zoom overlay hint */}
-                                                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                                                    <div
-                                                                                        className="bg-black/80 text-white px-4 py-2 rounded-lg flex items-center gap-2 border border-neutral-600"
-                                                                                        style={{
-                                                                                            fontSize:
-                                                                                                "var(--text-sm)",
-                                                                                        }}
-                                                                                    >
-                                                                                        <Eye
-                                                                                            className="h-4 w-4"
-                                                                                            strokeWidth={
-                                                                                                1.5
-                                                                                            }
-                                                                                        />
-                                                                                        <span>
-                                                                                            Xem
-                                                                                            chi
-                                                                                            tiết
-                                                                                        </span>
-                                                                                    </div>
-                                                                                </div>
+                                                                        {/* Hover hint */}
+                                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                                            <div className="bg-black/80 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-sm backdrop-blur-sm">
+                                                                                <Eye className="h-3.5 w-3.5" />
+                                                                                <span>
+                                                                                    Xem
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
 
-                                                                                {/* Cover badge */}
-                                                                                {isCoverImage && (
-                                                                                    <div
-                                                                                        className="absolute top-3 left-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-2 rounded-lg font-bold shadow-lg"
-                                                                                        style={{
-                                                                                            fontSize:
-                                                                                                "var(--text-sm)",
-                                                                                        }}
-                                                                                    >
-                                                                                        <Star
-                                                                                            className="h-4 w-4 inline mr-2"
-                                                                                            strokeWidth={
-                                                                                                1.5
-                                                                                            }
-                                                                                        />
-                                                                                        Ảnh
-                                                                                        bìa
-                                                                                    </div>
-                                                                                )}
-
-                                                                                {/* Image counter */}
-                                                                                {displayNote.images &&
-                                                                                    displayNote
-                                                                                        .images
-                                                                                        .length >
-                                                                                        1 && (
-                                                                                        <div
-                                                                                            className="absolute bottom-3 right-3 bg-black/80 text-white px-3 py-2 rounded-lg font-medium border border-neutral-600"
-                                                                                            style={{
-                                                                                                fontSize:
-                                                                                                    "var(--text-sm)",
-                                                                                            }}
-                                                                                        >
-                                                                                            {index +
-                                                                                                1}{" "}
-                                                                                            /{" "}
-                                                                                            {
-                                                                                                displayNote
-                                                                                                    .images
-                                                                                                    .length
-                                                                                            }
-                                                                                        </div>
-                                                                                    )}
-                                                                            </>
-                                                                        ) : (
-                                                                            <div className="w-full h-full flex items-center justify-center text-[#A0A0A0]">
-                                                                                <div className="text-center">
-                                                                                    <div className="text-3xl mb-2">
-                                                                                        📷
-                                                                                    </div>
-                                                                                    <div
-                                                                                        className="font-medium"
-                                                                                        style={{
-                                                                                            fontSize:
-                                                                                                "var(--text-xs)",
-                                                                                        }}
-                                                                                    >
-                                                                                        Ảnh
-                                                                                        lỗi
-                                                                                    </div>
-                                                                                </div>
+                                                                        {/* Cover badge */}
+                                                                        {isCoverImage && (
+                                                                            <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 shadow-lg">
+                                                                                <Star className="h-3 w-3" />
+                                                                                Cover
                                                                             </div>
                                                                         )}
-                                                                    </button>
-                                                                );
-                                                            }
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        }
 
-                                        if (displayNote.hasImages) {
-                                            return (
-                                                <div className="text-center py-8 text-[#A0A0A0]">
-                                                    <div className="w-12 h-12 bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-3 border border-neutral-700">
-                                                        <Eye
-                                                            className="h-5 w-5"
-                                                            strokeWidth={1.5}
-                                                        />
-                                                    </div>
-                                                    <div
-                                                        className="font-medium"
-                                                        style={{
-                                                            fontSize:
-                                                                "var(--text-sm)",
-                                                        }}
-                                                    >
-                                                        Có ảnh nhưng chưa tải
-                                                        được
-                                                    </div>
-                                                </div>
-                                            );
-                                        }
+                                                                        {/* Image counter */}
+                                                                        {displayNote.images &&
+                                                                            displayNote
+                                                                                .images
+                                                                                .length >
+                                                                                1 && (
+                                                                                <div className="absolute bottom-2 right-2 bg-black/80 text-white px-2 py-1 rounded-md text-xs font-medium backdrop-blur-sm">
+                                                                                    {index +
+                                                                                        1}{" "}
+                                                                                    /{" "}
+                                                                                    {
+                                                                                        displayNote
+                                                                                            .images
+                                                                                            .length
+                                                                                    }
+                                                                                </div>
+                                                                            )}
+                                                                    </>
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                                                                        <div className="text-center">
+                                                                            <div className="text-3xl mb-1">
+                                                                                📷
+                                                                            </div>
+                                                                            <div className="text-xs">
+                                                                                Ảnh
+                                                                                lỗi
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </button>
+                                                        );
+                                                    }
+                                                )}
+                                            </div>
+                                        );
+                                    }
 
-                                        return null;
-                                    })()}
+                                    if (displayNote.hasImages) {
+                                        return (
+                                            <div className="text-center py-8 text-neutral-400">
+                                                <Eye className="h-8 w-8 mx-auto mb-2" />
+                                                <div className="text-sm">
+                                                    Có ảnh nhưng chưa tải được
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
+                                    return null;
+                                })()}
+                            </div>
+                        )}
+
+                        {/* Content Section */}
+                        {displayNote.content && (
+                            <div className="space-y-3 p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                                    <h3 className="text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                        <Heart className="h-4 w-4" />
+                                        Nội dung ghi chú
+                                    </h3>
+                                </div>
+                                <div className="relative">
+                                    <p className="text-[#EDEDED] whitespace-pre-wrap leading-relaxed text-base">
+                                        {displayNote.content}
+                                    </p>
+                                    <div className="absolute bottom-0 right-0 text-xs text-neutral-500">
+                                        {displayNote.content.length}/280
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        <div className="px-6 space-y-4">
-                            {/* PRIORITY 1: Content Card - Enhanced */}
-                            <div className="bg-[#111111] rounded-xl border border-neutral-800 shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden">
-                                <div className="bg-gradient-to-r from-neutral-800 to-neutral-900 px-6 py-4 border-b border-neutral-700">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold text-[#EDEDED] flex items-center gap-2">
-                                            <Heart
-                                                className="h-5 w-5 text-[#A0A0A0]"
-                                                strokeWidth={1.5}
-                                            />
-                                            Nội dung ghi chú
-                                        </h3>
-                                    </div>
+                        {/* Metadata Tags */}
+                        {(displayNote.categoryName ||
+                            displayNote.visitTime) && (
+                            <div className="space-y-3 p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                                    <h3 className="text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                        <Tag className="h-4 w-4" />
+                                        Thông tin
+                                    </h3>
                                 </div>
-                                <div className="p-6 relative">
-                                    {displayNote.content ? (
-                                        <>
-                                            <p
-                                                className="text-[#EDEDED] whitespace-pre-wrap leading-relaxed"
-                                                style={{
-                                                    fontSize:
-                                                        "var(--text-base)",
-                                                    lineHeight: "1.6",
-                                                }}
-                                            >
-                                                {displayNote.content}
-                                            </p>
-                                            {/* Character counter in bottom right */}
-                                            <div
-                                                className="absolute bottom-3 right-4 text-[#A0A0A0] opacity-60"
-                                                style={{
-                                                    fontSize: "var(--text-xs)",
-                                                }}
-                                            >
-                                                {displayNote.content.length}/280
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <p
-                                            className="text-[#A0A0A0] italic text-center py-8"
-                                            style={{
-                                                fontSize: "var(--text-base)",
-                                            }}
-                                        >
-                                            Không có nội dung ghi chú
-                                        </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {/* Category */}
+                                    {displayNote.categoryName && (
+                                        <div className="flex items-center gap-1.5 bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded-lg border border-blue-500/30 text-sm">
+                                            <Tag className="h-3.5 w-3.5" />
+                                            <span>
+                                                {displayNote.categoryName}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Visit Time */}
+                                    {displayNote.visitTime && (
+                                        <div className="flex items-center gap-1.5 bg-neutral-800 text-neutral-300 px-3 py-1.5 rounded-lg border border-neutral-700 text-sm">
+                                            <CalendarDays className="h-3.5 w-3.5" />
+                                            <span>
+                                                {formatVisitTime(
+                                                    displayNote.visitTime
+                                                )}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Mood */}
+                                    {note.mood && (
+                                        <div className="flex items-center gap-1.5 bg-neutral-800 text-neutral-300 px-3 py-1.5 rounded-lg border border-neutral-700 text-sm">
+                                            <span className="text-base">
+                                                {note.mood}
+                                            </span>
+                                            <span>
+                                                {moodLabels[note.mood] ||
+                                                    "Khác"}
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
                             </div>
+                        )}
 
-                            {/* PRIORITY 2: Tags & Mood - Compact chips */}
-                            <div className="flex flex-wrap gap-2">
-                                {/* Place Name Chip */}
-                                {displayNote.placeName && (
-                                    <div className="flex items-center gap-2 bg-green-900/30 text-green-400 px-3 py-2 rounded-full border border-green-800">
-                                        <Star
-                                            className="h-4 w-4"
-                                            strokeWidth={1.5}
-                                        />
-                                        <span
-                                            className="font-medium"
-                                            style={{
-                                                fontSize: "var(--text-sm)",
-                                            }}
-                                        >
-                                            {displayNote.placeName}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Category Chip */}
-                                {displayNote.categoryName && (
-                                    <div className="flex items-center gap-2 bg-purple-900/30 text-purple-400 px-3 py-2 rounded-full border border-purple-800">
-                                        <Tag
-                                            className="h-4 w-4"
-                                            strokeWidth={1.5}
-                                        />
-                                        <span
-                                            className="font-medium"
-                                            style={{
-                                                fontSize: "var(--text-sm)",
-                                            }}
-                                        >
-                                            {displayNote.categoryName}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Visit Time Chip */}
-                                {displayNote.visitTime && (
-                                    <div className="flex items-center gap-2 bg-cyan-900/30 text-cyan-400 px-3 py-2 rounded-full border border-cyan-800">
-                                        <CalendarDays
-                                            className="h-4 w-4"
-                                            strokeWidth={1.5}
-                                        />
-                                        <span
-                                            className="font-medium"
-                                            style={{
-                                                fontSize: "var(--text-sm)",
-                                            }}
-                                        >
-                                            {formatVisitTime(
-                                                displayNote.visitTime
-                                            )}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Mood Chip */}
-                                {note.mood && (
-                                    <div className="flex items-center gap-2 bg-amber-900/30 text-amber-400 px-3 py-2 rounded-full border border-amber-800">
-                                        <span className="text-lg">
-                                            {note.mood}
-                                        </span>
-                                        <span
-                                            className="font-medium"
-                                            style={{
-                                                fontSize: "var(--text-sm)",
-                                            }}
-                                        >
-                                            {moodLabels[note.mood] || "Khác"}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* PRIORITY 3: Minimal Metadata - Single row */}
-                            <div className="bg-[#111111] rounded-lg p-4 border border-neutral-800">
-                                <div
-                                    className="flex items-center justify-between text-[#A0A0A0]"
-                                    style={{ fontSize: "var(--text-sm)" }}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <Clock
-                                            className="h-4 w-4"
-                                            strokeWidth={1.5}
-                                        />
-                                        <span>
-                                            Tạo lúc{" "}
-                                            {formatDateTime(note.timestamp)}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <MapPin
-                                            className="h-4 w-4"
-                                            strokeWidth={1.5}
-                                        />
-                                        <span>Vị trí đã lưu</span>
-                                    </div>
-                                </div>
-
-                                {/* Expandable technical details */}
-                                <details className="mt-3 group">
-                                    <summary
-                                        className="cursor-pointer text-[#A0A0A0] hover:text-[#EDEDED] flex items-center gap-2 transition-colors"
-                                        style={{ fontSize: "var(--text-xs)" }}
-                                    >
-                                        <span>Chi tiết kỹ thuật</span>
-                                        <ChevronDown
-                                            className="h-3 w-3 transition-transform group-open:rotate-180"
-                                            strokeWidth={1.5}
-                                        />
-                                    </summary>
-                                    <div className="mt-2 pt-2 border-t border-neutral-700 space-y-1">
-                                        <div
-                                            className="text-[#A0A0A0]"
-                                            style={{
-                                                fontSize: "var(--text-xs)",
-                                            }}
-                                        >
-                                            <strong className="text-[#EDEDED]">
-                                                Địa chỉ:
-                                            </strong>{" "}
-                                            {note.address}
-                                        </div>
-                                        <div
-                                            className="text-[#A0A0A0] font-mono"
-                                            style={{
-                                                fontSize: "var(--text-xs)",
-                                            }}
-                                        >
-                                            <strong className="text-[#EDEDED]">
-                                                Tọa độ:
-                                            </strong>{" "}
-                                            {note.lng.toFixed(6)},{" "}
-                                            {note.lat.toFixed(6)}
-                                        </div>
-                                        <div
-                                            className="text-[#A0A0A0]"
-                                            style={{
-                                                fontSize: "var(--text-xs)",
-                                            }}
-                                        >
-                                            <strong className="text-[#EDEDED]">
-                                                ID:
-                                            </strong>{" "}
-                                            {note.id}
-                                        </div>
-                                    </div>
-                                </details>
+                        {/* Timestamp */}
+                        <div className="p-4 bg-neutral-900/30 rounded-lg border border-neutral-800/50">
+                            <div className="flex items-center gap-2 text-neutral-400 text-sm">
+                                <Clock className="h-4 w-4" />
+                                <span>
+                                    Tạo lúc {formatDateTime(note.timestamp)}
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Action Buttons - Sticky Footer - Enhanced */}
-                <div className="sticky bottom-0 bg-gradient-to-r from-neutral-900/95 via-neutral-800/95 to-neutral-900/95 backdrop-blur-xl border-t border-neutral-700/50 p-4 flex-shrink-0 shadow-2xl">
-                    <div className="flex gap-3">
+                {/* Action Buttons Footer */}
+                <div className="sticky bottom-0 bg-neutral-900/80 backdrop-blur-xl border-t border-neutral-800/50 p-4 flex-shrink-0">
+                    <div className="flex gap-2.5">
                         <Button
                             variant="outline"
-                            onClick={onEdit}
-                            className="flex-1 h-11 bg-gradient-to-br from-[#FF6B6B]/20 to-[#FF8E53]/20 hover:from-[#FF6B6B]/30 hover:to-[#FF8E53]/30 border-[#FF6B6B]/40 hover:border-[#FF6B6B]/60 text-[#FFD6A5] hover:text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+                            onClick={handleGetDirections}
+                            disabled={isGettingDirections}
+                            className="flex-1 h-11 bg-blue-600/20 hover:bg-blue-600/30 border-blue-600/40 hover:border-blue-600/60 text-blue-300 hover:text-blue-200 font-semibold rounded-lg transition-all"
                         >
-                            <Edit className="h-4 w-4 mr-2" strokeWidth={2} />
-                            Chỉnh sửa
+                            <Navigation
+                                className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
+                            />
+                            Chỉ đường
                         </Button>
                         <Button
                             variant="outline"
-                            onClick={() => {
-                                if (navigator.share) {
-                                    navigator.share({
-                                        title: "Ghi chú địa điểm",
-                                        text:
-                                            note.content ||
-                                            displayNote.placeName ||
-                                            "Ghi chú địa điểm",
-                                        url: globalThis.location.href,
-                                    });
-                                }
-                            }}
-                            className="flex-1 h-11 bg-gradient-to-br from-green-900/40 to-emerald-900/40 hover:from-green-800/50 hover:to-emerald-800/50 border-green-700/50 hover:border-green-600 text-green-300 hover:text-green-200 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+                            onClick={onEdit}
+                            className="flex-1 h-11 bg-neutral-800/80 hover:bg-neutral-700 border-neutral-700 hover:border-neutral-600 text-[#EDEDED] font-semibold rounded-lg transition-all"
                         >
-                            <Share className="h-4 w-4 mr-2" strokeWidth={2} />
-                            Chia sẻ
+                            <Edit className="h-4 w-4 mr-1.5" />
+                            Chỉnh sửa
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={() => {
                                 if (
                                     globalThis.confirm(
-                                        "Bạn có chắc muốn xóa ghi chú này không? Hành động này không thể hoàn tác."
+                                        "Bạn có chắc muốn xóa ghi chú này?"
                                     )
                                 ) {
                                     onDelete?.();
                                 }
                             }}
-                            className="h-11 px-4 bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-200"
+                            className="h-11 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all"
                         >
-                            <Trash2 className="h-4 w-4" strokeWidth={2} />
+                            <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
                 </div>

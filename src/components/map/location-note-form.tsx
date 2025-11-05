@@ -575,24 +575,25 @@ export function LocationNoteForm({
 
                     <div className="flex flex-col flex-1 overflow-hidden">
                         {/* Main Content - Scrollable */}
-                        <div className="flex-1 overflow-y-auto px-7 py-6 space-y-6">
+                        <div className="flex-1 overflow-y-auto px-7 py-6 space-y-6 custom-scrollbar">
                             {/* PRIORITY 1: QUICK NOTES */}
-                            <div className="space-y-3">
-                                <div className="space-y-2">
-                                    <Label className="text-lg font-medium text-[var(--foreground)]">
+                            <div className="space-y-3 p-4 sm:p-5 bg-[var(--color-neutral-900)]/50 rounded-xl border border-[var(--color-neutral-800)]/50">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                                    <h3 className="text-base font-semibold text-[var(--foreground)]">
                                         Ghi nhanh cảm nhận
-                                    </Label>
-                                    <p className="text-sm text-[var(--color-neutral-500)]">
-                                        Cảm nhận nhanh, món đã thử, tips...
-                                    </p>
+                                    </h3>
                                 </div>
+                                <p className="text-sm text-[var(--color-neutral-500)] -mt-1">
+                                    Cảm nhận nhanh, món đã thử, tips...
+                                </p>
                                 <div className="relative">
                                     <Textarea
                                         ref={textareaRef}
                                         {...register("content")}
                                         placeholder="Chia sẻ trải nghiệm của bạn tại đây..."
                                         rows={4}
-                                        className="resize-none bg-[var(--color-neutral-900)] border-[var(--color-neutral-700)] text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-xl focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)] min-h-[100px] pr-16 text-base leading-relaxed"
+                                        className="resize-none bg-[var(--color-neutral-800)]/80 border-[var(--color-neutral-700)] hover:border-[var(--color-neutral-600)] focus:border-blue-500/50 text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-lg focus:ring-2 focus:ring-blue-500/20 min-h-[100px] pr-16 text-base leading-relaxed transition-colors"
                                     />
                                     <div className="absolute bottom-3 right-3 text-xs text-[var(--color-neutral-500)] pointer-events-none">
                                         {contentValue.length}/280
@@ -607,14 +608,17 @@ export function LocationNoteForm({
                             </div>
 
                             {/* PRIORITY 2: IMAGES */}
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <Camera className="h-5 w-5 text-[var(--foreground)]" />
-                                    <Label className="text-lg font-medium text-[var(--foreground)]">
-                                        Thêm ảnh
-                                    </Label>
+                            <div className="space-y-4 p-4 sm:p-5 bg-[var(--color-neutral-900)]/50 rounded-xl border border-[var(--color-neutral-800)]/50">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                                        <h3 className="text-base font-semibold text-[var(--foreground)] flex items-center gap-2">
+                                            <Camera className="h-4 w-4" />
+                                            Thêm ảnh
+                                        </h3>
+                                    </div>
                                     {totalImages > 0 && (
-                                        <span className="px-2 py-1 bg-[var(--color-primary-500)]/20 text-[var(--color-primary-500)] text-xs rounded-lg font-medium border border-[var(--color-primary-500)]/30">
+                                        <span className="px-2.5 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-lg font-medium border border-blue-500/30">
                                             {totalImages}/3
                                         </span>
                                     )}
@@ -634,8 +638,8 @@ export function LocationNoteForm({
                                     <div
                                         className={`border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer ${
                                             dragActive
-                                                ? "border-[var(--color-primary-500)] bg-[var(--color-primary-500)]/10 h-40"
-                                                : "border-[var(--color-neutral-700)] hover:border-[var(--color-primary-500)]/50 hover:bg-[var(--color-primary-500)]/5 h-36"
+                                                ? "border-blue-500 bg-blue-500/10 h-40"
+                                                : "border-[var(--color-neutral-700)] hover:border-blue-500/50 hover:bg-blue-500/5 h-36"
                                         }`}
                                         onDragEnter={handleDrag}
                                         onDragLeave={handleDrag}
@@ -855,42 +859,109 @@ export function LocationNoteForm({
                                         )}
                                     </div>
                                 )}
-                                {/* PRIORITY 3: COMPACT CATEGORY SELECTION */}
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <MapPin className="h-5 w-5 text-[var(--foreground)]" />
-                                        <Label className="text-lg font-medium text-[var(--foreground)]">
-                                            Loại địa điểm *
-                                        </Label>
+                            </div>
+
+                            {/* PRIORITY 3: COMPACT CATEGORY SELECTION */}
+                            <div className="space-y-4 p-4 sm:p-5 bg-[var(--color-neutral-900)]/50 rounded-xl border border-[var(--color-neutral-800)]/50">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                                    <h3 className="text-base font-semibold text-[var(--foreground)] flex items-center gap-2">
+                                        <MapPin className="h-4 w-4" />
+                                        Loại địa điểm
+                                    </h3>
+                                    <span className="text-xs text-red-400">
+                                        *
+                                    </span>
+                                </div>
+
+                                {isLoadingCategories ? (
+                                    <div className="flex items-center justify-center py-4">
+                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-primary-500)]"></div>
+                                        <span className="ml-3 text-sm text-[var(--color-neutral-500)]">
+                                            Đang tải...
+                                        </span>
                                     </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {/* Selected category display */}
+                                        {selectedCategory && (
+                                            <div className="flex items-center justify-between p-3 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-xl">
+                                                {(() => {
+                                                    const category =
+                                                        categories.find(
+                                                            (c) =>
+                                                                c.id ===
+                                                                selectedCategory
+                                                        );
+                                                    if (!category) return null;
 
-                                    {isLoadingCategories ? (
-                                        <div className="flex items-center justify-center py-4">
-                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-primary-500)]"></div>
-                                            <span className="ml-3 text-sm text-[var(--color-neutral-500)]">
-                                                Đang tải...
-                                            </span>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {/* Selected category display */}
-                                            {selectedCategory && (
-                                                <div className="flex items-center justify-between p-3 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-xl">
-                                                    {(() => {
-                                                        const category =
-                                                            categories.find(
-                                                                (c) =>
-                                                                    c.id ===
-                                                                    selectedCategory
-                                                            );
-                                                        if (!category)
-                                                            return null;
+                                                    return (
+                                                        <>
+                                                            <div className="flex items-center gap-3">
+                                                                {category.icon && (
+                                                                    <span className="text-lg">
+                                                                        {
+                                                                            category.icon
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                                <span className="text-sm font-medium text-[var(--foreground)]">
+                                                                    {
+                                                                        category.name
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    setShowAllCategories(
+                                                                        !showAllCategories
+                                                                    )
+                                                                }
+                                                                className="text-[var(--color-neutral-500)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] px-3"
+                                                            >
+                                                                Đổi
+                                                            </Button>
+                                                        </>
+                                                    );
+                                                })()}
+                                            </div>
+                                        )}
 
-                                                        return (
-                                                            <>
+                                        {/* Category selection (show when no selection or when "Đổi" clicked) */}
+                                        {(!selectedCategory ||
+                                            showAllCategories) && (
+                                            <>
+                                                {/* Top 4 popular categories */}
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {categories
+                                                        .slice(0, 4)
+                                                        .map((category) => (
+                                                            <button
+                                                                key={
+                                                                    category.id
+                                                                }
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    selectCategory(
+                                                                        category.id
+                                                                    );
+                                                                    setShowAllCategories(
+                                                                        false
+                                                                    );
+                                                                }}
+                                                                className={`p-3 rounded-xl border transition-all duration-200 text-left ${
+                                                                    selectedCategory ===
+                                                                    category.id
+                                                                        ? "border-blue-500 bg-blue-500/10"
+                                                                        : "border-[var(--color-neutral-700)] hover:border-blue-400/50 hover:bg-[var(--color-neutral-700)] bg-[var(--color-neutral-900)]"
+                                                                }`}
+                                                            >
                                                                 <div className="flex items-center gap-3">
                                                                     {category.icon && (
-                                                                        <span className="text-lg">
+                                                                        <span className="text-base">
                                                                             {
                                                                                 category.icon
                                                                             }
@@ -902,304 +973,235 @@ export function LocationNoteForm({
                                                                         }
                                                                     </span>
                                                                 </div>
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() =>
-                                                                        setShowAllCategories(
-                                                                            !showAllCategories
-                                                                        )
-                                                                    }
-                                                                    className="text-[var(--color-neutral-500)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] px-3"
-                                                                >
-                                                                    Đổi
-                                                                </Button>
-                                                            </>
-                                                        );
-                                                    })()}
+                                                            </button>
+                                                        ))}
                                                 </div>
-                                            )}
 
-                                            {/* Category selection (show when no selection or when "Đổi" clicked) */}
-                                            {(!selectedCategory ||
-                                                showAllCategories) && (
-                                                <>
-                                                    {/* Top 4 popular categories */}
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        {categories
-                                                            .slice(0, 4)
-                                                            .map((category) => (
-                                                                <button
-                                                                    key={
-                                                                        category.id
-                                                                    }
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        selectCategory(
-                                                                            category.id
-                                                                        );
-                                                                        setShowAllCategories(
-                                                                            false
-                                                                        );
-                                                                    }}
-                                                                    className={`p-3 rounded-xl border transition-all duration-200 text-left ${
-                                                                        selectedCategory ===
-                                                                        category.id
-                                                                            ? "border-blue-500 bg-blue-500/10"
-                                                                            : "border-[var(--color-neutral-700)] hover:border-blue-400/50 hover:bg-[var(--color-neutral-700)] bg-[var(--color-neutral-900)]"
-                                                                    }`}
-                                                                >
-                                                                    <div className="flex items-center gap-3">
-                                                                        {category.icon && (
-                                                                            <span className="text-base">
-                                                                                {
-                                                                                    category.icon
-                                                                                }
-                                                                            </span>
-                                                                        )}
-                                                                        <span className="text-sm font-medium text-[var(--foreground)]">
-                                                                            {
-                                                                                category.name
+                                                {/* More categories button */}
+                                                {categories.length > 4 && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            setShowAllCategories(
+                                                                !showAllCategories
+                                                            )
+                                                        }
+                                                        className="w-full border-[var(--color-neutral-700)] text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] h-11"
+                                                    >
+                                                        {showAllCategories
+                                                            ? "Thu gọn"
+                                                            : `Xem thêm ${categories.length - 4} loại`}
+                                                    </Button>
+                                                )}
+
+                                                {/* All categories (when expanded) */}
+                                                {showAllCategories &&
+                                                    categories.length > 4 && (
+                                                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
+                                                            {categories
+                                                                .slice(4)
+                                                                .map(
+                                                                    (
+                                                                        category
+                                                                    ) => (
+                                                                        <button
+                                                                            key={
+                                                                                category.id
                                                                             }
-                                                                        </span>
-                                                                    </div>
-                                                                </button>
-                                                            ))}
-                                                    </div>
-
-                                                    {/* More categories button */}
-                                                    {categories.length > 4 && (
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                setShowAllCategories(
-                                                                    !showAllCategories
-                                                                )
-                                                            }
-                                                            className="w-full border-[var(--color-neutral-700)] text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] h-11"
-                                                        >
-                                                            {showAllCategories
-                                                                ? "Thu gọn"
-                                                                : `Xem thêm ${categories.length - 4} loại`}
-                                                        </Button>
-                                                    )}
-
-                                                    {/* All categories (when expanded) */}
-                                                    {showAllCategories &&
-                                                        categories.length >
-                                                            4 && (
-                                                            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
-                                                                {categories
-                                                                    .slice(4)
-                                                                    .map(
-                                                                        (
-                                                                            category
-                                                                        ) => (
-                                                                            <button
-                                                                                key={
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                selectCategory(
                                                                                     category.id
-                                                                                }
-                                                                                type="button"
-                                                                                onClick={() => {
-                                                                                    selectCategory(
-                                                                                        category.id
-                                                                                    );
-                                                                                    setShowAllCategories(
-                                                                                        false
-                                                                                    );
-                                                                                }}
-                                                                                className={`p-3 rounded-xl border transition-all duration-200 text-left ${
-                                                                                    selectedCategory ===
-                                                                                    category.id
-                                                                                        ? "border-blue-500 bg-blue-500/10"
-                                                                                        : "border-[var(--color-neutral-700)] hover:border-blue-400/50 hover:bg-[var(--color-neutral-700)] bg-[var(--color-neutral-900)]"
-                                                                                }`}
-                                                                            >
-                                                                                <div className="flex items-center gap-3">
-                                                                                    {category.icon && (
-                                                                                        <span className="text-base">
-                                                                                            {
-                                                                                                category.icon
-                                                                                            }
-                                                                                        </span>
-                                                                                    )}
-                                                                                    <span className="text-sm font-medium text-[var(--foreground)]">
+                                                                                );
+                                                                                setShowAllCategories(
+                                                                                    false
+                                                                                );
+                                                                            }}
+                                                                            className={`p-3 rounded-xl border transition-all duration-200 text-left ${
+                                                                                selectedCategory ===
+                                                                                category.id
+                                                                                    ? "border-blue-500 bg-blue-500/10"
+                                                                                    : "border-[var(--color-neutral-700)] hover:border-blue-400/50 hover:bg-[var(--color-neutral-700)] bg-[var(--color-neutral-900)]"
+                                                                            }`}
+                                                                        >
+                                                                            <div className="flex items-center gap-3">
+                                                                                {category.icon && (
+                                                                                    <span className="text-base">
                                                                                         {
-                                                                                            category.name
+                                                                                            category.icon
                                                                                         }
                                                                                     </span>
-                                                                                </div>
-                                                                            </button>
-                                                                        )
-                                                                    )}
-                                                            </div>
-                                                        )}
+                                                                                )}
+                                                                                <span className="text-sm font-medium text-[var(--foreground)]">
+                                                                                    {
+                                                                                        category.name
+                                                                                    }
+                                                                                </span>
+                                                                            </div>
+                                                                        </button>
+                                                                    )
+                                                                )}
+                                                        </div>
+                                                    )}
 
-                                                    {/* Custom category input */}
-                                                    <div className="flex gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
-                                                        <Input
-                                                            value={
-                                                                customCategoryName
+                                                {/* Custom category input */}
+                                                <div className="flex gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
+                                                    <Input
+                                                        value={
+                                                            customCategoryName
+                                                        }
+                                                        onChange={(e) =>
+                                                            setCustomCategoryName(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        placeholder="+ Tạo loại mới"
+                                                        className="flex-1 h-11 bg-[var(--color-neutral-900)] border-[var(--color-neutral-700)] text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-[var(--radius-xl)] focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]"
+                                                        onKeyDown={(e) => {
+                                                            if (
+                                                                e.key ===
+                                                                "Enter"
+                                                            ) {
+                                                                e.preventDefault();
+                                                                addCustomCategory();
                                                             }
-                                                            onChange={(e) =>
-                                                                setCustomCategoryName(
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                            placeholder="+ Tạo loại mới"
-                                                            className="flex-1 h-11 bg-[var(--color-neutral-900)] border-[var(--color-neutral-700)] text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-[var(--radius-xl)] focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]"
-                                                            onKeyDown={(e) => {
-                                                                if (
-                                                                    e.key ===
-                                                                    "Enter"
-                                                                ) {
-                                                                    e.preventDefault();
-                                                                    addCustomCategory();
-                                                                }
-                                                            }}
-                                                        />
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={
-                                                                addCustomCategory
-                                                            }
-                                                            disabled={
-                                                                !customCategoryName.trim()
-                                                            }
-                                                            className="h-11 w-11 p-0 border-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-700)] text-[var(--color-neutral-500)] hover:text-[var(--foreground)]"
-                                                        >
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </>
-                                            )}
+                                                        }}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={
+                                                            addCustomCategory
+                                                        }
+                                                        disabled={
+                                                            !customCategoryName.trim()
+                                                        }
+                                                        className="h-11 w-11 p-0 border-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-700)] text-[var(--color-neutral-500)] hover:text-[var(--foreground)]"
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </>
+                                        )}
 
-                                            {errors.category && (
-                                                <p className="text-sm text-red-400 flex items-center gap-1">
+                                        {errors.category && (
+                                            <p className="text-sm text-red-400 flex items-center gap-1">
+                                                <span>⚠️</span>
+                                                {errors.category.message}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ADVANCED OPTIONS (Collapsed by default) */}
+                            <div className="space-y-4 p-4 sm:p-5 bg-[var(--color-neutral-900)]/50 rounded-xl border border-[var(--color-neutral-800)]/50">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                        setShowAdvanced(!showAdvanced)
+                                    }
+                                    className="flex items-center gap-2 text-[var(--color-neutral-400)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)]/50 p-2 -ml-2 transition-colors"
+                                >
+                                    <span className="text-sm font-medium">
+                                        Tùy chọn khác
+                                    </span>
+                                    {showAdvanced ? (
+                                        <ChevronUp className="h-4 w-4" />
+                                    ) : (
+                                        <ChevronDown className="h-4 w-4" />
+                                    )}
+                                </Button>
+
+                                {showAdvanced && (
+                                    <div className="space-y-4 pl-4 border-l-2 border-blue-500/30">
+                                        {/* Place Name */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium text-[var(--color-neutral-300)]">
+                                                Tên địa điểm
+                                            </Label>
+                                            <Input
+                                                {...register("placeName")}
+                                                placeholder="VD: Cafe The Coffee Bean..."
+                                                className="h-11 bg-[var(--color-neutral-800)]/80 border-[var(--color-neutral-700)] hover:border-[var(--color-neutral-600)] focus:border-blue-500/50 text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-lg focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                                            />
+                                            {errors.placeName && (
+                                                <p className="text-xs text-red-400 flex items-center gap-1">
                                                     <span>⚠️</span>
-                                                    {errors.category.message}
+                                                    {errors.placeName.message}
                                                 </p>
                                             )}
                                         </div>
-                                    )}
-                                </div>
 
-                                {/* ADVANCED OPTIONS (Collapsed by default) */}
-                                <div className="space-y-4">
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                            setShowAdvanced(!showAdvanced)
-                                        }
-                                        className="flex items-center gap-2 text-[var(--color-neutral-500)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)]/50 p-2 -ml-2"
-                                    >
-                                        <span className="text-sm font-medium">
-                                            Tùy chọn khác
-                                        </span>
-                                        {showAdvanced ? (
-                                            <ChevronUp className="h-4 w-4" />
-                                        ) : (
-                                            <ChevronDown className="h-4 w-4" />
-                                        )}
-                                    </Button>
+                                        {/* Visit Time */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium text-[var(--color-neutral-300)]">
+                                                Thời gian
+                                            </Label>
+                                            <Input
+                                                type="datetime-local"
+                                                {...register("visitTime")}
+                                                className="h-11 bg-[var(--color-neutral-800)]/80 border-[var(--color-neutral-700)] hover:border-[var(--color-neutral-600)] focus:border-blue-500/50 text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                                            />
+                                        </div>
 
-                                    {showAdvanced && (
-                                        <div className="space-y-4 pl-4 border-l-2 border-[var(--color-neutral-700)]">
-                                            {/* Place Name */}
-                                            <div className="space-y-2">
-                                                <Label className="text-sm font-medium text-[var(--foreground)]">
-                                                    Tên địa điểm
-                                                </Label>
-                                                <Input
-                                                    {...register("placeName")}
-                                                    placeholder="VD: Cafe The Coffee Bean..."
-                                                    className="h-11 bg-[var(--color-neutral-900)] border-[var(--color-neutral-700)] text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-[var(--radius-xl)] focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]"
-                                                />
-                                                {errors.placeName && (
-                                                    <p className="text-xs text-red-400 flex items-center gap-1">
-                                                        <span>⚠️</span>
-                                                        {
-                                                            errors.placeName
-                                                                .message
+                                        {/* Mood */}
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium text-[var(--color-neutral-300)]">
+                                                Tâm trạng
+                                            </Label>
+                                            <div className="flex gap-2">
+                                                {moods.map((mood) => (
+                                                    <button
+                                                        key={mood.emoji}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setValue(
+                                                                "mood",
+                                                                mood.emoji as
+                                                                    | "😍"
+                                                                    | "😊"
+                                                                    | "😐"
+                                                                    | "🙁"
+                                                                    | "😴"
+                                                            )
                                                         }
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {/* Visit Time */}
-                                            <div className="space-y-2">
-                                                <Label className="text-sm font-medium text-[var(--foreground)]">
-                                                    Thời gian
-                                                </Label>
-                                                <Input
-                                                    type="datetime-local"
-                                                    {...register("visitTime")}
-                                                    className="h-11 bg-[var(--color-neutral-900)] border-[var(--color-neutral-700)] text-[var(--foreground)] rounded-[var(--radius-xl)] focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]"
-                                                />
-                                            </div>
-
-                                            {/* Mood */}
-                                            <div className="space-y-2">
-                                                <Label className="text-sm font-medium text-[var(--foreground)]">
-                                                    Tâm trạng
-                                                </Label>
-                                                <div className="flex gap-2">
-                                                    {moods.map((mood) => (
-                                                        <button
-                                                            key={mood.emoji}
-                                                            type="button"
-                                                            onClick={() =>
-                                                                setValue(
-                                                                    "mood",
-                                                                    mood.emoji as
-                                                                        | "😍"
-                                                                        | "😊"
-                                                                        | "😐"
-                                                                        | "🙁"
-                                                                        | "😴"
-                                                                )
-                                                            }
-                                                            className={`p-3 rounded-xl border-2 transition-all duration-200 min-h-[44px] min-w-[44px] ${
-                                                                watch(
-                                                                    "mood"
-                                                                ) === mood.emoji
-                                                                    ? "border-blue-500 bg-blue-500/10"
-                                                                    : "border-[var(--color-neutral-700)] hover:border-blue-400/50 hover:bg-[var(--color-neutral-700)]/50"
-                                                            }`}
-                                                            title={mood.label}
-                                                        >
-                                                            <div className="text-lg">
-                                                                {mood.emoji}
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                                        className={`p-3 rounded-lg border-2 transition-all duration-200 min-h-[44px] min-w-[44px] hover:scale-105 ${
+                                                            watch("mood") ===
+                                                            mood.emoji
+                                                                ? "border-blue-500 bg-blue-500/20 shadow-sm"
+                                                                : "border-[var(--color-neutral-700)] hover:border-blue-500/50 hover:bg-[var(--color-neutral-700)]/50"
+                                                        }`}
+                                                        title={mood.label}
+                                                    >
+                                                        <div className="text-lg">
+                                                            {mood.emoji}
+                                                        </div>
+                                                    </button>
+                                                ))}
                                             </div>
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         {/* FIXED FOOTER */}
                         <form
                             onSubmit={handleSubmit(onFormSubmit)}
-                            className="border-t border-[var(--color-neutral-700)] bg-[var(--background)] px-7 py-4 flex-shrink-0"
+                            className="border-t border-[var(--color-neutral-800)]/50 bg-[var(--background)] px-7 py-4 flex-shrink-0"
                         >
-                            <div className="flex justify-end gap-3">
+                            <div className="flex justify-end gap-2.5 sm:gap-3">
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     onClick={handleClose}
-                                    className="min-h-[44px] px-6 text-[var(--color-neutral-500)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)]/50"
+                                    className="min-h-[44px] px-6 text-[var(--color-neutral-500)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)]/50 rounded-lg transition-all"
                                 >
                                     Hủy
                                 </Button>
@@ -1210,20 +1212,25 @@ export function LocationNoteForm({
                                         isUploadingImages ||
                                         (!existingNote && !selectedCategory)
                                     }
-                                    className="min-h-[44px] px-8 bg-[var(--color-primary-600)] hover:bg-[var(--color-primary-700)] text-white border-0 focus:ring-2 focus:ring-[var(--color-primary-500)] focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                                    className="min-h-[44px] px-8 bg-blue-600 hover:bg-blue-700 text-white border-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
                                 >
                                     {isUploadingImages ? (
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            {uploadProgress || "Đang xử lý..."}
+                                        </>
                                     ) : (
-                                        <Save className="h-4 w-4 mr-2" />
+                                        <>
+                                            <Save className="h-4 w-4 mr-2" />
+                                            {isSubmitting && "Đang lưu..."}
+                                            {!isSubmitting &&
+                                                existingNote &&
+                                                "Cập nhật ghi chú"}
+                                            {!isSubmitting &&
+                                                !existingNote &&
+                                                "Lưu ghi chú"}
+                                        </>
                                     )}
-                                    {(() => {
-                                        if (isUploadingImages && uploadProgress)
-                                            return uploadProgress;
-                                        if (isSubmitting) return "Đang lưu...";
-                                        if (existingNote) return "Cập nhật";
-                                        return "Lưu ghi chú";
-                                    })()}
                                 </Button>
                             </div>
                         </form>
