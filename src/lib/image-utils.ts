@@ -50,22 +50,64 @@ interface ImageDisplayProps {
 }
 
 export function ImageDisplay({ src, alt, className, fallback }: ImageDisplayProps) {
+    const [hasError, setHasError] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(true);
+
     const imageType = getImageType(src);
 
+    // Debug logging
+    React.useEffect(() => {
+        console.log('🖼️ ImageDisplay:', { src, imageType, isValid: imageType !== 'invalid' });
+    }, [src, imageType]);
+
     if (imageType === "invalid") {
+        console.warn('⚠️ Invalid image URL:', src);
         return fallback ? React.createElement(React.Fragment, null, fallback) : null;
     }
 
-    return React.createElement("img", {
-        src,
-        alt,
-        className,
-        onError: (e: React.SyntheticEvent<HTMLImageElement>) => {
-            // Hide broken images
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-        }
-    });
+    if (hasError) {
+        console.error('❌ Failed to load image:', src);
+        // Return fallback or error placeholder instead of hiding
+        return fallback ? React.createElement(React.Fragment, null, fallback) :
+            React.createElement('div', {
+                className: `${className} flex items-center justify-center bg-neutral-800`,
+                style: { minHeight: '100px' }
+            },
+                React.createElement('span', { className: 'text-2xl' }, '📷'),
+                React.createElement('span', {
+                    className: 'text-xs text-red-400 ml-2',
+                    title: src
+                }, 'Lỗi tải ảnh')
+            );
+    }
+
+    return React.createElement('div', { className: 'relative' },
+        isLoading && React.createElement('div', {
+            className: 'absolute inset-0 flex items-center justify-center bg-neutral-800',
+        },
+            React.createElement('div', { className: 'animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full' })
+        ),
+        React.createElement("img", {
+            src,
+            alt,
+            className,
+            onLoad: () => {
+                console.log('✅ Image loaded successfully:', src);
+                setIsLoading(false);
+            },
+            onError: (e: React.SyntheticEvent<HTMLImageElement>) => {
+                console.error('❌ Image failed to load:', src);
+                const target = e.target as HTMLImageElement;
+                console.error('❌ Error details:', {
+                    naturalWidth: target.naturalWidth,
+                    naturalHeight: target.naturalHeight,
+                    complete: target.complete
+                });
+                setHasError(true);
+                setIsLoading(false);
+            }
+        })
+    );
 }
 
 /**

@@ -3,7 +3,11 @@ import {
     SourceType,
     VisibilityType,
     GroupRole,
-    ItineraryStatus
+    ItineraryStatus,
+    ShareVisibility,
+    FriendshipStatus,
+    ReactionType,
+    RecommendationStatus
 } from "@prisma/client"
 
 export interface Place {
@@ -23,9 +27,17 @@ export interface Place {
     osmId?: string
     createdBy: string
     createdAt: Date
+    updatedAt: Date
+    // Personal note fields (merged from LocationNote)
+    rating?: number
+    note?: string
+    visibility: ShareVisibility
+    visitDate?: Date
+    // Relations
     tags: PlaceTag[]
     favorites: Favorite[]
     media: Media[]
+    creator?: User
 }
 
 export interface PlaceTag {
@@ -129,6 +141,7 @@ export interface Journey {
     endDate?: Date
     coverImage?: string
     isPublic: boolean
+    visibility: ShareVisibility
     createdAt: Date
     updatedAt: Date
     stops: JourneyStop[]
@@ -243,3 +256,69 @@ export const PRICE_LEVELS = [
     { value: 3, label: "₫₫₫ (300k - 500k)", max: 500000 },
     { value: 4, label: "₫₫₫₫ (> 500k)", max: Infinity }
 ] as const
+
+// Friend System Types
+// LocationNote has been merged into Place model
+// For backwards compatibility, LocationNote is now just an alias for Place
+export type LocationNote = Place
+
+export interface Friendship {
+    id: string
+    requesterId: string
+    addresseeId: string
+    status: FriendshipStatus
+    createdAt: Date
+    updatedAt: Date
+    requester: User
+    addressee: User
+}
+
+export interface FriendShare {
+    id: string
+    userId: string
+    contentId: string
+    contentType: 'location_note' | 'journey' | 'media'
+    visibility: ShareVisibility
+    sharedWith: string[]
+    createdAt: Date
+}
+
+export interface Reaction {
+    id: string
+    userId: string
+    contentId: string
+    contentType: 'location_note' | 'journey' | 'media'
+    type: ReactionType
+    createdAt: Date
+    user: User
+}
+
+export interface Recommendation {
+    id: string
+    fromUserId: string
+    toUserId: string
+    placeId: string
+    message?: string
+    status: RecommendationStatus
+    createdAt: Date
+    fromUser: User
+    toUser: User
+    place: Place
+}
+
+export interface FriendWithStats extends User {
+    friendshipId: string
+    friendshipStatus: FriendshipStatus
+    friendsSince: Date
+    locationNotesCount: number
+    journeysCount: number
+}
+
+export interface ActivityFeedItem {
+    id: string
+    type: 'location_note' | 'journey' | 'media'
+    user: User
+    content: LocationNote | Journey | Media
+    reactions: Reaction[]
+    createdAt: Date
+}

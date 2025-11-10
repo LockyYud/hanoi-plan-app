@@ -180,8 +180,8 @@ export function PlacePopup({
                               ? location?.address
                               : place?.address || "";
 
-                        window.dispatchEvent(
-                            new CustomEvent("routeCreated", {
+                        globalThis.dispatchEvent(
+                            new CustomEvent("showDirections", {
                                 detail: {
                                     destination: {
                                         name: destinationName,
@@ -228,8 +228,8 @@ export function PlacePopup({
                               ? location?.address
                               : place?.address || "";
 
-                        window.dispatchEvent(
-                            new CustomEvent("routeCreated", {
+                        globalThis.dispatchEvent(
+                            new CustomEvent("showDirections", {
                                 detail: {
                                     destination: {
                                         name: destinationName,
@@ -754,7 +754,7 @@ export function PlacePopup({
     return (
         <div
             ref={popupRef}
-            className="w-80 z-20 pointer-events-auto transition-opacity duration-200"
+            className="w-80 z-20 pointer-events-none transition-opacity duration-200"
             style={{
                 ...popupStyle,
                 opacity: popupStyle.left ? 1 : 0, // Fade in when positioned
@@ -779,7 +779,7 @@ export function PlacePopup({
                 </div>
             )}
 
-            <Card className="shadow-2xl border border-neutral-700/50 rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-900/95 to-neutral-800/95 backdrop-blur-md">
+            <Card className="shadow-2xl border border-neutral-700/50 rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-900/95 to-neutral-800/95 backdrop-blur-md pointer-events-auto">
                 {/* Header */}
                 {isPlace && place?.media && place.media.length > 0 ? (
                     <div className="h-36 bg-gradient-to-r from-neutral-800 to-neutral-900 relative overflow-hidden">

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         // Get the file from form data
         const formData = await request.formData();
         const file = formData.get('file') as File;
-        const noteId = formData.get('noteId') as string | null; // Location note ID to attach image
+        const placeId = (formData.get('placeId') || formData.get('noteId')) as string | null; // Place ID to attach image (noteId for backwards compatibility)
         const visibility = formData.get('visibility') as string || 'private';
 
         if (!file) {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
             name: file.name,
             size: file.size,
             type: file.type,
-            noteId,
+            placeId,
             visibility
         });
 
@@ -127,10 +127,10 @@ export async function POST(request: NextRequest) {
 
         console.log('🎯 Image uploaded successfully:', imageUrl);
 
-        // Save image to media table if noteId provided
-        if (noteId) {
+        // Save image to media table if placeId provided
+        if (placeId) {
             try {
-                console.log('🔗 Saving image to media table for location note:', noteId);
+                console.log('🔗 Saving image to media table for place:', placeId);
 
                 if (!prisma) {
                     console.error('❌ Database not available');
@@ -162,68 +162,63 @@ export async function POST(request: NextRequest) {
                     dbEmail: user.email
                 });
 
-                // Verify the location note exists and belongs to user
-                const note = await prisma.place.findFirst({
+                // Verify the place exists and belongs to user
+                const place = await prisma.place.findFirst({
                     where: {
-                        id: noteId,
+                        id: placeId,
                         createdBy: user.id, // Use DB user ID
-                        openHours: {
-                            path: ["isLocationNote"],
-                            equals: true,
-                        },
                     }
                 });
 
-                console.log('🔍 Note verification:', {
-                    noteId,
-                    noteFound: !!note,
-                    noteCreatedBy: note?.createdBy,
-                    userIdMatch: note?.createdBy === user.id
+                console.log('🔍 Place verification:', {
+                    placeId,
+                    placeFound: !!place,
+                    userIdMatch: place?.createdBy === user.id
                 });
 
-                if (note) {
+                if (place) {
                     // Create media record
                     const mediaRecord = await prisma.media.create({
                         data: {
                             url: imageUrl,
                             type: MediaType.image,
                             visibility: visibility as VisibilityType,
-                            placeId: noteId,
-                            userId: user.id, // Use DB user ID
+                            placeId: place.id,
+                            userId: user.id,
                             isActive: true,
                         }
                     });
 
                     console.log('✅ Image saved to media table:', {
                         mediaId: mediaRecord.id,
-                        noteId,
+                        placeId: place.id,
                         imageUrl
                     });
 
-                    // Count total images for this note
+                    // Count total images for this place
                     const imageCount = await prisma.media.count({
                         where: {
-                            placeId: noteId,
+                            placeId: place.id,
                             type: MediaType.image,
                             isActive: true
                         }
                     });
-                    console.log(`📊 Total images for note ${noteId}: ${imageCount}`);
+                    console.log(`📊 Total images for place ${place.id}: ${imageCount}`);
 
                 } else {
-                    console.warn('⚠️ Location note not found or access denied:', noteId);
+                    console.warn('⚠️ Place not found or access denied:', placeId);
                 }
-            } catch (noteError) {
-                console.error('❌ Failed to save image to media table:', noteError);
+            } catch (placeError) {
+                console.error('❌ Failed to save image to media table:', placeError);
                 // Continue without error - image was uploaded successfully
             }
         }
 
-        // Return success even if note attachment failed
+        // Return success even if place attachment failed
         return NextResponse.json({
             success: true,
             url: imageUrl,
-            message: noteId ? 'Image uploaded and saved to database' : 'Image uploaded successfully'
+            message: placeId ? 'Image uploaded and saved to database' : 'Image uploaded successfully'
         });
 
     } catch (error) {

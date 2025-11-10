@@ -2,7 +2,7 @@ import { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 // Temporarily commented out for JWT strategy
 // import { PrismaAdapter } from "@auth/prisma-adapter"
-// import { prisma } from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 
 export const authOptions: NextAuthOptions = {
     // Temporarily disable database adapter to fix Vercel session issues
@@ -39,8 +39,28 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 console.log("JWT callback - initial sign in:", user);
 
-                // Store user data in token
-                token.uid = user.id;
+                // ✨ Get database user ID instead of OAuth provider ID
+                if (user.email) {
+                    try {
+                        const dbUser = await prisma.user.findUnique({
+                            where: { email: user.email }
+                        });
+
+                        if (dbUser) {
+                            token.uid = dbUser.id;  // Use database ID
+                            console.log("✅ JWT callback - using database user ID:", dbUser.id);
+                        } else {
+                            console.warn("⚠️ JWT callback - user not found in database:", user.email);
+                            token.uid = user.id;  // Fallback to OAuth ID
+                        }
+                    } catch (error) {
+                        console.error("❌ JWT callback - error fetching user:", error);
+                        token.uid = user.id;  // Fallback to OAuth ID
+                    }
+                } else {
+                    token.uid = user.id;  // Fallback if no email
+                }
+
                 token.email = user.email;
                 token.name = user.name;
 
@@ -86,7 +106,7 @@ export const authOptions: NextAuthOptions = {
         },
 
         // Sign in callback - control whether sign in is allowed
-        signIn: async ({ user, account }) => {
+        signIn: async ({ user, account, profile }) => {
             console.log("🔐 SignIn callback called:", {
                 provider: account?.provider,
                 userId: user?.id,
@@ -98,6 +118,41 @@ export const authOptions: NextAuthOptions = {
             if (process.env.NODE_ENV === 'production') {
                 console.log("🔐 PROD SignIn - User object:", JSON.stringify(user, null, 2));
                 console.log("🔐 PROD SignIn - Account object:", JSON.stringify(account, null, 2));
+            }
+
+            // ✨ AUTO-CREATE USER IN DATABASE if not exists
+            if (user?.email) {
+                try {
+                    const existingUser = await prisma.user.findUnique({
+                        where: { email: user.email }
+                    });
+
+                    if (!existingUser) {
+                        console.log("🆕 Creating new user in database:", user.email);
+
+                        // Get picture from profile or user object
+                        let imageUrl = user.image;
+                        if (account?.provider === "google" && profile) {
+                            const googleProfile = profile as { picture?: string };
+                            imageUrl = googleProfile.picture || user.image;
+                        }
+
+                        await prisma.user.create({
+                            data: {
+                                email: user.email,
+                                name: user.name || user.email.split('@')[0],
+                                avatarUrl: imageUrl,
+                                emailVerified: new Date(), // Auto-verify OAuth users
+                            }
+                        });
+                        console.log("✅ User created successfully in database");
+                    } else {
+                        console.log("👤 User already exists in database:", existingUser.id);
+                    }
+                } catch (error) {
+                    console.error("❌ Error creating user in database:", error);
+                    // Don't block sign in if database write fails
+                }
             }
 
             console.log("✅ SignIn callback - approved for provider:", account?.provider);

@@ -19,7 +19,11 @@ import {
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 import { ImageLightbox } from "./image-lightbox";
 import { cn } from "@/lib/utils";
-import { getCurrentLocation, openExternalNavigation } from "@/lib/geolocation";
+import {
+    getCurrentLocation,
+    openExternalNavigation,
+    getRoute,
+} from "@/lib/geolocation";
 import { toast } from "sonner";
 
 interface LocationNote {
@@ -94,11 +98,44 @@ export function NoteDetailsView({
             clearTimeout(timeoutId);
 
             if (response.ok) {
-                const noteWithImages = await response.json();
+                const data = await response.json();
+                const place = data.place || data; // API trả về { place: {...} }
                 console.log(
-                    `✅ Loaded note with ${noteWithImages.images?.length || 0} images`
+                    `✅ Loaded place with ${place.media?.length || 0} media items`
                 );
-                setFullNote(noteWithImages);
+
+                // Transform Place model to LocationNote interface
+                const imageUrls = place.media?.map((m: any) => m.url) || [];
+                console.log(
+                    `📸 Processing ${imageUrls.length} images:`,
+                    imageUrls
+                );
+
+                const transformedNote: LocationNote = {
+                    id: place.id,
+                    lng: place.lng,
+                    lat: place.lat,
+                    address: place.address,
+                    content: place.note || "",
+                    mood: place.mood, // This might not exist in Place model
+                    timestamp: new Date(place.createdAt),
+                    placeName: place.name,
+                    visitTime: place.visitDate,
+                    category: place.category,
+                    categoryName: place.categoryModel?.name,
+                    images: imageUrls,
+                    hasImages: (place.media?.length || 0) > 0,
+                    coverImageIndex: place.coverImageIndex || 0,
+                };
+
+                console.log("✅ Transformed note:", {
+                    id: transformedNote.id,
+                    imageCount: transformedNote.images?.length,
+                    hasImages: transformedNote.hasImages,
+                    firstImageUrl: transformedNote.images?.[0],
+                });
+
+                setFullNote(transformedNote);
             } else {
                 const errorData = await response.text();
                 console.error(
@@ -392,16 +429,46 @@ export function NoteDetailsView({
 
             const currentLocation = await getCurrentLocation();
 
-            toast.success("Đã tìm thấy vị trí của bạn!", {
+            toast.loading("Đang tính toán tuyến đường...", {
                 id: "note-directions",
             });
 
-            // Open external navigation app
+            // Calculate route using Mapbox Directions API
             const destination = { lat: note.lat, lng: note.lng };
+            const route = await getRoute(currentLocation, destination, {
+                profile: "driving",
+            });
+
+            console.log("🗺️ Note Details: Route calculated:", route);
+
+            // Dispatch event to show direction popup on map
+            globalThis.dispatchEvent(
+                new CustomEvent("showDirections", {
+                    detail: {
+                        destination: {
+                            name: note.content || "Ghi chú",
+                            address: note.address || "",
+                            lat: note.lat,
+                            lng: note.lng,
+                        },
+                        routeInfo: {
+                            duration: route.duration, // in seconds
+                            distance: route.distance, // in meters
+                        },
+                        route: route, // Pass full route object for drawing on map
+                    },
+                })
+            );
+
+            toast.success("Đã tìm thấy tuyến đường!", {
+                id: "note-directions",
+            });
+
+            // Also open external navigation app for actual navigation
             openExternalNavigation(destination, currentLocation);
         } catch (error) {
             console.error("❌ Error getting directions:", error);
-            toast.error("Không thể lấy vị trí hiện tại", {
+            toast.error("Không thể tính toán tuyến đường", {
                 description:
                     error instanceof Error
                         ? error.message

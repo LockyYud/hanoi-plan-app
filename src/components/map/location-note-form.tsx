@@ -31,6 +31,7 @@ const LocationNoteSchema = z.object({
     mood: z.enum(["😍", "😊", "😐", "🙁", "😴"]).optional(),
     placeName: z.string().min(1, "Tên địa điểm không được để trống"),
     visitTime: z.string().min(1, "Thời gian thăm không được để trống"),
+    visibility: z.enum(["private", "friends", "public"]),
 });
 
 type LocationNoteFormData = z.infer<typeof LocationNoteSchema>;
@@ -146,11 +147,16 @@ export function LocationNoteForm({
             visitTime:
                 existingNote?.visitTime ||
                 new Date().toISOString().slice(0, 16),
+            visibility: "private",
         },
     });
 
     // Watch content for character count
     const contentValue = watch("content") || "";
+
+    // Separate register ref from other props to avoid ref conflict
+    const { ref: contentRegisterRef, ...contentRegisterRest } =
+        register("content");
 
     // Auto-save draft logic
     useEffect(() => {
@@ -160,6 +166,7 @@ export function LocationNoteForm({
             placeName: watch("placeName"),
             visitTime: watch("visitTime"),
             mood: watch("mood"),
+            visibility: watch("visibility"),
         };
 
         const hasChanges =
@@ -205,6 +212,8 @@ export function LocationNoteForm({
                     if (draftData.visitTime)
                         setValue("visitTime", draftData.visitTime);
                     if (draftData.mood) setValue("mood", draftData.mood);
+                    if (draftData.visibility)
+                        setValue("visibility", draftData.visibility);
                 } catch (error) {
                     console.warn("Error loading draft:", error);
                 }
@@ -420,6 +429,7 @@ export function LocationNoteForm({
                         categoryIds: data.category ? [data.category] : [], // Convert single category to array for API
                         placeName: data.placeName,
                         visitTime: data.visitTime,
+                        visibility: data.visibility,
                     }),
                 });
 
@@ -516,6 +526,7 @@ export function LocationNoteForm({
                 placeName: watch("placeName"),
                 visitTime: watch("visitTime"),
                 mood: watch("mood"),
+                visibility: watch("visibility"),
             };
             const draftKey = `location-note-draft-${location.lng}-${location.lat}`;
             localStorage.setItem(draftKey, JSON.stringify(formData));
@@ -589,8 +600,11 @@ export function LocationNoteForm({
                                 </p>
                                 <div className="relative">
                                     <Textarea
-                                        ref={textareaRef}
-                                        {...register("content")}
+                                        {...contentRegisterRest}
+                                        ref={(e) => {
+                                            contentRegisterRef(e);
+                                            textareaRef.current = e;
+                                        }}
                                         placeholder="Chia sẻ trải nghiệm của bạn tại đây..."
                                         rows={4}
                                         className="resize-none bg-[var(--color-neutral-800)]/80 border-[var(--color-neutral-700)] hover:border-[var(--color-neutral-600)] focus:border-blue-500/50 text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-lg focus:ring-2 focus:ring-blue-500/20 min-h-[100px] pr-16 text-base leading-relaxed transition-colors"
@@ -1095,6 +1109,74 @@ export function LocationNoteForm({
                                         )}
                                     </div>
                                 )}
+                            </div>
+
+                            {/* PRIORITY 4: VISIBILITY - Easy Access */}
+                            <div className="space-y-3 p-4 sm:p-5 bg-[var(--color-neutral-900)]/50 rounded-xl border border-[var(--color-neutral-800)]/50">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                                    <h3 className="text-base font-semibold text-[var(--foreground)]">
+                                        Ai có thể xem?
+                                    </h3>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setValue("visibility", "private")
+                                        }
+                                        className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center justify-center gap-1.5 hover:scale-[1.02] ${
+                                            watch("visibility") === "private"
+                                                ? "border-blue-500 bg-blue-500/20 shadow-sm"
+                                                : "border-[var(--color-neutral-700)] hover:border-blue-500/50 hover:bg-[var(--color-neutral-700)]/50"
+                                        }`}
+                                    >
+                                        <span className="text-xl">🔒</span>
+                                        <span className="text-xs font-medium text-[var(--foreground)]">
+                                            Riêng tư
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setValue("visibility", "friends")
+                                        }
+                                        className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center justify-center gap-1.5 hover:scale-[1.02] ${
+                                            watch("visibility") === "friends"
+                                                ? "border-blue-500 bg-blue-500/20 shadow-sm"
+                                                : "border-[var(--color-neutral-700)] hover:border-blue-500/50 hover:bg-[var(--color-neutral-700)]/50"
+                                        }`}
+                                    >
+                                        <span className="text-xl">👥</span>
+                                        <span className="text-xs font-medium text-[var(--foreground)]">
+                                            Bạn bè
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setValue("visibility", "public")
+                                        }
+                                        className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center justify-center gap-1.5 hover:scale-[1.02] ${
+                                            watch("visibility") === "public"
+                                                ? "border-blue-500 bg-blue-500/20 shadow-sm"
+                                                : "border-[var(--color-neutral-700)] hover:border-blue-500/50 hover:bg-[var(--color-neutral-700)]/50"
+                                        }`}
+                                    >
+                                        <span className="text-xl">🌍</span>
+                                        <span className="text-xs font-medium text-[var(--foreground)]">
+                                            Công khai
+                                        </span>
+                                    </button>
+                                </div>
+                                <p className="text-xs text-[var(--color-neutral-500)] text-center">
+                                    {watch("visibility") === "private" &&
+                                        "Chỉ bạn có thể xem ghi chú này"}
+                                    {watch("visibility") === "friends" &&
+                                        "Bạn bè của bạn có thể xem ghi chú này"}
+                                    {watch("visibility") === "public" &&
+                                        "Mọi người có thể xem ghi chú này"}
+                                </p>
                             </div>
 
                             {/* ADVANCED OPTIONS (Collapsed by default) */}

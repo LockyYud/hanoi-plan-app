@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
@@ -11,55 +8,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum CategoryType {
-  cafe
-  food
-  bar
-  rooftop
-  activity
-  landmark
-}
-
-enum SourceType {
-  manual
-  osm
-  gmaps
-}
-
-enum VisibilityType {
-  private
-  group
-}
-
-enum GroupRole {
-  owner
-  member
-}
-
-enum ItineraryStatus {
-  draft
-  final
-}
-
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  avatarUrl     String?   @map("avatar_url")
-  emailVerified DateTime? @map("email_verified")
-  createdAt     DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  createdPlaces   Place[]
-  favorites       Favorite[]
-  media           Media[]
-  ownedGroups     Group[]         @relation("GroupOwner")
-  groupMemberships GroupMember[]
-  votes           GroupVote[]
-  accounts        Account[]
-  sessions        Session[]
-  categories      Category[]
-  journeys        Journey[]
+  id                      String                       @id @default(cuid())
+  email                   String                       @unique
+  name                    String?
+  avatarUrl               String?                      @map("avatar_url")
+  emailVerified           DateTime?                    @map("email_verified")
+  createdAt               DateTime                     @default(now()) @map("created_at")
+  accounts                Account[]
+  categories              Category[]
+  favorites               Favorite[]
+  acceptedInvitations     FriendInvitationAcceptance[] @relation("AcceptedInvitations")
+  friendInvitations       FriendInvitation[]           @relation("UserInvitations")
+  shares                  FriendShare[]                @relation("UserShares")
+  receivedFriendRequests  Friendship[]                 @relation("FriendshipAddressee")
+  sentFriendRequests      Friendship[]                 @relation("FriendshipRequester")
+  groupMemberships        GroupMember[]
+  votes                   GroupVote[]
+  ownedGroups             Group[]                      @relation("GroupOwner")
+  journeys                Journey[]
+  media                   Media[]
+  createdPlaces           Place[]
+  reactions               Reaction[]                   @relation("UserReactions")
+  sentRecommendations     Recommendation[]             @relation("SentRecommendations")
+  receivedRecommendations Recommendation[]             @relation("ReceivedRecommendations")
+  sessions                Session[]
 
   @@map("users")
 }
@@ -67,55 +40,58 @@ model User {
 model Category {
   id        String   @id @default(cuid())
   name      String
-  slug      String   // để dễ query và URL-friendly
-  icon      String?  // icon name hoặc emoji
-  color     String?  // hex color code
-  isDefault Boolean  @default(false) @map("is_default") // system default categories
-  userId    String?  @map("user_id") // null = system category, có value = user category
+  slug      String
+  icon      String?
+  color     String?
+  isDefault Boolean  @default(false) @map("is_default")
+  userId    String?  @map("user_id")
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  places    Place[]
 
-  // Relations
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  places Place[]
-
-  @@unique([slug, userId]) // mỗi user có slug unique
+  @@unique([slug, userId])
   @@index([userId, isActive])
   @@map("categories")
 }
 
 model Place {
-  id         String       @id @default(cuid())
-  name       String
-  address    String
-  ward       String?
-  district   String?
-  lat        Float
-  lng        Float
-  priceLevel Int?         @map("price_level")
-  category   CategoryType
-  categoryId String?      @map("category_id") // Thêm optional để migration dần
-  openHours  Json?        @map("open_hours")
-  phone      String?
-  website    String?
-  source     SourceType   @default(manual)
-  osmId      String?      @map("osm_id")
-  createdBy  String       @map("created_by")
-  createdAt  DateTime     @default(now()) @map("created_at")
-
-  // Relations
-  creator         User              @relation(fields: [createdBy], references: [id])
-  categoryModel   Category?         @relation(fields: [categoryId], references: [id])
-  tags            PlaceTag[]
+  id              String           @id @default(cuid())
+  name            String
+  address         String
+  ward            String?
+  district        String?
+  lat             Float
+  lng             Float
+  priceLevel      Int?             @map("price_level")
+  category        CategoryType
+  categoryId      String?          @map("category_id")
+  openHours       Json?            @map("open_hours")
+  phone           String?
+  website         String?
+  source          SourceType       @default(manual)
+  osmId           String?          @map("osm_id")
+  createdBy       String           @map("created_by")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  rating          Int?
+  note            String?
+  visibility      ShareVisibility  @default(private)
+  visitDate       DateTime?        @map("visit_date")
   favorites       Favorite[]
-  media           Media[]
   votes           GroupVote[]
   itineraryStops  ItineraryStop[]
   journeyStops    JourneyStop[]
+  media           Media[]
+  tags            PlaceTag[]
+  categoryModel   Category?        @relation(fields: [categoryId], references: [id])
+  creator         User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  recommendations Recommendation[]
 
   @@index([lat, lng])
   @@index([district, category])
   @@index([categoryId])
+  @@index([createdBy, visibility])
   @@map("places")
 }
 
@@ -123,9 +99,7 @@ model PlaceTag {
   id      String @id @default(cuid())
   placeId String @map("place_id")
   tag     String
-
-  // Relations
-  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
 
   @@unique([placeId, tag])
   @@map("place_tags")
@@ -137,36 +111,27 @@ model Favorite {
   rating    Int?
   comment   String?
   createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, placeId])
   @@index([userId])
   @@map("favorites")
 }
 
-enum MediaType {
-  image
-  video
-}
-
 model Media {
-  id         String          @id @default(cuid())
-  placeId    String?         @map("place_id")
-  userId     String          @map("user_id")
-  groupId    String?         @map("group_id")
+  id         String         @id @default(cuid())
+  placeId    String?        @map("place_id")
+  userId     String         @map("user_id")
+  groupId    String?        @map("group_id")
   url        String
-  type       MediaType       @default(image)
-  visibility VisibilityType  @default(private)
-  isActive   Boolean         @default(true)  @map("is_active")
-  createdAt  DateTime        @default(now()) @map("created_at")
-
-  // Relations
-  place Place? @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  type       MediaType      @default(image)
+  visibility VisibilityType @default(private)
+  isActive   Boolean        @default(true) @map("is_active")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  group      Group?         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  place      Place?         @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([placeId, isActive])
   @@index([createdAt])
@@ -174,21 +139,19 @@ model Media {
 }
 
 model Group {
-  id         String   @id @default(cuid())
-  name       String
-  ownerId    String   @map("owner_id")
-  startTime  DateTime @map("start_time")
-  endTime    DateTime @map("end_time")
-  budgetMin  Int?     @map("budget_min")
-  budgetMax  Int?     @map("budget_max")
-  vibeTags   String[] @map("vibe_tags")
-  areaPref   String[] @map("area_pref")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  // Relations
-  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  id          String        @id @default(cuid())
+  name        String
+  ownerId     String        @map("owner_id")
+  startTime   DateTime      @map("start_time")
+  endTime     DateTime      @map("end_time")
+  budgetMin   Int?          @map("budget_min")
+  budgetMax   Int?          @map("budget_max")
+  vibeTags    String[]      @map("vibe_tags")
+  areaPref    String[]      @map("area_pref")
+  createdAt   DateTime      @default(now()) @map("created_at")
   members     GroupMember[]
   votes       GroupVote[]
+  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id])
   itineraries Itinerary[]
   media       Media[]
 
@@ -199,10 +162,8 @@ model GroupMember {
   groupId String    @map("group_id")
   userId  String    @map("user_id")
   role    GroupRole @default(member)
-
-  // Relations
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([groupId, userId])
   @@map("group_members")
@@ -212,45 +173,39 @@ model GroupVote {
   groupId String @map("group_id")
   placeId String @map("place_id")
   userId  String @map("user_id")
-  vote    Int    // -1, 0, 1
-
-  // Relations
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vote    Int
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([groupId, placeId, userId])
   @@map("group_votes")
 }
 
 model Itinerary {
-  id        String            @id @default(cuid())
-  groupId   String            @map("group_id")
+  id        String          @id @default(cuid())
+  groupId   String          @map("group_id")
   title     String
-  status    ItineraryStatus   @default(draft)
+  status    ItineraryStatus @default(draft)
   score     Float?
-  createdAt DateTime          @default(now()) @map("created_at")
-
-  // Relations
-  group Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  stops ItineraryStop[]
-  share Share?
+  createdAt DateTime        @default(now()) @map("created_at")
+  group     Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  stops     ItineraryStop[]
+  share     Share?
 
   @@map("itineraries")
 }
 
 model ItineraryStop {
-  id           String    @id @default(cuid())
-  itineraryId  String    @map("itinerary_id")
-  seq          Int
-  placeId      String    @map("place_id")
-  arriveTime   DateTime? @map("arrive_time")
-  departTime   DateTime? @map("depart_time")
-  travelMinutes Int?     @map("travel_minutes")
-
-  // Relations
-  itinerary Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
-  place     Place     @relation(fields: [placeId], references: [id])
+  id            String    @id @default(cuid())
+  itineraryId   String    @map("itinerary_id")
+  seq           Int
+  placeId       String    @map("place_id")
+  arriveTime    DateTime? @map("arrive_time")
+  departTime    DateTime? @map("depart_time")
+  travelMinutes Int?      @map("travel_minutes")
+  itinerary     Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  place         Place     @relation(fields: [placeId], references: [id])
 
   @@unique([itineraryId, seq])
   @@map("itinerary_stops")
@@ -261,29 +216,25 @@ model Share {
   itineraryId String    @unique @map("itinerary_id")
   publicSlug  String    @unique @map("public_slug")
   expiresAt   DateTime? @map("expires_at")
-
-  // Relations
-  itinerary Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  itinerary   Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
 
   @@map("shares")
 }
 
-// NextAuth.js tables
 model Account {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -308,24 +259,23 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
-// Personal Journey models
 model Journey {
-  id          String    @id @default(cuid())
+  id          String          @id @default(cuid())
   title       String
   description String?
-  userId      String    @map("user_id")
-  startDate   DateTime? @map("start_date")
-  endDate     DateTime? @map("end_date")
-  coverImage  String?   @map("cover_image")
-  isPublic    Boolean   @default(false) @map("is_public")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stops JourneyStop[]
+  userId      String          @map("user_id")
+  startDate   DateTime?       @map("start_date")
+  endDate     DateTime?       @map("end_date")
+  coverImage  String?         @map("cover_image")
+  isPublic    Boolean         @default(false) @map("is_public")
+  visibility  ShareVisibility @default(private)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  stops       JourneyStop[]
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, visibility])
   @@index([createdAt])
   @@map("journeys")
 }
@@ -337,12 +287,172 @@ model JourneyStop {
   sequence  Int
   note      String?
   createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  journey Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
-  place   Place   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  journey   Journey  @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
 
   @@unique([journeyId, sequence])
   @@index([journeyId])
   @@map("journey_stops")
+}
+
+model Friendship {
+  id          String                      @id @default(cuid())
+  requesterId String                      @map("requester_id")
+  addresseeId String                      @map("addressee_id")
+  status      FriendshipStatus            @default(pending)
+  createdAt   DateTime                    @default(now()) @map("created_at")
+  updatedAt   DateTime                    @updatedAt @map("updated_at")
+  invitation  FriendInvitationAcceptance?
+  addressee   User                        @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  requester   User                        @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId, status])
+  @@index([addresseeId, status])
+  @@map("friendships")
+}
+
+model FriendShare {
+  id          String          @id @default(cuid())
+  userId      String          @map("user_id")
+  contentId   String          @map("content_id")
+  contentType String          @map("content_type")
+  visibility  ShareVisibility @default(private)
+  sharedWith  String[]        @map("shared_with")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  user        User            @relation("UserShares", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId, contentType])
+  @@index([userId, contentType])
+  @@index([contentId, contentType])
+  @@map("friend_shares")
+}
+
+model Reaction {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id")
+  contentId   String       @map("content_id")
+  contentType String       @map("content_type")
+  type        ReactionType
+  createdAt   DateTime     @default(now()) @map("created_at")
+  user        User         @relation("UserReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId, contentType])
+  @@index([contentId, contentType])
+  @@map("reactions")
+}
+
+model Recommendation {
+  id         String               @id @default(cuid())
+  fromUserId String               @map("from_user_id")
+  toUserId   String               @map("to_user_id")
+  placeId    String               @map("place_id")
+  message    String?
+  status     RecommendationStatus @default(pending)
+  createdAt  DateTime             @default(now()) @map("created_at")
+  fromUser   User                 @relation("SentRecommendations", fields: [fromUserId], references: [id], onDelete: Cascade)
+  place      Place                @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  toUser     User                 @relation("ReceivedRecommendations", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([toUserId, status])
+  @@index([fromUserId])
+  @@index([placeId])
+  @@map("recommendations")
+}
+
+model FriendInvitation {
+  id          String                       @id @default(cuid())
+  userId      String                       @map("user_id")
+  inviteCode  String                       @unique @map("invite_code")
+  inviteUrl   String                       @map("invite_url")
+  usageCount  Int                          @default(0) @map("usage_count")
+  maxUsage    Int?                         @map("max_usage")
+  expiresAt   DateTime?                    @map("expires_at")
+  isActive    Boolean                      @default(true) @map("is_active")
+  createdAt   DateTime                     @default(now()) @map("created_at")
+  acceptances FriendInvitationAcceptance[]
+  user        User                         @relation("UserInvitations", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([inviteCode])
+  @@index([isActive])
+  @@map("friend_invitations")
+}
+
+model FriendInvitationAcceptance {
+  id           String           @id @default(cuid())
+  invitationId String           @map("invitation_id")
+  acceptedById String           @map("accepted_by_id")
+  friendshipId String           @unique @map("friendship_id")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  acceptedBy   User             @relation("AcceptedInvitations", fields: [acceptedById], references: [id], onDelete: Cascade)
+  friendship   Friendship       @relation(fields: [friendshipId], references: [id], onDelete: Cascade)
+  invitation   FriendInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+
+  @@unique([invitationId, acceptedById])
+  @@index([invitationId])
+  @@index([acceptedById])
+  @@map("friend_invitation_acceptances")
+}
+
+enum CategoryType {
+  cafe
+  food
+  bar
+  rooftop
+  activity
+  landmark
+}
+
+enum SourceType {
+  manual
+  osm
+  gmaps
+}
+
+enum VisibilityType {
+  private
+  group
+}
+
+enum ShareVisibility {
+  private
+  friends
+  selected_friends
+  public
+}
+
+enum FriendshipStatus {
+  pending
+  accepted
+  blocked
+}
+
+enum ReactionType {
+  love
+  like
+  wow
+  smile
+  fire
+}
+
+enum RecommendationStatus {
+  pending
+  accepted
+  dismissed
+}
+
+enum GroupRole {
+  owner
+  member
+}
+
+enum ItineraryStatus {
+  draft
+  final
+}
+
+enum MediaType {
+  image
+  video
 }

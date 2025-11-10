@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { title, description, startDate, endDate, placeIds, coverImage } =
+        const { title, description, startDate, endDate, placeIds, coverImage, visibility } =
             body;
 
         // Validate required fields
@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
                 startDate: startDate ? new Date(startDate) : null,
                 endDate: endDate ? new Date(endDate) : null,
                 coverImage,
+                visibility: visibility || "private",
                 stops: {
                     create: placeIds.map((placeId: string, index: number) => ({
                         placeId,
@@ -152,6 +153,7 @@ export async function PUT(request: NextRequest) {
             endDate,
             placeIds,
             coverImage,
+            visibility,
         } = body;
 
         if (!id) {
@@ -190,6 +192,7 @@ export async function PUT(request: NextRequest) {
                 startDate: startDate ? new Date(startDate) : undefined,
                 endDate: endDate ? new Date(endDate) : undefined,
                 coverImage,
+                ...(visibility && { visibility }),
             },
             include: {
                 stops: {

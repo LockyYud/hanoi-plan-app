@@ -10,8 +10,10 @@ import {
     useUIStore,
     usePlaceStore,
     useMemoryLaneStore,
+    useFriendStore,
     type LocationNote,
 } from "@/lib/store";
+import type { Place } from "@/lib/types";
 import { PlacePopup } from "./place-popup";
 import { MapControls } from "./map-controls";
 import { LocationNoteForm } from "./location-note-form";
@@ -21,7 +23,11 @@ import { RouteDisplay } from "@/components/timeline/route-display";
 import { CategoryType } from "@prisma/client";
 import { cn } from "@/lib/utils";
 import { MapPin } from "lucide-react"; // Added for error UI
-import { getCurrentLocation } from "@/lib/geolocation";
+import {
+    getCurrentLocation,
+    removeRouteFromMap,
+    addRouteToMap,
+} from "@/lib/geolocation";
 import {
     createMapPinElement,
     destroyMapPinElement,
@@ -31,6 +37,11 @@ import { createRoot } from "react-dom/client";
 import { ClusterMarker } from "./cluster-marker";
 import { FloatingActionButton } from "./floating-action-button";
 import { CreateJourneyDialog } from "@/components/journey/create-journey-dialog";
+import { DirectionPopup } from "./direction-popup";
+import { FriendsLayerControl } from "./friends-layer-control";
+import { FriendLocationPin } from "./friend-location-pin";
+import { FriendLocationPopup } from "./friend-location-popup";
+import { FriendLocationDetailsView } from "./friend-location-details-view";
 
 // Set the Mapbox access token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
@@ -55,6 +66,20 @@ export function MapContainer({ className }: MapContainerProps) {
     const [showLocationForm, setShowLocationForm] = useState(false);
     const [showEditForm, setShowEditForm] = useState(false);
     const [showJourneyDialog, setShowJourneyDialog] = useState(false);
+    const [showDirectionPopup, setShowDirectionPopup] = useState(false);
+    const [directionInfo, setDirectionInfo] = useState<{
+        destination: {
+            name: string;
+            address: string;
+            lat: number;
+            lng: number;
+        };
+        routeInfo: {
+            duration: number;
+            distance: number;
+        };
+        route?: any; // Full route object from Mapbox for drawing on map
+    } | null>(null);
     const [editingNote, setEditingNote] = useState<{
         id: string;
         lng: number;
@@ -78,6 +103,12 @@ export function MapContainer({ className }: MapContainerProps) {
         setShowRoute,
         clearRoute,
     } = useMemoryLaneStore();
+    const {
+        showFriendsLayer,
+        selectedFriendId,
+        friendLocationNotes,
+        fetchFriendLocationNotes,
+    } = useFriendStore();
 
     // State for unified location notes system
     const [locationNotes, setLocationNotes] = useState<
@@ -93,6 +124,14 @@ export function MapContainer({ className }: MapContainerProps) {
             hasImages?: boolean;
         }>
     >([]);
+
+    // State for friend location markers and popup
+    const friendMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+    const [selectedFriendLocation, setSelectedFriendLocation] =
+        useState<Place | null>(null);
+    const [showFriendDetailsDialog, setShowFriendDetailsDialog] =
+        useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
     // Load location notes from API
     const loadLocationNotes = async () => {
@@ -482,28 +521,67 @@ export function MapContainer({ className }: MapContainerProps) {
             event: CustomEvent<{ lat: number; lng: number }>
         ) => {
             if (map.current && event.detail) {
-                console.log("🎯 Focusing map on location:", event.detail);
+                const { lat, lng } = event.detail;
                 map.current.flyTo({
-                    center: [event.detail.lng, event.detail.lat],
+                    center: [lng, lat],
                     zoom: 16,
                     duration: 1000,
                 });
             }
         };
 
-        window.addEventListener(
+        const handleShowDirections = (
+            event: CustomEvent<{
+                destination: {
+                    name: string;
+                    address: string;
+                    lat: number;
+                    lng: number;
+                };
+                routeInfo: {
+                    duration: number;
+                    distance: number;
+                };
+                route?: any; // Full route object from Mapbox
+            }>
+        ) => {
+            if (event.detail) {
+                console.log("🗺️ Map: Showing direction popup:", event.detail);
+                setDirectionInfo(event.detail);
+                setShowDirectionPopup(true);
+
+                // Draw route on map if route data is provided
+                if (event.detail.route && map.current) {
+                    try {
+                        console.log("🗺️ Map: Drawing route on map");
+                        addRouteToMap(map.current, event.detail.route);
+                    } catch (error) {
+                        console.error("❌ Map: Error drawing route:", error);
+                    }
+                }
+            }
+        };
+
+        globalThis.addEventListener(
             "focusLocation",
             handleFocusLocation as EventListener
         );
+        globalThis.addEventListener(
+            "showDirections",
+            handleShowDirections as EventListener
+        );
+
         return () => {
-            window.removeEventListener(
+            globalThis.removeEventListener(
                 "focusLocation",
                 handleFocusLocation as EventListener
             );
+            globalThis.removeEventListener(
+                "showDirections",
+                handleShowDirections as EventListener
+            );
         };
-    }, []);
-
-    // Add clustered location note markers (optimized to avoid unnecessary re-renders)
+    }, []); // Add clustered location note markers (optimized to avoid unnecessary re-renders)
     useEffect(() => {
         if (!map.current || !mapLoaded) {
             return;
@@ -697,6 +775,117 @@ export function MapContainer({ className }: MapContainerProps) {
 
         // Note: locationNotes are now the primary marker system
     }, [mapLoaded]);
+
+    // Detect mobile
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(globalThis.innerWidth < 768);
+        };
+        checkMobile();
+        globalThis.addEventListener("resize", checkMobile);
+        return () => globalThis.removeEventListener("resize", checkMobile);
+    }, []);
+
+    // Fetch friend location notes when friends layer is enabled or friend filter changes
+    useEffect(() => {
+        if (showFriendsLayer && session) {
+            fetchFriendLocationNotes(selectedFriendId || undefined);
+        }
+    }, [showFriendsLayer, selectedFriendId, session, fetchFriendLocationNotes]);
+
+    // Render friend location markers
+    useEffect(() => {
+        if (!map.current || !mapLoaded) return;
+
+        // Clear existing friend markers
+        friendMarkersRef.current.forEach((marker) => {
+            const element = marker.getElement();
+            const reactMarker = element as ReactMapPinElement;
+            if (reactMarker._reactRoot) {
+                destroyMapPinElement(reactMarker);
+            }
+            marker.remove();
+        });
+        friendMarkersRef.current.clear();
+
+        // Only render if friends layer is visible
+        if (!showFriendsLayer || friendLocationNotes.length === 0) {
+            return;
+        }
+
+        console.log(
+            "🎨 Rendering friend location markers:",
+            friendLocationNotes.length
+        );
+
+        // Create markers for friend locations
+        friendLocationNotes.forEach((friendNote) => {
+            const markerElement = document.createElement("div");
+            const root = createRoot(markerElement);
+
+            // Get first image - API returns 'images' array or 'media' array
+            const imageUrl =
+                (friendNote as any).images &&
+                (friendNote as any).images.length > 0
+                    ? (friendNote as any).images[0]
+                    : friendNote.media && friendNote.media.length > 0
+                      ? friendNote.media[0].url
+                      : undefined;
+
+            console.log("🎨 Friend note image check:", {
+                id: friendNote.id,
+                hasImages: !!(friendNote as any).images?.length,
+                images: (friendNote as any).images,
+                hasMedia: !!friendNote.media?.length,
+                media: friendNote.media,
+                imageUrl,
+            });
+
+            root.render(
+                <FriendLocationPin
+                    friendName={
+                        friendNote.creator?.name ||
+                        friendNote.creator?.email ||
+                        "Friend"
+                    }
+                    friendAvatarUrl={friendNote.creator?.avatarUrl}
+                    imageUrl={imageUrl}
+                    category={friendNote.category}
+                    mood={friendNote.note ? undefined : "📍"} // Use note as mood indicator
+                    onClick={() => {
+                        setSelectedFriendLocation(friendNote);
+                        // On mobile, auto-open details view
+                        if (globalThis.innerWidth < 768) {
+                            setTimeout(() => {
+                                setShowFriendDetailsDialog(true);
+                            }, 50);
+                        }
+                    }}
+                />
+            );
+
+            (markerElement as ReactMapPinElement)._reactRoot = root;
+
+            const marker = new mapboxgl.Marker(markerElement)
+                .setLngLat([friendNote.lng, friendNote.lat])
+                .addTo(map.current!);
+
+            friendMarkersRef.current.set(friendNote.id, marker);
+        });
+
+        // Cleanup on unmount
+        return () => {
+            friendMarkersRef.current.forEach((marker) => {
+                const element = marker.getElement();
+                const reactMarker = element as ReactMapPinElement;
+                if (reactMarker._reactRoot) {
+                    destroyMapPinElement(reactMarker);
+                }
+                marker.remove();
+            });
+            friendMarkersRef.current.clear();
+        };
+    }, [mapLoaded, showFriendsLayer, friendLocationNotes]);
 
     // Track last programmatic center to avoid loops
     const lastProgrammaticCenter = useRef<[number, number] | null>(null);
@@ -1261,6 +1450,9 @@ export function MapContainer({ className }: MapContainerProps) {
             <div ref={mapContainer} className="w-full h-full relative z-0" />
             <MapControls mapRef={map} />
 
+            {/* Friends Layer Control */}
+            <FriendsLayerControl />
+
             {/* Floating Action Button for quick actions */}
             <FloatingActionButton
                 onCreateNote={handleCreateNoteAtLocation}
@@ -1443,6 +1635,95 @@ export function MapContainer({ className }: MapContainerProps) {
                 onClose={() => setShowJourneyDialog(false)}
                 onSuccess={handleJourneySuccess}
             />
+
+            {/* Direction Popup */}
+            <DirectionPopup
+                isVisible={showDirectionPopup}
+                destination={directionInfo?.destination}
+                routeInfo={directionInfo?.routeInfo}
+                onClose={() => {
+                    setShowDirectionPopup(false);
+                    setDirectionInfo(null);
+                    // Remove route from map when closing popup
+                    if (map.current) {
+                        removeRouteFromMap(map.current);
+                    }
+                }}
+            />
+
+            {/* Friend Location Popup (Desktop) */}
+            {selectedFriendLocation && !isMobile && (
+                <FriendLocationPopup
+                    locationNote={selectedFriendLocation}
+                    mapRef={
+                        map.current
+                            ? (map as React.RefObject<mapboxgl.Map>)
+                            : undefined
+                    }
+                    onClose={() => setSelectedFriendLocation(null)}
+                    onAddToFavorites={async () => {
+                        try {
+                            const response = await fetch("/api/favorites", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    placeId: selectedFriendLocation.id,
+                                }),
+                                credentials: "include",
+                            });
+
+                            if (response.ok) {
+                                alert("Added to favorites!");
+                                setSelectedFriendLocation(null);
+                            } else {
+                                alert("Failed to add to favorites");
+                            }
+                        } catch (error) {
+                            console.error("Error adding to favorites:", error);
+                            alert("Error adding to favorites");
+                        }
+                    }}
+                />
+            )}
+
+            {/* Friend Location Details View (Mobile) */}
+            {selectedFriendLocation && showFriendDetailsDialog && (
+                <FriendLocationDetailsView
+                    isOpen={showFriendDetailsDialog}
+                    locationNote={selectedFriendLocation}
+                    onClose={() => {
+                        setShowFriendDetailsDialog(false);
+                        setSelectedFriendLocation(null);
+                    }}
+                    onAddToFavorites={async () => {
+                        try {
+                            const response = await fetch("/api/favorites", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    placeId: selectedFriendLocation.id,
+                                }),
+                                credentials: "include",
+                            });
+
+                            if (response.ok) {
+                                alert("Added to favorites!");
+                                setShowFriendDetailsDialog(false);
+                                setSelectedFriendLocation(null);
+                            } else {
+                                alert("Failed to add to favorites");
+                            }
+                        } catch (error) {
+                            console.error("Error adding to favorites:", error);
+                            alert("Error adding to favorites");
+                        }
+                    }}
+                />
+            )}
         </div>
     );
 }
