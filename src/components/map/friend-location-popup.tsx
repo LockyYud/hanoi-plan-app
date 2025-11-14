@@ -38,7 +38,9 @@ export function FriendLocationPopup({
     const lastHeightRef = useRef<number>(280);
 
     useEffect(() => {
-        if (!mapRef?.current) return;
+        if (!mapRef?.current) {
+            return;
+        }
 
         const coordinates = [place.lng, place.lat];
 

@@ -1689,7 +1689,7 @@ export function MapContainer({ className }: MapContainerProps) {
             )}
 
             {/* Friend Location Details View (Mobile) */}
-            {selectedFriendLocation && showFriendDetailsDialog && (
+            {selectedFriendLocation && showFriendDetailsDialog && isMobile && (
                 <FriendLocationDetailsView
                     isOpen={showFriendDetailsDialog}
                     locationNote={selectedFriendLocation}

@@ -74,12 +74,17 @@ export async function GET(req: NextRequest) {
             lng: place.lng,
             lat: place.lat,
             address: place.address,
+            name: place.name, // Add name property
             content: place.note || "",
+            note: place.note, // Add note property
             placeName: place.name,
             mood: "📝",
             timestamp: place.visitDate || place.createdAt,
             visitTime: place.visitDate,
+            visitDate: place.visitDate, // Add visitDate property
+            rating: place.rating, // Add rating property
             images: place.media?.map((m: any) => m.url) || [],
+            media: place.media, // Add media array
             hasImages: (place.media?.length || 0) > 0,
             category: place.category,
             categoryName: place.categoryModel?.name,
@@ -87,6 +92,7 @@ export async function GET(req: NextRequest) {
             visibility: place.visibility,
             userId: place.createdBy,
             user: place.creator,
+            creator: place.creator, // Add creator property for compatibility
             coverImageIndex: 0 // Default to first image
         }))
 
