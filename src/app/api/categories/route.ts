@@ -25,20 +25,18 @@ export async function GET() {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        // Lấy categories: system defaults + user custom categories
+        // Lấy categories của user (chỉ user tự tạo)
         const categories = await prisma.category.findMany({
             where: {
-                OR: [
-                    { userId: null, isDefault: true }, // System defaults
-                    { userId: user.id }, // User custom categories  
-                ],
+                userId: user.id,
                 isActive: true,
             },
-            orderBy: [
-                { isDefault: 'desc' }, // System defaults first
-                { name: 'asc' },
-            ],
+            orderBy: {
+                name: 'asc',
+            },
         });
+
+        console.log('📂 Categories for user:', user.id, '- Count:', categories.length);
 
         return NextResponse.json(categories);
     } catch (error) {

@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
             images: place.media?.map((m: any) => m.url) || [],
             media: place.media, // Add media array
             hasImages: (place.media?.length || 0) > 0,
-            category: place.category,
+            category: place.categoryModelId, // Return category ID from Category table, not enum
             categoryName: place.categoryModel?.name,
             categorySlug: place.categoryModel?.slug || place.category.toLowerCase(),
             visibility: place.visibility,
@@ -292,6 +292,139 @@ export async function POST(req: NextRequest) {
         console.error("Error creating place:", error)
         return NextResponse.json(
             { error: "Failed to create place" },
+            { status: 500 }
+        )
+    }
+}
+
+// PUT /api/location-notes - Update existing place
+export async function PUT(req: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions)
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const body = await req.json()
+        const {
+            id,
+            lng,
+            lat,
+            address,
+            content,
+            mood,
+            categoryIds,
+            placeName,
+            visitTime,
+            visibility
+        } = body
+
+        if (!id) {
+            return NextResponse.json(
+                { error: "Place ID is required" },
+                { status: 400 }
+            )
+        }
+
+        // Check if place exists and user owns it
+        const existingPlace = await prisma.place.findUnique({
+            where: { id }
+        })
+
+        if (!existingPlace) {
+            return NextResponse.json(
+                { error: "Place not found" },
+                { status: 404 }
+            )
+        }
+
+        if (existingPlace.createdBy !== session.user.id) {
+            return NextResponse.json(
+                { error: "You can only update your own places" },
+                { status: 403 }
+            )
+        }
+
+        // Prepare update data
+        const updateData: any = {
+            ...(lng !== undefined && { lng }),
+            ...(lat !== undefined && { lat }),
+            ...(address !== undefined && { address }),
+            ...(content !== undefined && { note: content }),
+            ...(placeName !== undefined && { name: placeName }),
+            ...(visitTime !== undefined && { visitDate: new Date(visitTime) }),
+            ...(visibility !== undefined && { visibility: visibility as ShareVisibility })
+        }
+
+        // Handle category update
+        if (categoryIds && categoryIds.length > 0) {
+            const categoryModel = await prisma.category.findUnique({
+                where: { id: categoryIds[0] }
+            })
+
+            if (categoryModel) {
+                updateData.categoryModel = {
+                    connect: { id: categoryModel.id }
+                }
+
+                // Map category slug to CategoryType enum
+                const slugToCategoryType: Record<string, string> = {
+                    "cafe": "cafe",
+                    "nha-hang": "food",
+                    "food": "food",
+                    "bar": "bar",
+                    "rooftop": "rooftop",
+                    "hoat-dong": "activity",
+                    "activity": "activity",
+                    "dia-diem": "landmark",
+                    "landmark": "landmark"
+                }
+                updateData.category = slugToCategoryType[categoryModel.slug] || "food"
+            }
+        }
+
+        // Update place
+        const updatedPlace = await prisma.place.update({
+            where: { id },
+            data: updateData,
+            include: {
+                creator: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        avatarUrl: true
+                    }
+                },
+                categoryModel: true,
+                media: true
+            }
+        })
+
+        // Transform to match expected format
+        const formattedPlace = {
+            id: updatedPlace.id,
+            lng: updatedPlace.lng,
+            lat: updatedPlace.lat,
+            address: updatedPlace.address,
+            content: updatedPlace.note || "",
+            placeName: updatedPlace.name,
+            mood: mood || "📝",
+            timestamp: updatedPlace.visitDate || updatedPlace.createdAt,
+            visitTime: updatedPlace.visitDate,
+            images: updatedPlace.media?.map((m: any) => m.url) || [],
+            hasImages: (updatedPlace.media?.length || 0) > 0,
+            category: updatedPlace.category,
+            categoryName: updatedPlace.categoryModel?.name,
+            coverImageIndex: 0,
+            visibility: updatedPlace.visibility
+        }
+
+        return NextResponse.json(formattedPlace)
+    } catch (error) {
+        console.error("Error updating place:", error)
+        return NextResponse.json(
+            { error: "Failed to update place" },
             { status: 500 }
         )
     }

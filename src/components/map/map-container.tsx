@@ -89,6 +89,11 @@ export function MapContainer({ className }: MapContainerProps) {
         mood?: string;
         timestamp: Date;
         images?: string[];
+        placeName?: string;
+        visitTime?: string;
+        category?: string;
+        coverImageIndex?: number;
+        visibility?: string;
     } | null>(null);
 
     const { center, zoom, setCenter, setZoom, setBounds } = useMapStore();
@@ -1032,6 +1037,7 @@ export function MapContainer({ className }: MapContainerProps) {
         timestamp?: Date;
         images?: string[];
         coverImageIndex?: number;
+        visibility?: string;
     }) => {
         try {
             console.log("Editing location note:", noteData);
@@ -1056,6 +1062,9 @@ export function MapContainer({ className }: MapContainerProps) {
                     mood: noteData.mood,
                     categoryIds: noteData.category ? [noteData.category] : [], // Convert single category to array for API
                     images: noteData.images || [],
+                    placeName: noteData.placeName,
+                    visitTime: noteData.visitTime,
+                    visibility: noteData.visibility,
                 }),
             });
 
@@ -1576,6 +1585,11 @@ export function MapContainer({ className }: MapContainerProps) {
                         content: editingNote.content,
                         mood: editingNote.mood,
                         images: editingNote.images,
+                        placeName: editingNote.placeName,
+                        visitTime: editingNote.visitTime,
+                        category: editingNote.category,
+                        coverImageIndex: editingNote.coverImageIndex,
+                        visibility: editingNote.visibility,
                     }}
                     onSubmit={handleEditLocationNote}
                 />

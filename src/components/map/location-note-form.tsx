@@ -24,6 +24,7 @@ import { useImageUpload } from "@/lib/image-upload";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { useCategoryStore } from "@/lib/store";
+import { useSession } from "next-auth/react";
 
 const LocationNoteSchema = z.object({
     category: z.string().min(1, "Chọn một danh mục"),
@@ -53,6 +54,7 @@ interface LocationNoteFormProps {
         visitTime?: string;
         category?: string; // single category ID
         coverImageIndex?: number;
+        visibility?: string;
     };
     readonly onSubmit: (
         data: LocationNoteFormData & {
@@ -64,7 +66,7 @@ interface LocationNoteFormProps {
             images?: string[];
             coverImageIndex?: number;
         }
-    ) => void;
+    ) => Promise<void> | void;
 }
 
 export function LocationNoteForm({
@@ -74,6 +76,8 @@ export function LocationNoteForm({
     existingNote,
     onSubmit,
 }: LocationNoteFormProps) {
+    const { data: session } = useSession();
+
     // Form state
     const [selectedCategory, setSelectedCategory] = useState<string>(
         existingNote?.category || ""
@@ -86,7 +90,8 @@ export function LocationNoteForm({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // Categories state from store (shared with sidebar)
-    const { categories, isLoadingCategories, addCategory } = useCategoryStore();
+    const { categories, isLoadingCategories, addCategory, fetchCategories } =
+        useCategoryStore();
 
     // Image state
     const [images, setImages] = useState<File[]>([]);
@@ -118,6 +123,23 @@ export function LocationNoteForm({
         }
     }, [isOpen]);
 
+    // Fetch categories when form opens
+    useEffect(() => {
+        if (isOpen && session) {
+            console.log("📝 LocationNoteForm: Fetching categories...", {
+                isOpen,
+                hasSession: !!session,
+                currentCategories: categories.length,
+            });
+            fetchCategories(session);
+        } else {
+            console.log("📝 LocationNoteForm: Not fetching categories", {
+                isOpen,
+                hasSession: !!session,
+            });
+        }
+    }, [isOpen, session, fetchCategories]);
+
     const moods = [
         { emoji: "😍", label: "Yêu thích" },
         { emoji: "😊", label: "Vui vẻ" },
@@ -147,7 +169,11 @@ export function LocationNoteForm({
             visitTime:
                 existingNote?.visitTime ||
                 new Date().toISOString().slice(0, 16),
-            visibility: "private",
+            visibility:
+                (existingNote?.visibility as
+                    | "private"
+                    | "friends"
+                    | "public") || "private",
         },
     });
 
@@ -157,6 +183,29 @@ export function LocationNoteForm({
     // Separate register ref from other props to avoid ref conflict
     const { ref: contentRegisterRef, ...contentRegisterRest } =
         register("content");
+
+    // Sync selectedCategory with existingNote when form opens for editing
+    useEffect(() => {
+        if (isOpen && existingNote?.category) {
+            console.log(
+                "📝 LocationNoteForm: Setting category from existingNote",
+                {
+                    category: existingNote.category,
+                }
+            );
+            setSelectedCategory(existingNote.category);
+            setValue("category", existingNote.category);
+        }
+    }, [isOpen, existingNote, setValue]);
+
+    // Log categories changes
+    useEffect(() => {
+        console.log("📝 LocationNoteForm: Categories updated", {
+            count: categories.length,
+            isLoading: isLoadingCategories,
+            categories: categories.map((c) => ({ id: c.id, name: c.name })),
+        });
+    }, [categories, isLoadingCategories]);
 
     // Auto-save draft logic
     useEffect(() => {
@@ -402,7 +451,8 @@ export function LocationNoteForm({
 
                 setUploadProgress("Đang cập nhật ghi chú...");
 
-                onSubmit({
+                // Wait for onSubmit to complete (API call)
+                await onSubmit({
                     ...data,
                     id: existingNote.id,
                     lng: location.lng,
@@ -507,13 +557,27 @@ export function LocationNoteForm({
             setShowUndoToast(true);
             setTimeout(() => setShowUndoToast(false), 5000);
 
-            onClose();
+            // Only close form here if creating new note
+            // When editing, parent (map-container) will close the form
+            if (!existingNote) {
+                onClose();
+            }
         } catch (error) {
             console.error("Error submitting form:", error);
-            setUploadProgress("Có lỗi xảy ra khi xử lý");
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Có lỗi xảy ra khi xử lý";
+            setUploadProgress(`❌ ${errorMessage}`);
+
+            // Show error alert
+            alert(`Không thể lưu ghi chú: ${errorMessage}`);
+
+            // Keep form open on error so user can retry
         } finally {
             setIsUploadingImages(false);
-            setUploadProgress("");
+            // Clear progress message after 3 seconds
+            setTimeout(() => setUploadProgress(""), 3000);
         }
     };
 
@@ -892,8 +956,18 @@ export function LocationNoteForm({
                                     <div className="flex items-center justify-center py-4">
                                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-primary-500)]"></div>
                                         <span className="ml-3 text-sm text-[var(--color-neutral-500)]">
-                                            Đang tải...
+                                            Đang tải danh mục...
                                         </span>
+                                    </div>
+                                ) : categories.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-6 text-center">
+                                        <div className="text-3xl mb-2">📂</div>
+                                        <p className="text-sm text-[var(--color-neutral-500)] mb-3">
+                                            Chưa có danh mục nào
+                                        </p>
+                                        <p className="text-xs text-[var(--color-neutral-600)]">
+                                            Tạo danh mục đầu tiên ở dưới
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">

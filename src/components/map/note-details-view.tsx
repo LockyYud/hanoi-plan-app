@@ -41,6 +41,7 @@ interface LocationNote {
     category?: string;
     categoryName?: string;
     coverImageIndex?: number;
+    visibility?: string;
 }
 
 interface NoteDetailsViewProps {
