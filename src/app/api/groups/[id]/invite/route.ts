@@ -17,8 +17,17 @@ export async function POST(
         // Generate mock invite code
         const inviteCode = `${groupId}-${Math.random().toString(36).substring(2, 8)}`
 
+        // Get app URL from env or construct from request
+        let appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
+        if (!appUrl) {
+            const host = request.headers.get('host');
+            const protocol = request.headers.get('x-forwarded-proto') ||
+                (host?.includes('localhost') ? 'http' : 'https');
+            appUrl = `${protocol}://${host}`;
+        }
+
         // For demo, return success with invite link
-        const inviteLink = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/groups/join/${inviteCode}`
+        const inviteLink = `${appUrl}/groups/join/${inviteCode}`
 
         return NextResponse.json({
             success: true,
@@ -51,9 +60,18 @@ export async function GET(
     try {
         const groupId = params.id
 
+        // Get app URL from env or construct from request
+        let appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
+        if (!appUrl) {
+            const host = request.headers.get('host');
+            const protocol = request.headers.get('x-forwarded-proto') ||
+                (host?.includes('localhost') ? 'http' : 'https');
+            appUrl = `${protocol}://${host}`;
+        }
+
         // Generate shareable invite link
         const inviteCode = `${groupId}-public`
-        const inviteLink = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/groups/join/${inviteCode}`
+        const inviteLink = `${appUrl}/groups/join/${inviteCode}`
 
         return NextResponse.json({
             inviteCode,

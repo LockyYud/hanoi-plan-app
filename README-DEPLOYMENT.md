@@ -30,6 +30,9 @@ DATABASE_URL="postgresql://username:password@host:port/database"
 NEXTAUTH_SECRET="your-secret-key-here"
 NEXTAUTH_URL="https://your-app.vercel.app"
 
+# App URL (Required for friend invitations)
+NEXT_PUBLIC_APP_URL="https://your-app.vercel.app"
+
 # Google OAuth (Optional)
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
@@ -115,9 +118,9 @@ npx prisma db push
 
 1. Test the deployed app
 2. Run database seed (optional):
-    ```bash
-    npm run db:seed
-    ```
+   ```bash
+   npm run db:seed
+   ```
 3. Monitor logs in Vercel dashboard
 
 ## 🔒 Security Notes

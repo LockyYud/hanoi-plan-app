@@ -65,7 +65,16 @@ export async function GET(req: NextRequest) {
                 )
             }
 
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+            // Get app URL from env or construct from request
+            let appUrl = process.env.NEXT_PUBLIC_APP_URL;
+            if (!appUrl) {
+                // Fallback: construct from request headers
+                const host = req.headers.get('host');
+                const protocol = req.headers.get('x-forwarded-proto') ||
+                    (host?.includes('localhost') ? 'http' : 'https');
+                appUrl = `${protocol}://${host}`;
+            }
+
             invitation = await prisma.friendInvitation.create({
                 data: {
                     userId: session.user.id,
