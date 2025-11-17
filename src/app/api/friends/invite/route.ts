@@ -34,6 +34,16 @@ export async function GET(req: NextRequest) {
             )
         }
 
+        // Get app URL from env or construct from request
+        let appUrl = process.env.NEXT_PUBLIC_APP_URL;
+        if (!appUrl) {
+            // Fallback: construct from request headers
+            const host = req.headers.get('host');
+            const protocol = req.headers.get('x-forwarded-proto') ||
+                (host?.includes('localhost') ? 'http' : 'https');
+            appUrl = `${protocol}://${host}`;
+        }
+
         // Check if user already has an active invitation
         let invitation = await prisma.friendInvitation.findFirst({
             where: {
@@ -41,6 +51,17 @@ export async function GET(req: NextRequest) {
                 isActive: true
             }
         })
+
+        // Update existing invitation URL if it's different (e.g., changed from localhost to production)
+        if (invitation) {
+            const expectedUrl = `${appUrl}/invite/${invitation.inviteCode}`;
+            if (invitation.inviteUrl !== expectedUrl) {
+                invitation = await prisma.friendInvitation.update({
+                    where: { id: invitation.id },
+                    data: { inviteUrl: expectedUrl }
+                });
+            }
+        }
 
         // Create new invitation if not exists
         if (!invitation) {
@@ -63,16 +84,6 @@ export async function GET(req: NextRequest) {
                     { error: "Failed to generate unique invite code" },
                     { status: 500 }
                 )
-            }
-
-            // Get app URL from env or construct from request
-            let appUrl = process.env.NEXT_PUBLIC_APP_URL;
-            if (!appUrl) {
-                // Fallback: construct from request headers
-                const host = req.headers.get('host');
-                const protocol = req.headers.get('x-forwarded-proto') ||
-                    (host?.includes('localhost') ? 'http' : 'https');
-                appUrl = `${protocol}://${host}`;
             }
 
             invitation = await prisma.friendInvitation.create({
