@@ -545,11 +545,16 @@ export function NoteDetailsView({
 
           {/* Cover Image */}
           {displayNote.images && displayNote.images.length > 0 && (
-            <div
-              className="mx-4 mb-3 h-44 bg-gradient-to-r from-neutral-800 to-neutral-900 relative overflow-hidden flex-shrink-0 rounded-2xl shadow-lg"
+            <button
+              type="button"
+              className="mx-4 mb-3 h-56 bg-gradient-to-r from-neutral-800 to-neutral-900 relative overflow-hidden flex-shrink-0 rounded-2xl shadow-lg"
               onTouchStart={handleDragStart}
               onTouchMove={handleDragMove}
               onTouchEnd={handleDragEnd}
+              onClick={() => {
+                setCurrentImageIndex(displayNote.coverImageIndex || 0);
+                setShowLightbox(true);
+              }}
             >
               {isValidImageUrl(
                 displayNote.images[displayNote.coverImageIndex || 0]
@@ -557,14 +562,14 @@ export function NoteDetailsView({
                 <ImageDisplay
                   src={displayNote.images[displayNote.coverImageIndex || 0]}
                   alt="Cover"
-                  className="w-full h-full object-cover pointer-events-none"
+                  className="w-full h-full object-contain pointer-events-none bg-neutral-950"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center pointer-events-none">
                   <span className="text-4xl text-[#A0A0A0]">📷</span>
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none"></div>
 
               {/* Close button */}
               <Button
@@ -578,7 +583,7 @@ export function NoteDetailsView({
               >
                 <X className="h-4 w-4" strokeWidth={2.5} />
               </Button>
-            </div>
+            </button>
           )}
 
           {/* Header Info */}
@@ -702,7 +707,8 @@ export function NoteDetailsView({
                   {displayNote.images.map((image, index) => (
                     <button
                       key={`${displayNote.id || note.id}-img-${index}-${image.substring(0, 20)}`}
-                      className="aspect-square bg-neutral-800 rounded-xl border border-neutral-700 overflow-hidden hover:border-neutral-600 transition-colors"
+                      type="button"
+                      className="aspect-square bg-neutral-900 rounded-xl border border-neutral-700 overflow-hidden hover:border-neutral-600 transition-colors"
                       onClick={() => {
                         setCurrentImageIndex(index);
                         setShowLightbox(true);
@@ -712,7 +718,7 @@ export function NoteDetailsView({
                         <ImageDisplay
                           src={image}
                           alt={`Ảnh ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain bg-neutral-950"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -897,7 +903,8 @@ export function NoteDetailsView({
                               return (
                                 <button
                                   key={`image-${displayNote.id}-${index}`}
-                                  className="group relative aspect-square bg-neutral-800/80 rounded-xl border border-neutral-700/50 overflow-hidden hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
+                                  type="button"
+                                  className="group relative aspect-square bg-neutral-900 rounded-xl border border-neutral-700/50 overflow-hidden hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
                                   onClick={() => {
                                     setCurrentImageIndex(index);
                                     setShowLightbox(true);
@@ -909,7 +916,7 @@ export function NoteDetailsView({
                                       <ImageDisplay
                                         src={image}
                                         alt={`Ảnh ${index + 1}`}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                        className="w-full h-full object-contain bg-neutral-950 group-hover:scale-105 transition-transform duration-200"
                                       />
                                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200"></div>
 

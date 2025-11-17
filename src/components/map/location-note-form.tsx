@@ -720,16 +720,17 @@ export function LocationNoteForm({
                         >
                           {isValidImageUrl(url) ? (
                             <>
-                              <div
-                                className="w-full h-full cursor-pointer"
+                              <button
+                                type="button"
+                                className="w-full h-full cursor-pointer bg-[var(--color-neutral-950)]"
                                 onClick={() => openLightbox(allImages, index)}
                               >
                                 <ImageDisplay
                                   src={url}
                                   alt={`Ảnh ${index + 1}`}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-contain"
                                 />
-                              </div>
+                              </button>
                               {/* Cover badge */}
                               {coverImageIndex === index && (
                                 <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md font-medium flex items-center gap-1">
@@ -784,18 +785,23 @@ export function LocationNoteForm({
                                 : "aspect-square"
                           }`}
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={url}
-                            alt={`Ảnh mới ${index + 1}`}
-                            className="w-full h-full object-cover cursor-pointer"
+                          <button
+                            type="button"
+                            className="w-full h-full cursor-pointer bg-[var(--color-neutral-950)]"
                             onClick={() =>
                               openLightbox(
                                 allImages,
                                 existingImageUrls.length + index
                               )
                             }
-                          />
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={url}
+                              alt={`Ảnh mới ${index + 1}`}
+                              className="w-full h-full object-contain"
+                            />
+                          </button>
                           {/* Cover badge */}
                           {coverImageIndex ===
                             existingImageUrls.length + index && (
