@@ -1052,59 +1052,12 @@ export function LocationNoteForm({
                           )}
 
                           {/* Category selection - only when categories exist and (no selection or "Đổi" clicked) */}
-                          {categories.length > 0 && (!selectedCategory || showAllCategories) && (
-                            <>
-                              {/* Top 4 popular categories */}
-                              <div className="grid grid-cols-2 gap-2">
-                                {categories.slice(0, 4).map((category) => (
-                                  <button
-                                    key={category.id}
-                                    type="button"
-                                    onClick={() => {
-                                      selectCategory(category.id);
-                                      setShowAllCategories(false);
-                                    }}
-                                    className={`p-3 rounded-xl border transition-all duration-200 text-left ${
-                                      selectedCategory === category.id
-                                        ? "border-blue-500 bg-blue-500/10"
-                                        : "border-[var(--color-neutral-700)] hover:border-blue-400/50 hover:bg-[var(--color-neutral-700)] bg-[var(--color-neutral-900)]"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      {category.icon && (
-                                        <span className="text-base">
-                                          {category.icon}
-                                        </span>
-                                      )}
-                                      <span className="text-sm font-medium text-[var(--foreground)]">
-                                        {category.name}
-                                      </span>
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-
-                              {/* More categories button */}
-                              {categories.length > 4 && (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    setShowAllCategories(!showAllCategories)
-                                  }
-                                  className="w-full border-[var(--color-neutral-700)] text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] h-11"
-                                >
-                                  {showAllCategories
-                                    ? "Thu gọn"
-                                    : `Xem thêm ${categories.length - 4} loại`}
-                                </Button>
-                              )}
-
-                              {/* All categories (when expanded) */}
-                              {showAllCategories && categories.length > 4 && (
-                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
-                                  {categories.slice(4).map((category) => (
+                          {categories.length > 0 &&
+                            (!selectedCategory || showAllCategories) && (
+                              <>
+                                {/* Top 4 popular categories */}
+                                <div className="grid grid-cols-2 gap-2">
+                                  {categories.slice(0, 4).map((category) => (
                                     <button
                                       key={category.id}
                                       type="button"
@@ -1131,12 +1084,62 @@ export function LocationNoteForm({
                                     </button>
                                   ))}
                                 </div>
-                              )}
-                            </>
-                          )}
+
+                                {/* More categories button */}
+                                {categories.length > 4 && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      setShowAllCategories(!showAllCategories)
+                                    }
+                                    className="w-full border-[var(--color-neutral-700)] text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] h-11"
+                                  >
+                                    {showAllCategories
+                                      ? "Thu gọn"
+                                      : `Xem thêm ${categories.length - 4} loại`}
+                                  </Button>
+                                )}
+
+                                {/* All categories (when expanded) */}
+                                {showAllCategories && categories.length > 4 && (
+                                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
+                                    {categories.slice(4).map((category) => (
+                                      <button
+                                        key={category.id}
+                                        type="button"
+                                        onClick={() => {
+                                          selectCategory(category.id);
+                                          setShowAllCategories(false);
+                                        }}
+                                        className={`p-3 rounded-xl border transition-all duration-200 text-left ${
+                                          selectedCategory === category.id
+                                            ? "border-blue-500 bg-blue-500/10"
+                                            : "border-[var(--color-neutral-700)] hover:border-blue-400/50 hover:bg-[var(--color-neutral-700)] bg-[var(--color-neutral-900)]"
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          {category.icon && (
+                                            <span className="text-base">
+                                              {category.icon}
+                                            </span>
+                                          )}
+                                          <span className="text-sm font-medium text-[var(--foreground)]">
+                                            {category.name}
+                                          </span>
+                                        </div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </>
+                            )}
 
                           {/* Custom category input - ALWAYS SHOW */}
-                          <div className={`flex gap-2 ${categories.length > 0 ? 'pt-2 border-t border-[var(--color-neutral-700)]' : ''}`}>
+                          <div
+                            className={`flex gap-2 ${categories.length > 0 ? "pt-2 border-t border-[var(--color-neutral-700)]" : ""}`}
+                          >
                             <Input
                               value={customCategoryName}
                               onChange={(e) =>
@@ -1239,7 +1242,9 @@ export function LocationNoteForm({
               <Button
                 type="submit"
                 disabled={
-                  isSubmitting || isUploadingImages || (!selectedCategory && categories.length > 0)
+                  isSubmitting ||
+                  isUploadingImages ||
+                  (!selectedCategory && categories.length > 0)
                 }
                 className="min-h-[44px] px-8 bg-blue-600 hover:bg-blue-700 text-white border-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
               >
