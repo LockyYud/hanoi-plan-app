@@ -176,7 +176,7 @@ export function LocationNoteForm({
     },
   });
 
-  // Auto-select first category if none selected
+  // Auto-select first category if none selected (only when categories exist)
   useEffect(() => {
     if (isOpen && categories.length > 0 && !selectedCategory && !existingNote) {
       const firstCategory = categories[0];
@@ -998,20 +998,23 @@ export function LocationNoteForm({
                             Đang tải danh mục...
                           </span>
                         </div>
-                      ) : categories.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-6 text-center">
-                          <div className="text-3xl mb-2">📂</div>
-                          <p className="text-sm text-[var(--color-neutral-500)] mb-3">
-                            Chưa có danh mục nào
-                          </p>
-                          <p className="text-xs text-[var(--color-neutral-600)]">
-                            Tạo danh mục đầu tiên ở dưới
-                          </p>
-                        </div>
                       ) : (
                         <div className="space-y-3">
-                          {/* Selected category display */}
-                          {selectedCategory && (
+                          {/* Empty state when no categories */}
+                          {categories.length === 0 && (
+                            <div className="flex flex-col items-center justify-center py-4 text-center">
+                              <div className="text-3xl mb-2">📂</div>
+                              <p className="text-sm text-[var(--color-neutral-500)] mb-1">
+                                Chưa có danh mục nào
+                              </p>
+                              <p className="text-xs text-[var(--color-neutral-600)]">
+                                Tạo danh mục đầu tiên ở dưới
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Selected category display - only when categories exist */}
+                          {categories.length > 0 && selectedCategory && (
                             <div className="flex items-center justify-between p-3 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-xl">
                               {(() => {
                                 const category = categories.find(
@@ -1048,8 +1051,8 @@ export function LocationNoteForm({
                             </div>
                           )}
 
-                          {/* Category selection (show when no selection or when "Đổi" clicked) */}
-                          {(!selectedCategory || showAllCategories) && (
+                          {/* Category selection - only when categories exist and (no selection or "Đổi" clicked) */}
+                          {categories.length > 0 && (!selectedCategory || showAllCategories) && (
                             <>
                               {/* Top 4 popular categories */}
                               <div className="grid grid-cols-2 gap-2">
@@ -1129,36 +1132,36 @@ export function LocationNoteForm({
                                   ))}
                                 </div>
                               )}
-
-                              {/* Custom category input */}
-                              <div className="flex gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
-                                <Input
-                                  value={customCategoryName}
-                                  onChange={(e) =>
-                                    setCustomCategoryName(e.target.value)
-                                  }
-                                  placeholder="+ Tạo loại mới"
-                                  className="flex-1 h-11 bg-[var(--color-neutral-900)] border-[var(--color-neutral-700)] text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-[var(--radius-xl)] focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]"
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      addCustomCategory();
-                                    }
-                                  }}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={addCustomCategory}
-                                  disabled={!customCategoryName.trim()}
-                                  className="h-11 w-11 p-0 border-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-700)] text-[var(--color-neutral-500)] hover:text-[var(--foreground)]"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </div>
                             </>
                           )}
+
+                          {/* Custom category input - ALWAYS SHOW */}
+                          <div className={`flex gap-2 ${categories.length > 0 ? 'pt-2 border-t border-[var(--color-neutral-700)]' : ''}`}>
+                            <Input
+                              value={customCategoryName}
+                              onChange={(e) =>
+                                setCustomCategoryName(e.target.value)
+                              }
+                              placeholder="+ Tạo loại mới"
+                              className="flex-1 h-11 bg-[var(--color-neutral-900)] border-[var(--color-neutral-700)] text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-[var(--radius-xl)] focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  addCustomCategory();
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={addCustomCategory}
+                              disabled={!customCategoryName.trim()}
+                              className="h-11 w-11 p-0 border-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-700)] text-[var(--color-neutral-500)] hover:text-[var(--foreground)]"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
 
                           {errors.category && (
                             <p className="text-sm text-red-400 flex items-center gap-1">
@@ -1236,7 +1239,7 @@ export function LocationNoteForm({
               <Button
                 type="submit"
                 disabled={
-                  isSubmitting || isUploadingImages || !selectedCategory
+                  isSubmitting || isUploadingImages || (!selectedCategory && categories.length > 0)
                 }
                 className="min-h-[44px] px-8 bg-blue-600 hover:bg-blue-700 text-white border-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
               >
