@@ -29,7 +29,6 @@ export async function GET(
                 }
             }
         })
-
         if (!place) {
             return NextResponse.json(
                 { error: "Place not found" },

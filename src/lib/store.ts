@@ -13,6 +13,7 @@ export interface LocationNote {
     images?: string[]
     hasImages?: boolean
     categorySlug?: string // Category slug for filtering
+    categoryId: string | null // Category ID for associating with category
 }
 
 export interface Category {

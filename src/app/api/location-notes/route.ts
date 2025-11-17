@@ -89,13 +89,14 @@ export async function GET(req: NextRequest) {
             category: place.categoryModelId, // Return category ID from Category table, not enum
             categoryName: place.categoryModel?.name,
             categorySlug: place.categoryModel?.slug || place.category.toLowerCase(),
+            categoryId: place.categoryModel?.id,
             visibility: place.visibility,
             userId: place.createdBy,
             user: place.creator,
             creator: place.creator, // Add creator property for compatibility
             coverImageIndex: 0 // Default to first image
         }))
-
+        console.log("Fetched location notes: hehe", formattedNotes)
         return NextResponse.json(formattedNotes)
     } catch (error) {
         console.error("Error fetching location notes:", error)
