@@ -38,6 +38,7 @@ export interface Place {
     favorites: Favorite[]
     media: Media[]
     creator?: User
+    mood?: string
 }
 
 export interface PlaceTag {

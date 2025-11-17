@@ -8,12 +8,13 @@ export interface LocationNote {
     lat: number
     address: string
     content: string
+    name: string
     mood?: string
     timestamp: Date
     images?: string[]
     hasImages?: boolean
     categorySlug?: string // Category slug for filtering
-    categoryId: string | null // Category ID for associating with category
+    categoryId?: string | null // Category ID for associating with category
 }
 
 export interface Category {
