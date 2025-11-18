@@ -370,12 +370,23 @@ export function PlacesTab({
                   <div className="absolute inset-0 bg-gradient-to-r from-[#FF6B6B]/0 via-[#FF6B6B]/5 to-[#FF6B6B]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                   <div className="relative flex items-start gap-3">
-                    {/* Avatar/Icon */}
+                    {/* Avatar/Icon - Show cover image if available */}
                     <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-700 border border-neutral-600 group-hover:border-[#FF6B6B]/50 group-hover:shadow-lg group-hover:shadow-[#FF6B6B]/20 transition-all duration-300">
-                        <span className="text-xl group-hover:scale-110 transition-transform duration-300">
-                          {extendedPlace.mood || "📝"}
-                        </span>
+                      <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-700 border border-neutral-600 group-hover:border-[#FF6B6B]/50 group-hover:shadow-lg group-hover:shadow-[#FF6B6B]/20 transition-all duration-300 overflow-hidden">
+                        {extendedPlace.images &&
+                        extendedPlace.images.length > 0 ? (
+                          <img
+                            src={extendedPlace.images[0]}
+                            alt="Cover"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full">
+                            <span className="text-xl group-hover:scale-110 transition-transform duration-300">
+                              {extendedPlace.mood || "📝"}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -388,7 +399,7 @@ export function PlacesTab({
                       </h4>
                       <p className="text-xs text-[#A0A0A0] truncate mb-3 flex items-center gap-1.5">
                         <MapPin className="h-3 w-3 flex-shrink-0" />
-                        {place.address}
+                        {place.name || place.address}
                       </p>
 
                       {/* Meta info */}
