@@ -238,8 +238,8 @@ interface FriendStore {
     addFriendRequest: (request: Friendship) => void
     removeFriendRequest: (requestId: string) => void
 
-    friendLocationNotes: Pinory[]
-    setFriendLocationNotes: (notes: Pinory[]) => void
+    friendPinories: Pinory[]
+    setFriendPinories: (pinories: Pinory[]) => void
 
     activityFeed: ActivityFeedItem[]
     setActivityFeed: (feed: ActivityFeedItem[]) => void
@@ -255,7 +255,7 @@ interface FriendStore {
 
     fetchFriends: () => Promise<void>
     fetchFriendRequests: () => Promise<void>
-    fetchFriendLocationNotes: (friendId?: string) => Promise<void>
+    fetchFriendPinories: (friendId?: string) => Promise<void>
     fetchActivityFeed: (type?: string) => Promise<void>
 
     sendFriendRequest: (targetUserId: string) => Promise<void>
@@ -283,8 +283,8 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
         friendRequests: state.friendRequests.filter(r => r.id !== requestId)
     })),
 
-    friendLocationNotes: [],
-    setFriendLocationNotes: (notes) => set({ friendLocationNotes: notes }),
+    friendPinories: [],
+    setFriendPinories: (pinories) => set({ friendPinories: pinories }),
 
     activityFeed: [],
     setActivityFeed: (feed) => set({ activityFeed: feed }),
@@ -336,7 +336,7 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
         }
     },
 
-    fetchFriendLocationNotes: async (friendId?: string) => {
+    fetchFriendPinories: async (friendId?: string) => {
         try {
             set({ loading: true })
             const url = friendId
@@ -350,14 +350,14 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
             if (response.ok) {
                 const data = await response.json()
                 // API trả về array trực tiếp, không có property locationNotes
-                set({ friendLocationNotes: Array.isArray(data) ? data : [], loading: false })
+                set({ friendPinories: Array.isArray(data) ? data : [], loading: false })
             } else {
                 console.error("Failed to fetch friend location notes:", response.status)
-                set({ friendLocationNotes: [], loading: false })
+                set({ friendPinories: [], loading: false })
             }
         } catch (error) {
             console.error("Error fetching friend location notes:", error)
-            set({ friendLocationNotes: [], loading: false })
+            set({ friendPinories: [], loading: false })
         }
     },
 

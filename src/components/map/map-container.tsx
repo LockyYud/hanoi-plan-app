@@ -13,7 +13,7 @@ import {
   useFriendStore,
 } from "@/lib/store";
 import type { Place, Pinory } from "@/lib/types";
-import { PlacePopup } from "./place-popup";
+import { PinoryPopup } from "./pinory-popup";
 import { MapControls } from "./map-controls";
 import { LocationNoteForm } from "./location-note-form";
 import { NoteDetailsView } from "./note-details-view";
@@ -96,8 +96,8 @@ export function MapContainer({ className }: MapContainerProps) {
   const {
     showFriendsLayer,
     selectedFriendId,
-    friendLocationNotes,
-    fetchFriendLocationNotes,
+    friendPinories,
+    fetchFriendPinories,
   } = useFriendStore();
 
   // State for unified location notes system (using Pinory type)
@@ -105,7 +105,7 @@ export function MapContainer({ className }: MapContainerProps) {
 
   // State for friend location markers and popup
   const friendMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-  const [selectedFriendLocation, setSelectedFriendLocation] =
+  const [selectedFriendPinory, setSelectedFriendPinory] =
     useState<Pinory | null>(null);
   const [showFriendDetailsDialog, setShowFriendDetailsDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -434,12 +434,13 @@ export function MapContainer({ className }: MapContainerProps) {
 
   // Create marker click handler that doesn't change with selectedNote
   const handleMarkerClick = useCallback(
-    (note: Pinory) => {
+    (pinory: Pinory) => {
       console.log(
         "🎯 Marker clicked, setting selectedNote:",
-        note.content?.substring(0, 20)
+        pinory.content?.substring(0, 20)
       );
-      setSelectedPinory(note);
+      setSelectedPinory(pinory);
+      setSelectedFriendPinory(null); // Clear selectedFriendPinory to avoid conflicts
 
       // On mobile, auto-open details view instead of popup
       const isMobile = globalThis.innerWidth < 768;
@@ -453,7 +454,7 @@ export function MapContainer({ className }: MapContainerProps) {
 
       console.log(
         "🎯 After setSelectedPinory, current selectedNote should be:",
-        note.id
+        pinory.id
       );
     },
     [setSelectedPinory]
@@ -734,9 +735,9 @@ export function MapContainer({ className }: MapContainerProps) {
   // Fetch friend location notes when friends layer is enabled or friend filter changes
   useEffect(() => {
     if (showFriendsLayer && session) {
-      fetchFriendLocationNotes(selectedFriendId || undefined);
+      fetchFriendPinories(selectedFriendId || undefined);
     }
-  }, [showFriendsLayer, selectedFriendId, session, fetchFriendLocationNotes]);
+  }, [showFriendsLayer, selectedFriendId, session, fetchFriendPinories]);
 
   // Render friend location markers
   useEffect(() => {
@@ -754,48 +755,49 @@ export function MapContainer({ className }: MapContainerProps) {
     friendMarkersRef.current.clear();
 
     // Only render if friends layer is visible
-    if (!showFriendsLayer || friendLocationNotes.length === 0) {
+    if (!showFriendsLayer || friendPinories.length === 0) {
       return;
     }
 
-    console.log(
-      "🎨 Rendering friend location markers:",
-      friendLocationNotes.length
-    );
+    console.log("🎨 Rendering friend location markers:", friendPinories.length);
 
     // Create markers for friend locations
-    friendLocationNotes.forEach((friendNote) => {
+    friendPinories.forEach((friendPinory) => {
       const markerElement = document.createElement("div");
       const root = createRoot(markerElement);
 
       // Get first image - API returns 'images' array or 'media' array
       const imageUrl =
-        (friendNote as any).images && (friendNote as any).images.length > 0
-          ? (friendNote as any).images[0]
-          : friendNote.media && friendNote.media.length > 0
-            ? friendNote.media[0].url
+        (friendPinory as any).images && (friendPinory as any).images.length > 0
+          ? (friendPinory as any).images[0]
+          : friendPinory.media && friendPinory.media.length > 0
+            ? friendPinory.media[0].url
             : undefined;
 
       console.log("🎨 Friend note image check:", {
-        id: friendNote.id,
-        hasImages: !!(friendNote as any).images?.length,
-        images: (friendNote as any).images,
-        hasMedia: !!friendNote.media?.length,
-        media: friendNote.media,
+        id: friendPinory.id,
+        hasImages: !!(friendPinory as any).images?.length,
+        images: (friendPinory as any).images,
+        hasMedia: !!friendPinory.media?.length,
+        media: friendPinory.media,
         imageUrl,
       });
 
       root.render(
         <FriendLocationPin
           friendName={
-            friendNote.creator?.name || friendNote.creator?.email || "Friend"
+            friendPinory.creator?.name ||
+            friendPinory.creator?.email ||
+            "Friend"
           }
-          friendAvatarUrl={friendNote.creator?.avatarUrl}
+          friendAvatarUrl={friendPinory.creator?.avatarUrl}
           imageUrl={imageUrl}
-          category={(friendNote.category as CategoryType) || undefined}
-          mood={friendNote.note ? undefined : "📍"} // Use note as mood indicator
+          category={(friendPinory.category as CategoryType) || undefined}
+          mood={friendPinory.note ? undefined : "📍"} // Use note as mood indicator
           onClick={() => {
-            setSelectedFriendLocation(friendNote);
+            setSelectedFriendPinory(friendPinory);
+
+            setSelectedPinory(null); // Clear selectedPinory to avoid conflicts
             // On mobile, auto-open details view
             if (globalThis.innerWidth < 768) {
               setTimeout(() => {
@@ -809,10 +811,10 @@ export function MapContainer({ className }: MapContainerProps) {
       (markerElement as ReactMapPinElement)._reactRoot = root;
 
       const marker = new mapboxgl.Marker(markerElement)
-        .setLngLat([friendNote.lng, friendNote.lat])
+        .setLngLat([friendPinory.lng, friendPinory.lat])
         .addTo(map.current!);
 
-      friendMarkersRef.current.set(friendNote.id, marker);
+      friendMarkersRef.current.set(friendPinory.id, marker);
     });
 
     // Cleanup on unmount
@@ -827,7 +829,7 @@ export function MapContainer({ className }: MapContainerProps) {
       });
       friendMarkersRef.current.clear();
     };
-  }, [mapLoaded, showFriendsLayer, friendLocationNotes]);
+  }, [mapLoaded, showFriendsLayer, friendPinories]);
 
   // Track last programmatic center to avoid loops
   const lastProgrammaticCenter = useRef<[number, number] | null>(null);
@@ -1391,8 +1393,8 @@ export function MapContainer({ className }: MapContainerProps) {
       />
       {/* Unified popup system - only 2 types: My Notes or New Location */}
       {selectedPinory && (
-        <PlacePopup
-          note={selectedPinory}
+        <PinoryPopup
+          pinory={selectedPinory}
           mapRef={
             map.current ? (map as React.RefObject<mapboxgl.Map>) : undefined
           }
@@ -1442,7 +1444,7 @@ export function MapContainer({ className }: MapContainerProps) {
       )}
 
       {clickedLocation && !showLocationForm && !selectedPinory && (
-        <PlacePopup
+        <PinoryPopup
           location={{
             lng: clickedLocation.lng,
             lat: clickedLocation.lat,
@@ -1578,13 +1580,13 @@ export function MapContainer({ className }: MapContainerProps) {
       />
 
       {/* Friend Location Popup (Desktop) */}
-      {selectedFriendLocation && !isMobile && (
+      {selectedFriendPinory && !isMobile && (
         <FriendLocationPopup
-          locationNote={selectedFriendLocation}
+          locationNote={selectedFriendPinory}
           mapRef={
             map.current ? (map as React.RefObject<mapboxgl.Map>) : undefined
           }
-          onClose={() => setSelectedFriendLocation(null)}
+          onClose={() => setSelectedFriendPinory(null)}
           onViewDetails={() => {
             setShowFriendDetailsDialog(true);
           }}
@@ -1592,13 +1594,13 @@ export function MapContainer({ className }: MapContainerProps) {
       )}
 
       {/* Friend Location Details View (Mobile and Details Dialog) */}
-      {selectedFriendLocation && showFriendDetailsDialog && (
+      {selectedFriendPinory && showFriendDetailsDialog && (
         <FriendLocationDetailsView
           isOpen={showFriendDetailsDialog}
-          locationNote={selectedFriendLocation}
+          locationNote={selectedFriendPinory}
           onClose={() => {
             setShowFriendDetailsDialog(false);
-            setSelectedFriendLocation(null);
+            setSelectedFriendPinory(null);
           }}
           onAddToFavorites={async () => {
             try {
@@ -1608,7 +1610,7 @@ export function MapContainer({ className }: MapContainerProps) {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  placeId: selectedFriendLocation.id,
+                  placeId: selectedFriendPinory.id,
                 }),
                 credentials: "include",
               });
@@ -1616,7 +1618,7 @@ export function MapContainer({ className }: MapContainerProps) {
               if (response.ok) {
                 alert("Added to favorites!");
                 setShowFriendDetailsDialog(false);
-                setSelectedFriendLocation(null);
+                setSelectedFriendPinory(null);
               } else {
                 alert("Failed to add to favorites");
               }

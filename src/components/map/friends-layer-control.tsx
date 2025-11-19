@@ -18,7 +18,7 @@ export function FriendsLayerControl() {
     setSelectedFriendId,
     friends,
     fetchFriends,
-    friendLocationNotes,
+    friendPinories: friendLocationNotes,
   } = useFriendStore();
 
   const [isOpen, setIsOpen] = useState(false);

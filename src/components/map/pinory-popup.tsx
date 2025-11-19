@@ -19,7 +19,6 @@ import {
   MapPin,
   Navigation,
   Eye,
-  BookOpen,
   PenTool,
   Trash2,
   NavigationOff,
@@ -33,8 +32,8 @@ interface LocationPreview {
   address: string;
 }
 
-interface PlacePopupProps {
-  readonly note?: Pinory;
+interface PinoryPopupProps {
+  readonly pinory?: Pinory;
   readonly location?: LocationPreview;
   readonly onClose: () => void;
   readonly onViewDetails?: () => void; // For notes
@@ -43,15 +42,15 @@ interface PlacePopupProps {
   readonly mapRef?: React.RefObject<mapboxgl.Map>;
 }
 
-export function PlacePopup({
-  note,
+export function PinoryPopup({
+  pinory,
   location,
   onClose,
   onViewDetails,
   onAddNote,
   onDelete,
   mapRef,
-}: PlacePopupProps) {
+}: PinoryPopupProps) {
   const [isGettingDirections, setIsGettingDirections] = useState(false);
   const [showRouteOptions, setShowRouteOptions] = useState(false);
   const [routeInfo, setRouteInfo] = useState<{
@@ -62,7 +61,7 @@ export function PlacePopup({
   const [isMobile, setIsMobile] = useState(false);
 
   // Determine popup type
-  const isNote = !!note;
+  const isNote = !!pinory;
 
   // Helper functions for notes
   const formatTime = (date: Date) => {
@@ -124,7 +123,7 @@ export function PlacePopup({
               ? "Ghi chú của bạn"
               : "Vị trí được chọn";
             const destinationAddress = isNote
-              ? note?.address
+              ? pinory?.address
               : location?.address || "";
 
             globalThis.dispatchEvent(
@@ -165,7 +164,7 @@ export function PlacePopup({
               ? "Ghi chú của bạn"
               : "Vị trí được chọn";
             const destinationAddress = isNote
-              ? note?.address
+              ? pinory?.address
               : location?.address || "";
 
             globalThis.dispatchEvent(
@@ -262,8 +261,8 @@ export function PlacePopup({
   useEffect(() => {
     if (!mapRef?.current) return;
 
-    const coordinates = note
-      ? [note.lng, note.lat]
+    const coordinates = pinory
+      ? [pinory.lng, pinory.lat]
       : location
         ? [location.lng, location.lat]
         : null;
@@ -361,7 +360,7 @@ export function PlacePopup({
       map.off("move", updatePosition);
       map.off("zoom", updatePosition);
     };
-  }, [mapRef, note, location]);
+  }, [mapRef, pinory, location]);
 
   // Detect mobile
   useEffect(() => {
@@ -384,192 +383,7 @@ export function PlacePopup({
 
   // MOBILE: Simple bottom sheet
   if (isMobile) {
-    return (
-      <>
-        {/* Backdrop */}
-        <button
-          type="button"
-          className="fixed inset-0 bg-black/50 z-40 cursor-default"
-          onClick={onClose}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              onClose();
-            }
-          }}
-          aria-label="Đóng"
-        />
-
-        {/* Bottom Sheet */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] rounded-t-3xl shadow-2xl max-h-[80vh] overflow-hidden flex flex-col animate-in slide-in-from-bottom-full duration-300">
-          {/* Drag Handle */}
-          <div className="w-full py-3 flex justify-center cursor-grab active:cursor-grabbing">
-            <div className="w-12 h-1.5 bg-neutral-600 rounded-full"></div>
-          </div>
-
-          {/* Header */}
-          <div className="relative bg-gradient-to-r from-neutral-900/90 to-neutral-800/90 px-6 py-4 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <span className="text-3xl flex-shrink-0">
-                  {isNote ? note?.mood || "📍" : "📍"}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-base font-semibold text-white truncate">
-                    {isNote ? note?.address : location?.address}
-                  </div>
-                  {isNote && note && (
-                    <div className="text-sm text-neutral-300">
-                      {formatTime(note.timestamp)}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="text-white bg-gradient-to-br from-red-600/90 to-red-700/90 hover:from-red-700 hover:to-red-800 rounded-xl w-10 h-10 p-0 backdrop-blur-sm border-2 border-white shadow-xl flex-shrink-0"
-              >
-                <X className="h-5 w-5" strokeWidth={2} />
-              </Button>
-            </div>
-          </div>
-
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-            {isNote ? (
-              /* Note Content */
-              <>
-                {note && note.content && (
-                  <div className="text-base text-[#EDEDED] leading-relaxed">
-                    {note.content}
-                  </div>
-                )}
-
-                {note?.images && note.images.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {note.images.slice(0, 4).map((image, index) => (
-                      <div
-                        key={index}
-                        className="aspect-square bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden"
-                      >
-                        {isValidImageUrl(image) ? (
-                          <ImageDisplay
-                            src={image}
-                            alt={`Ảnh ${index + 1}`}
-                            className="w-full h-full object-contain bg-neutral-950"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-2xl text-[#A0A0A0]">📷</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    {note.images.length > 4 && (
-                      <div className="aspect-square bg-neutral-800 rounded-lg border border-neutral-700 flex items-center justify-center">
-                        <span className="text-sm text-[#A0A0A0]">
-                          +{note.images.length - 4}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {routeInfo && (
-                  <div className="text-sm text-[#FFD6A5] text-center p-3 bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 rounded-xl border border-[#FF6B6B]/30 font-semibold">
-                    📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
-                    {formatDuration(routeInfo.duration)}
-                  </div>
-                )}
-              </>
-            ) : (
-              /* Location Content */
-              <>
-                <div className="flex items-start gap-2">
-                  <MapPin
-                    className="h-5 w-5 text-[#A0A0A0] mt-0.5 flex-shrink-0"
-                    strokeWidth={1.5}
-                  />
-                  <span className="text-base text-[#EDEDED] break-words leading-relaxed">
-                    {location?.address}
-                  </span>
-                </div>
-                <div className="text-sm text-[#A0A0A0]">
-                  {location?.lat.toFixed(6)}, {location?.lng.toFixed(6)}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="sticky bottom-0 bg-gradient-to-r from-neutral-900/95 via-neutral-800/95 to-neutral-900/95 backdrop-blur-xl border-t border-neutral-700/50 p-4 flex-shrink-0">
-            <div className="flex gap-2">
-              {isNote ? (
-                <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600 h-12"
-                    onClick={onViewDetails}
-                  >
-                    <Eye className="h-5 w-5 mr-2" />
-                    Chi tiết
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white border-0 h-12"
-                    onClick={() => {
-                      const dest = {
-                        lat: note!.lat,
-                        lng: note!.lng,
-                      };
-                      handleGetDirections(dest, true);
-                    }}
-                    disabled={isGettingDirections}
-                  >
-                    <Navigation className="h-5 w-5 mr-2" />
-                    Chỉ đường
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600 h-12"
-                    onClick={onAddNote}
-                  >
-                    <PenTool className="h-5 w-5 mr-2" />
-                    Thêm ghi chú
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white border-0 h-12"
-                    onClick={() =>
-                      location &&
-                      handleGetDirections(
-                        {
-                          lat: location.lat,
-                          lng: location.lng,
-                        },
-                        true
-                      )
-                    }
-                    disabled={isGettingDirections}
-                  >
-                    <Navigation className="h-5 w-5 mr-2" />
-                    Chỉ đường
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </>
-    );
+    return;
   }
 
   // DESKTOP: Original floating popup
@@ -609,15 +423,15 @@ export function PlacePopup({
               {/* Header with note info */}
               <div className="flex items-center gap-2 pb-3 border-b border-neutral-700/30">
                 <span className="text-2xl flex-shrink-0">
-                  {note?.mood || "📍"}
+                  {pinory?.mood || "📍"}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-white">
-                    {note?.name}
+                    {pinory?.name}
                   </div>
-                  {note && (
+                  {pinory && (
                     <div className="text-xs text-neutral-300">
-                      {formatTime(note.timestamp)}
+                      {formatTime(pinory.timestamp)}
                     </div>
                   )}
                 </div>
@@ -633,28 +447,27 @@ export function PlacePopup({
 
               {/* Note Type Label */}
               <div className="flex items-center gap-2">
-                <BookOpen
-                  className="h-4 w-4 text-[#A0A0A0]"
-                  strokeWidth={1.5}
-                />
-                <span className="text-sm text-[#A0A0A0]">Ghi chú địa điểm</span>
+                <p className="text-sm text-gray-600 flex items-start gap-1">
+                  <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>{pinory.address}</span>
+                </p>
               </div>
 
               {/* Note content - main focus */}
-              {note && note.content && (
+              {pinory && pinory.content && (
                 <div className="text-sm text-[#EDEDED] leading-relaxed">
-                  {note.content}
+                  {pinory.content}
                 </div>
               )}
 
               {/* Images - larger display */}
-              {note?.images && note.images.length > 0 && (
+              {pinory?.images && pinory.images.length > 0 && (
                 <div>
-                  {note.images.length === 1 ? (
+                  {pinory.images.length === 1 ? (
                     <div className="w-full h-40 bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden">
-                      {isValidImageUrl(note.images[0]) ? (
+                      {isValidImageUrl(pinory.images[0]) ? (
                         <ImageDisplay
-                          src={note.images[0]}
+                          src={pinory.images[0]}
                           alt="Ảnh ghi chú"
                           className="w-full h-full object-contain bg-neutral-950"
                         />
@@ -666,7 +479,7 @@ export function PlacePopup({
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
-                      {note.images.slice(0, 2).map((image, index) => (
+                      {pinory.images.slice(0, 2).map((image, index) => (
                         <div
                           key={index}
                           className="aspect-square bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden"
@@ -684,10 +497,10 @@ export function PlacePopup({
                           )}
                         </div>
                       ))}
-                      {note.images.length > 4 && (
+                      {pinory.images.length > 4 && (
                         <div className="aspect-square bg-neutral-800 rounded-lg border border-neutral-700 flex items-center justify-center">
                           <span className="text-sm text-[#A0A0A0]">
-                            +{note.images.length - 4} ảnh
+                            +{pinory.images.length - 4} ảnh
                           </span>
                         </div>
                       )}
@@ -732,11 +545,11 @@ export function PlacePopup({
                     variant="outline"
                     className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white border-0 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
                     onClick={() =>
-                      note &&
+                      pinory &&
                       handleGetDirections(
                         {
-                          lat: note.lat,
-                          lng: note.lng,
+                          lat: pinory.lat,
+                          lng: pinory.lng,
                         },
                         true
                       )
@@ -753,11 +566,11 @@ export function PlacePopup({
                       variant="outline"
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white border-green-600"
                       onClick={() =>
-                        note &&
+                        pinory &&
                         handleGetDirections(
                           {
-                            lat: note.lat,
-                            lng: note.lng,
+                            lat: pinory.lat,
+                            lng: pinory.lng,
                           },
                           true
                         )
@@ -775,11 +588,11 @@ export function PlacePopup({
                       variant="outline"
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                       onClick={() =>
-                        note &&
+                        pinory &&
                         handleGetDirections(
                           {
-                            lat: note.lat,
-                            lng: note.lng,
+                            lat: pinory.lat,
+                            lng: pinory.lng,
                           },
                           false
                         )

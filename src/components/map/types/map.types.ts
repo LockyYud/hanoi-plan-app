@@ -10,7 +10,7 @@ import type { Pinory } from '@/lib/types';
  */
 export interface UseMapInitializationReturn {
   mapRef: React.RefObject<mapboxgl.Map | null>;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   mapLoaded: boolean;
   mapError: string | null;
   hasMapboxToken: boolean;
