@@ -1,24 +1,15 @@
 import { createRoot, type Root } from "react-dom/client";
 import { MapPin } from "./map-pin";
 import { CategoryType } from "@prisma/client";
+import type { Pinory } from "@/lib/types";
 
-interface LocationNote {
-  readonly id: string;
-  readonly content: string;
-  readonly address: string;
-  readonly lat: number;
-  readonly lng: number;
-  readonly mood?: string;
-  readonly timestamp: Date;
-  readonly images?: string[];
-  readonly hasImages?: boolean;
-}
-
-export type { LocationNote };
+// Legacy export for backward compatibility
+/** @deprecated Use Pinory from @/lib/types instead */
+export type LocationNote = Pinory;
 
 interface MarkerHelperProps {
   readonly category: CategoryType;
-  readonly note?: LocationNote | null;
+  readonly note?: Pinory | null;
   readonly mood?: string;
   readonly isSelected?: boolean;
   readonly onClick?: () => void;

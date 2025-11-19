@@ -25,29 +25,12 @@ import {
   getRoute,
 } from "@/lib/geolocation";
 import { toast } from "sonner";
-
-interface LocationNote {
-  id: string;
-  lng: number;
-  lat: number;
-  address: string;
-  content: string;
-  mood?: string;
-  timestamp: Date;
-  images?: string[];
-  hasImages?: boolean;
-  placeName?: string;
-  visitTime?: string;
-  category?: string;
-  categoryName?: string;
-  coverImageIndex?: number;
-  visibility?: string;
-}
+import type { Pinory } from "@/lib/types";
 
 interface NoteDetailsViewProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
-  readonly note: LocationNote;
+  readonly note: Pinory;
   readonly onEdit?: () => void;
   readonly onDelete?: () => void;
 }
@@ -59,7 +42,7 @@ export function NoteDetailsView({
   onEdit,
   onDelete,
 }: NoteDetailsViewProps) {
-  const [fullNote, setFullNote] = useState<LocationNote | null>(null);
+  const [fullNote, setFullNote] = useState<Pinory | null>(null);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -105,16 +88,17 @@ export function NoteDetailsView({
           `✅ Loaded place with ${place.media?.length || 0} media items`
         );
 
-        // Transform Place model to LocationNote interface
+        // Transform Place model to Pinory interface
         const imageUrls = place.media?.map((m: any) => m.url) || [];
         console.log(`📸 Processing ${imageUrls.length} images:`, imageUrls);
 
-        const transformedNote: LocationNote = {
+        const transformedNote: Pinory = {
           id: place.id,
           lng: place.lng,
           lat: place.lat,
           address: place.address,
           content: place.note || "",
+          name: place.name,
           mood: place.mood, // This might not exist in Place model
           timestamp: new Date(place.createdAt),
           placeName: place.name,

@@ -8,12 +8,11 @@ import Supercluster from "supercluster";
 import {
   useMapStore,
   useUIStore,
-  usePlaceStore,
+  usePinoryStore,
   useMemoryLaneStore,
   useFriendStore,
-  type LocationNote,
 } from "@/lib/store";
-import type { Place } from "@/lib/types";
+import type { Place, Pinory } from "@/lib/types";
 import { PlacePopup } from "./place-popup";
 import { MapControls } from "./map-controls";
 import { LocationNoteForm } from "./location-note-form";
@@ -80,25 +79,11 @@ export function MapContainer({ className }: MapContainerProps) {
     };
     route?: any; // Full route object from Mapbox for drawing on map
   } | null>(null);
-  const [editingNote, setEditingNote] = useState<{
-    id: string;
-    lng: number;
-    lat: number;
-    address: string;
-    content: string;
-    mood?: string;
-    timestamp: Date;
-    images?: string[];
-    placeName?: string;
-    visitTime?: string;
-    categoryId?: string;
-    coverImageIndex?: number;
-    visibility?: string;
-  } | null>(null);
+  const [editingNote, setEditingNote] = useState<Pinory | null>(null);
 
   const { center, zoom, setCenter, setZoom, setBounds } = useMapStore();
   const { showMemoryLane, setShowMemoryLane } = useUIStore();
-  const { selectedNote, setSelectedNote } = usePlaceStore();
+  const { selectedPinory, setSelectedPinory } = usePinoryStore();
   const {
     routeNotes,
     setRouteNotes,
@@ -115,25 +100,13 @@ export function MapContainer({ className }: MapContainerProps) {
     fetchFriendLocationNotes,
   } = useFriendStore();
 
-  // State for unified location notes system
-  const [locationNotes, setLocationNotes] = useState<
-    Array<{
-      id: string;
-      lng: number;
-      lat: number;
-      address: string;
-      content: string;
-      mood?: string;
-      timestamp: Date;
-      images?: string[];
-      hasImages?: boolean;
-    }>
-  >([]);
+  // State for unified location notes system (using Pinory type)
+  const [locationNotes, setLocationNotes] = useState<Pinory[]>([]);
 
   // State for friend location markers and popup
   const friendMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const [selectedFriendLocation, setSelectedFriendLocation] =
-    useState<Place | null>(null);
+    useState<Pinory | null>(null);
   const [showFriendDetailsDialog, setShowFriendDetailsDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -161,7 +134,7 @@ export function MapContainer({ className }: MapContainerProps) {
         const notes = await response.json();
         console.log(
           "🔄 API returned notes:",
-          notes.map((n: LocationNote) => ({
+          notes.map((n: Pinory) => ({
             id: n.id,
             mood: n.mood,
             content: n.content?.substring(0, 20),
@@ -170,7 +143,7 @@ export function MapContainer({ className }: MapContainerProps) {
         );
 
         // Add hasImages flag based on images array
-        const notesWithFlags = notes.map((note: LocationNote) => ({
+        const notesWithFlags = notes.map((note: Pinory) => ({
           ...note,
           hasImages: note.images && note.images.length > 0,
         }));
@@ -197,8 +170,9 @@ export function MapContainer({ className }: MapContainerProps) {
     null
   );
   const [currentZoom, setCurrentZoom] = useState(zoom);
-  const [clusterIndex, setClusterIndex] =
-    useState<Supercluster<LocationNote> | null>(null);
+  const [clusterIndex, setClusterIndex] = useState<Supercluster<Pinory> | null>(
+    null
+  );
 
   // Track rendered markers to avoid unnecessary re-renders
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -226,7 +200,7 @@ export function MapContainer({ className }: MapContainerProps) {
       return;
     }
 
-    const index = new Supercluster<LocationNote>({
+    const index = new Supercluster<Pinory>({
       radius: 60, // Cluster radius in pixels
       maxZoom: 16, // Max zoom to cluster points on
       minZoom: 0,
@@ -356,7 +330,7 @@ export function MapContainer({ className }: MapContainerProps) {
 
       // Clear selected note when clicking on map
       console.log("🗺️ Clearing selectedNote due to map click");
-      setSelectedNote(null);
+      setSelectedPinory(null);
 
       // Remove previous clicked location marker if exists
       if (clickedLocationMarker.current) {
@@ -449,23 +423,23 @@ export function MapContainer({ className }: MapContainerProps) {
   useEffect(() => {
     console.log(
       "📍 selectedNote changed:",
-      selectedNote
+      selectedPinory
         ? {
-            id: selectedNote.id,
-            content: selectedNote.content?.substring(0, 20),
+            id: selectedPinory.id,
+            content: selectedPinory.content?.substring(0, 20),
           }
         : "null"
     );
-  }, [selectedNote]);
+  }, [selectedPinory]);
 
   // Create marker click handler that doesn't change with selectedNote
   const handleMarkerClick = useCallback(
-    (note: LocationNote) => {
+    (note: Pinory) => {
       console.log(
         "🎯 Marker clicked, setting selectedNote:",
         note.content?.substring(0, 20)
       );
-      setSelectedNote(note);
+      setSelectedPinory(note);
 
       // On mobile, auto-open details view instead of popup
       const isMobile = globalThis.innerWidth < 768;
@@ -478,27 +452,27 @@ export function MapContainer({ className }: MapContainerProps) {
       }
 
       console.log(
-        "🎯 After setSelectedNote, current selectedNote should be:",
+        "🎯 After setSelectedPinory, current selectedNote should be:",
         note.id
       );
     },
-    [setSelectedNote]
+    [setSelectedPinory]
   );
 
   // Debug useEffect for state changes
   useEffect(() => {
     console.log("🔍 State changes:", {
-      selectedNote: selectedNote
+      selectedNote: selectedPinory
         ? {
-            id: selectedNote.id,
-            content: selectedNote.content?.substring(0, 20),
+            id: selectedPinory.id,
+            content: selectedPinory.content?.substring(0, 20),
           }
         : null,
       clickedLocation: !!clickedLocation,
       showLocationForm,
       showDetailsDialog,
     });
-  }, [selectedNote, clickedLocation, showLocationForm, showDetailsDialog]);
+  }, [selectedPinory, clickedLocation, showLocationForm, showDetailsDialog]);
 
   // Listen for focus location event from sidebar
   useEffect(() => {
@@ -591,7 +565,7 @@ export function MapContainer({ className }: MapContainerProps) {
       // Generate unique ID for this marker
       const markerId = isCluster
         ? `cluster-${props.cluster_id || cluster.id}`
-        : `note-${(cluster.properties as LocationNote).id}`;
+        : `note-${(cluster.properties as Pinory).id}`;
 
       currentIds.add(markerId);
 
@@ -615,7 +589,7 @@ export function MapContainer({ className }: MapContainerProps) {
               const leaves = clusterIndex.getLeaves(clusterId, Infinity);
               imageUrls = leaves
                 .map((leaf) => {
-                  const note = leaf.properties as LocationNote;
+                  const note = leaf.properties as Pinory;
                   return note.images?.[0];
                 })
                 .filter(Boolean) as string[];
@@ -657,8 +631,8 @@ export function MapContainer({ className }: MapContainerProps) {
         }
       } else {
         // Individual marker
-        const note = cluster.properties as LocationNote;
-        const isSelected = selectedNote && selectedNote.id === note.id;
+        const note = cluster.properties as Pinory;
+        const isSelected = selectedPinory && selectedPinory.id === note.id;
 
         // Check if we need to update the marker (selection state changed)
         const needsUpdate =
@@ -726,7 +700,7 @@ export function MapContainer({ className }: MapContainerProps) {
     clusters,
     locationNotes.length,
     mapLoaded,
-    selectedNote,
+    selectedPinory,
     handleMarkerClick,
     clusterIndex,
   ]);
@@ -818,7 +792,7 @@ export function MapContainer({ className }: MapContainerProps) {
           }
           friendAvatarUrl={friendNote.creator?.avatarUrl}
           imageUrl={imageUrl}
-          category={friendNote.category}
+          category={(friendNote.category as CategoryType) || undefined}
           mood={friendNote.note ? undefined : "📍"} // Use note as mood indicator
           onClick={() => {
             setSelectedFriendLocation(friendNote);
@@ -889,14 +863,14 @@ export function MapContainer({ className }: MapContainerProps) {
 
   // Fly to selected note
   useEffect(() => {
-    if (!map.current || !selectedNote) return;
+    if (!map.current || !selectedPinory) return;
 
     map.current.flyTo({
-      center: [selectedNote.lng, selectedNote.lat],
+      center: [selectedPinory.lng, selectedPinory.lat],
       zoom: 16,
       duration: 1000,
     });
-  }, [selectedNote]);
+  }, [selectedPinory]);
 
   // Handle adding location note
   const handleAddLocationNote = async (noteData: {
@@ -923,11 +897,12 @@ export function MapContainer({ className }: MapContainerProps) {
       }
 
       // Create the note object for local state
-      const savedNote = {
+      const savedNote: Pinory = {
         id: noteData.id,
         lng: noteData.lng,
         lat: noteData.lat,
         address: noteData.address,
+        name: noteData.placeName || noteData.address || "New Location",
         content: noteData.content || "",
         mood: noteData.mood,
         images: noteData.images || [],
@@ -1039,9 +1014,9 @@ export function MapContainer({ className }: MapContainerProps) {
       setEditingNote(null);
 
       // Update selected note with new data so details view shows updated info
-      if (selectedNote && selectedNote.id === updatedNote.id) {
-        setSelectedNote({
-          ...selectedNote,
+      if (selectedPinory && selectedPinory.id === updatedNote.id) {
+        setSelectedPinory({
+          ...selectedPinory,
           content: updatedNote.content,
           mood: updatedNote.mood,
           timestamp: updatedNote.timestamp,
@@ -1073,7 +1048,7 @@ export function MapContainer({ className }: MapContainerProps) {
   const handleCreateNoteAtLocation = useCallback(
     (location: { lng: number; lat: number; address?: string }) => {
       // Clear any existing selected note
-      setSelectedNote(null);
+      setSelectedPinory(null);
 
       // Set the location and open form
       setClickedLocation({
@@ -1118,7 +1093,7 @@ export function MapContainer({ className }: MapContainerProps) {
           .addTo(map.current);
       }
     },
-    [setSelectedNote]
+    [setSelectedPinory]
   );
 
   // Handle creating journey (from FAB)
@@ -1415,17 +1390,17 @@ export function MapContainer({ className }: MapContainerProps) {
         onCreateJourney={handleCreateJourney}
       />
       {/* Unified popup system - only 2 types: My Notes or New Location */}
-      {selectedNote && (
+      {selectedPinory && (
         <PlacePopup
-          note={selectedNote}
+          note={selectedPinory}
           mapRef={
             map.current ? (map as React.RefObject<mapboxgl.Map>) : undefined
           }
-          onClose={() => setSelectedNote(null)}
+          onClose={() => setSelectedPinory(null)}
           onViewDetails={() => {
             console.log(
               "View details for note:",
-              selectedNote.content?.substring(0, 20)
+              selectedPinory.content?.substring(0, 20)
             );
             setShowDetailsDialog(true);
           }}
@@ -1433,7 +1408,7 @@ export function MapContainer({ className }: MapContainerProps) {
             if (confirm("Bạn có chắc muốn xóa ghi chú này?")) {
               try {
                 const response = await fetch(
-                  `/api/location-notes?id=${selectedNote.id}`,
+                  `/api/location-notes?id=${selectedPinory.id}`,
                   {
                     method: "DELETE",
                     credentials: "include", // 🔑 Include session
@@ -1446,15 +1421,15 @@ export function MapContainer({ className }: MapContainerProps) {
 
                 console.log(
                   "Deleted note:",
-                  selectedNote.content?.substring(0, 20)
+                  selectedPinory.content?.substring(0, 20)
                 );
 
                 // Update local state to remove the deleted note
                 setLocationNotes((prev) =>
-                  prev.filter((note) => note.id !== selectedNote.id)
+                  prev.filter((note) => note.id !== selectedPinory.id)
                 );
 
-                setSelectedNote(null);
+                setSelectedPinory(null);
                 // Trigger refresh of sidebar and map markers
                 window.dispatchEvent(new CustomEvent("locationNoteUpdated"));
               } catch (error) {
@@ -1466,7 +1441,7 @@ export function MapContainer({ className }: MapContainerProps) {
         />
       )}
 
-      {clickedLocation && !showLocationForm && !selectedNote && (
+      {clickedLocation && !showLocationForm && !selectedPinory && (
         <PlacePopup
           location={{
             lng: clickedLocation.lng,
@@ -1519,12 +1494,12 @@ export function MapContainer({ className }: MapContainerProps) {
           }}
           existingNote={{
             id: editingNote.id,
-            content: editingNote.content,
+            content: editingNote.content || "",
             mood: editingNote.mood,
             images: editingNote.images,
-            placeName: editingNote.placeName,
+            placeName: editingNote.placeName || editingNote.name,
             visitTime: editingNote.visitTime,
-            category: editingNote.categoryId,
+            category: editingNote.categoryId || undefined,
             coverImageIndex: editingNote.coverImageIndex,
             visibility: editingNote.visibility,
           }}
@@ -1532,21 +1507,24 @@ export function MapContainer({ className }: MapContainerProps) {
         />
       )}
 
-      {selectedNote && showDetailsDialog && (
+      {selectedPinory && showDetailsDialog && (
         <NoteDetailsView
           isOpen={showDetailsDialog}
           onClose={() => {
             setShowDetailsDialog(false);
-            setSelectedNote(null);
+            setSelectedPinory(null);
           }}
-          note={selectedNote}
+          note={selectedPinory}
           onEdit={() => {
             // All selected notes are location notes with content
-            setEditingNote(selectedNote);
+            setEditingNote(selectedPinory);
             setShowEditForm(true);
           }}
           onDelete={() =>
-            console.log("Delete note:", selectedNote.content?.substring(0, 20))
+            console.log(
+              "Delete note:",
+              selectedPinory.content?.substring(0, 20)
+            )
           }
         />
       )}
@@ -1607,35 +1585,14 @@ export function MapContainer({ className }: MapContainerProps) {
             map.current ? (map as React.RefObject<mapboxgl.Map>) : undefined
           }
           onClose={() => setSelectedFriendLocation(null)}
-          onAddToFavorites={async () => {
-            try {
-              const response = await fetch("/api/favorites", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  placeId: selectedFriendLocation.id,
-                }),
-                credentials: "include",
-              });
-
-              if (response.ok) {
-                alert("Added to favorites!");
-                setSelectedFriendLocation(null);
-              } else {
-                alert("Failed to add to favorites");
-              }
-            } catch (error) {
-              console.error("Error adding to favorites:", error);
-              alert("Error adding to favorites");
-            }
+          onViewDetails={() => {
+            setShowFriendDetailsDialog(true);
           }}
         />
       )}
 
-      {/* Friend Location Details View (Mobile) */}
-      {selectedFriendLocation && showFriendDetailsDialog && isMobile && (
+      {/* Friend Location Details View (Mobile and Details Dialog) */}
+      {selectedFriendLocation && showFriendDetailsDialog && (
         <FriendLocationDetailsView
           isOpen={showFriendDetailsDialog}
           locationNote={selectedFriendLocation}

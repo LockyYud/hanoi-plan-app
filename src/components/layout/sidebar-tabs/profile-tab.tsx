@@ -3,19 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { User, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
-import type { ExtendedPlace } from "./places-tab";
+import type { Pinory } from "@/lib/types";
 
 interface ProfileTabProps {
   session: any;
   status: "loading" | "authenticated" | "unauthenticated";
-  places: any[];
-  filteredPlaces: any[];
+  pinories: any[];
+  filteredPlaces: Pinory[];
 }
 
 export function ProfileTab({
   session,
   status,
-  places,
+  pinories,
   filteredPlaces,
 }: ProfileTabProps) {
   return (
@@ -63,7 +63,7 @@ export function ProfileTab({
               <div className="grid grid-cols-2 gap-4">
                 <div className="relative group bg-gradient-to-br from-[#FF6B6B]/20 via-[#FF6B6B]/10 to-transparent border border-[#FF6B6B]/30 rounded-2xl p-4 hover:shadow-lg hover:shadow-[#FF6B6B]/20 transition-all duration-300">
                   <div className="font-black text-2xl text-[#FF6B6B] mb-1">
-                    {places.length}
+                    {pinories.length}
                   </div>
                   <div className="text-xs text-[#FFD6A5] font-semibold">
                     Ghi chú
@@ -73,9 +73,7 @@ export function ProfileTab({
                   <div className="font-black text-2xl text-green-400 mb-1">
                     {
                       filteredPlaces.filter(
-                        (p) =>
-                          (p as ExtendedPlace).images &&
-                          (p as ExtendedPlace).images.length > 0
+                        (p) => p.images && p.images.length > 0
                       ).length
                     }
                   </div>

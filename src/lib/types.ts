@@ -187,7 +187,7 @@ export interface MapBounds {
     west: number
 }
 
-export interface PlaceFilter {
+export interface PinoryFilter {
     category?: string[] // Changed to string[] to support category slugs
     priceLevel?: number[]
     district?: string[]
@@ -258,10 +258,69 @@ export const PRICE_LEVELS = [
     { value: 4, label: "₫₫₫₫ (> 500k)", max: Infinity }
 ] as const
 
+// Pinory - Unified interface for user-selected locations with notes, images, and memories
+// This represents the primary user-facing type for location memories in the app
+export interface Pinory {
+    // Core identification
+    id: string
+    name: string // Place name (required)
+
+    // Location data
+    lng: number
+    lat: number
+    address: string
+    ward?: string
+    district?: string
+
+    // User content
+    content?: string // User's note/description
+    note?: string // Alias for content
+    mood?: string // Emoji or mood indicator
+
+    // Media
+    images?: string[]
+    hasImages?: boolean
+    media?: Media[]
+
+    // Categorization
+    category?: string // Category ID
+    categoryName?: string
+    categorySlug?: string
+    categoryId?: string | null
+
+    // Place metadata
+    placeName?: string // Alias for name
+    priceLevel?: number
+    rating?: number
+    phone?: string
+    website?: string
+
+    // Temporal data
+    timestamp: Date // When the memory was created
+    visitDate?: Date
+    visitTime?: string
+    createdAt?: Date
+    updatedAt?: Date
+
+    // Visibility & ownership
+    visibility?: ShareVisibility | string
+    userId?: string
+    createdBy?: string
+
+    // Additional metadata
+    coverImageIndex?: number
+    placeType?: "note" | "place" // Distinguishes between user notes and place records
+
+    // Relations
+    creator?: User
+    tags?: PlaceTag[]
+    favorites?: Favorite[]
+}
+
 // Friend System Types
-// LocationNote has been merged into Place model
-// For backwards compatibility, LocationNote is now just an alias for Place
-export type LocationNote = Place
+// For backwards compatibility - deprecated, use Pinory instead
+/** @deprecated Use Pinory instead */
+export type LocationNote = Pinory
 
 export interface Friendship {
     id: string
@@ -278,7 +337,7 @@ export interface FriendShare {
     id: string
     userId: string
     contentId: string
-    contentType: 'location_note' | 'journey' | 'media'
+    contentType: 'pinory' | 'location_note' | 'journey' | 'media' // Added 'pinory'
     visibility: ShareVisibility
     sharedWith: string[]
     createdAt: Date
@@ -288,7 +347,7 @@ export interface Reaction {
     id: string
     userId: string
     contentId: string
-    contentType: 'location_note' | 'journey' | 'media'
+    contentType: 'pinory' | 'location_note' | 'journey' | 'media' // Added 'pinory'
     type: ReactionType
     createdAt: Date
     user: User
@@ -311,15 +370,16 @@ export interface FriendWithStats extends User {
     friendshipId: string
     friendshipStatus: FriendshipStatus
     friendsSince: Date
-    locationNotesCount: number
+    pinoriesCount: number // Renamed from locationNotesCount
+    locationNotesCount: number // Kept for backward compatibility
     journeysCount: number
 }
 
 export interface ActivityFeedItem {
     id: string
-    type: 'location_note' | 'journey' | 'media'
+    type: 'pinory' | 'location_note' | 'journey' | 'media' // Added 'pinory'
     user: User
-    content: LocationNote | Journey | Media
+    content: Pinory | Journey | Media
     reactions: Reaction[]
     createdAt: Date
 }

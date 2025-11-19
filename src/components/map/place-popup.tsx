@@ -25,18 +25,7 @@ import {
   NavigationOff,
 } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
-
-interface LocationNote {
-  name?: string;
-  id: string;
-  lng: number;
-  lat: number;
-  address: string;
-  content: string;
-  mood?: string;
-  timestamp: Date;
-  images?: string[];
-}
+import type { Pinory } from "@/lib/types";
 
 interface LocationPreview {
   lng: number;
@@ -45,7 +34,7 @@ interface LocationPreview {
 }
 
 interface PlacePopupProps {
-  readonly note?: LocationNote;
+  readonly note?: Pinory;
   readonly location?: LocationPreview;
   readonly onClose: () => void;
   readonly onViewDetails?: () => void; // For notes

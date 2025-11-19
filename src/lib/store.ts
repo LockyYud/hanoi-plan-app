@@ -1,21 +1,10 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { Place, Group, MapBounds, PlaceFilter, Friendship, FriendWithStats, LocationNote as LocationNoteType, ActivityFeedItem } from "@/lib/types"
+import { Place, Group, MapBounds, PinoryFilter, Friendship, FriendWithStats, Pinory, ActivityFeedItem } from "@/lib/types"
 
-export interface LocationNote {
-    id: string
-    lng: number
-    lat: number
-    address: string
-    content: string
-    name: string
-    mood?: string
-    timestamp: Date
-    images?: string[]
-    hasImages?: boolean
-    categorySlug?: string // Category slug for filtering
-    categoryId?: string | null // Category ID for associating with category
-}
+// Legacy type alias for backward compatibility
+/** @deprecated Use Pinory instead */
+export type LocationNote = Pinory
 
 export interface Category {
     id: string
@@ -27,21 +16,19 @@ export interface Category {
     userId?: string
 }
 
-interface PlaceStore {
-    selectedPlace: Place | null
-    setSelectedPlace: (place: Place | null) => void
+interface PinoryStore {
 
-    selectedNote: LocationNote | null
-    setSelectedNote: (note: LocationNote | null) => void
+    selectedPinory: Pinory | null
+    setSelectedPinory: (pinory: Pinory | null) => void
 
-    places: Place[]
-    setPlaces: (places: Place[]) => void
-    addPlace: (place: Place) => void
-    updatePlace: (id: string, updates: Partial<Place>) => void
-    removePlace: (id: string) => void
+    pinories: Pinory[]
+    setPinories: (pinories: Pinory[]) => void
+    addPinory: (pinory: Pinory) => void
+    updatePinory: (id: string, updates: Partial<Pinory>) => void
+    removePinory: (id: string) => void
 
-    filter: PlaceFilter
-    setFilter: (filter: Partial<PlaceFilter>) => void
+    filter: PinoryFilter
+    setFilter: (filter: Partial<PinoryFilter>) => void
     clearFilter: () => void
 }
 
@@ -83,8 +70,8 @@ interface UIStore {
 }
 
 interface MemoryLaneStore {
-    routeNotes: LocationNote[]
-    setRouteNotes: (notes: LocationNote[]) => void
+    routeNotes: Pinory[]
+    setRouteNotes: (notes: Pinory[]) => void
     routeSortBy: "time" | "custom"
     setRouteSortBy: (sortBy: "time" | "custom") => void
     showRoute: boolean
@@ -103,21 +90,18 @@ interface CategoryStore {
     fetchCategories: (session: any) => Promise<void>
 }
 
-export const usePlaceStore = create<PlaceStore>((set) => ({
-    selectedPlace: null,
-    setSelectedPlace: (place) => set({ selectedPlace: place }),
+export const usePinoryStore = create<PinoryStore>((set) => ({
+    selectedPinory: null,
+    setSelectedPinory: (pinory) => set({ selectedPinory: pinory }),
 
-    selectedNote: null,
-    setSelectedNote: (note) => set({ selectedNote: note }),
-
-    places: [],
-    setPlaces: (places) => set({ places }),
-    addPlace: (place) => set((state) => ({ places: [...state.places, place] })),
-    updatePlace: (id, updates) => set((state) => ({
-        places: state.places.map(p => p.id === id ? { ...p, ...updates } : p)
+    pinories: [],
+    setPinories: (places) => set({ pinories: places }),
+    addPinory: (place) => set((state) => ({ pinories: [...state.pinories, place] })),
+    updatePinory: (id, updates) => set((state) => ({
+        pinories: state.pinories.map(p => p.id === id ? { ...p, ...updates } : p)
     })),
-    removePlace: (id) => set((state) => ({
-        places: state.places.filter(p => p.id !== id)
+    removePinory: (id) => set((state) => ({
+        pinories: state.pinories.filter(p => p.id !== id)
     })),
 
     filter: {},
@@ -254,8 +238,8 @@ interface FriendStore {
     addFriendRequest: (request: Friendship) => void
     removeFriendRequest: (requestId: string) => void
 
-    friendLocationNotes: LocationNoteType[]
-    setFriendLocationNotes: (notes: LocationNoteType[]) => void
+    friendLocationNotes: Pinory[]
+    setFriendLocationNotes: (notes: Pinory[]) => void
 
     activityFeed: ActivityFeedItem[]
     setActivityFeed: (feed: ActivityFeedItem[]) => void

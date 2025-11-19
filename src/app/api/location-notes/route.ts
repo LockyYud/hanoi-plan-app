@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
             where.visibility = "public"
         }
 
-        const places = await prisma.place.findMany({
+        const pinories = await prisma.place.findMany({
             where,
             include: {
                 creator: {
@@ -69,31 +69,31 @@ export async function GET(req: NextRequest) {
         })
 
         // Transform to match expected format
-        const formattedNotes = places.map((place: any) => ({
-            id: place.id,
-            lng: place.lng,
-            lat: place.lat,
-            address: place.address,
-            name: place.name, // Add name property
-            content: place.note || "",
-            note: place.note, // Add note property
-            placeName: place.name,
+        const formattedNotes = pinories.map((pinory: any) => ({
+            id: pinory.id,
+            lng: pinory.lng,
+            lat: pinory.lat,
+            address: pinory.address,
+            name: pinory.name, // Add name property
+            content: pinory.note || "",
+            note: pinory.note, // Add note property
+            placeName: pinory.name,
             mood: "📝",
-            timestamp: place.visitDate || place.createdAt,
-            visitTime: place.visitDate,
-            visitDate: place.visitDate, // Add visitDate property
-            rating: place.rating, // Add rating property
-            images: place.media?.map((m: any) => m.url) || [],
-            media: place.media, // Add media array
-            hasImages: (place.media?.length || 0) > 0,
-            category: place.categoryModelId, // Return category ID from Category table, not enum
-            categoryName: place.categoryModel?.name,
-            categorySlug: place.categoryModel?.slug || place.category.toLowerCase(),
-            categoryId: place.categoryModel?.id,
-            visibility: place.visibility,
-            userId: place.createdBy,
-            user: place.creator,
-            creator: place.creator, // Add creator property for compatibility
+            timestamp: pinory.visitDate || pinory.createdAt,
+            visitTime: pinory.visitDate,
+            visitDate: pinory.visitDate, // Add visitDate property
+            rating: pinory.rating, // Add rating property
+            images: pinory.media?.map((m: any) => m.url) || [],
+            media: pinory.media, // Add media array
+            hasImages: (pinory.media?.length || 0) > 0,
+            category: pinory.categoryModelId, // Return category ID from Category table, not enum
+            categoryName: pinory.categoryModel?.name,
+            categorySlug: pinory.categoryModel?.slug || pinory.category.toLowerCase(),
+            categoryId: pinory.categoryModel?.id,
+            visibility: pinory.visibility,
+            userId: pinory.createdBy,
+            user: pinory.creator,
+            creator: pinory.creator, // Add creator property for compatibility
             coverImageIndex: 0 // Default to first image
         }))
         console.log("Fetched location notes: hehe", formattedNotes)
