@@ -1,9 +1,9 @@
 /**
  * useFriendLocations
- * 
+ *
  * Custom hook to manage friend location markers on the map.
  * Fetches and displays pinories from friends when friends layer is enabled.
- * 
+ *
  * @param mapRef - Reference to the Mapbox map instance
  * @param mapLoaded - Whether the map has finished loading
  * @param showFriendsLayer - Whether friends layer is visible
@@ -14,18 +14,18 @@
  * @returns Friend markers state and selected friend pinory
  */
 
-import { useState, useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-import { createRoot } from 'react-dom/client';
-import { Session } from 'next-auth';
-import { CategoryType } from '@prisma/client';
-import type { Pinory } from '@/lib/types';
-import type { UseFriendLocationsReturn } from '../types/map.types';
-import { FriendLocationPin } from '../friend-location-pin';
+import { useState, useEffect, useRef } from "react";
+import mapboxgl from "mapbox-gl";
+import { createRoot } from "react-dom/client";
+import { Session } from "next-auth";
+import { CategoryType } from "@prisma/client";
+import type { Pinory } from "@/lib/types";
+import type { UseFriendLocationsReturn } from "../types/map.types";
+import { FriendLocationPin } from "../friend-location-pin";
 import {
   destroyMapPinElement,
   type ReactMapPinElement,
-} from '../marker-helper';
+} from "../marker-helper";
 
 export function useFriendLocations(
   mapRef: React.RefObject<mapboxgl.Map | null>,
@@ -37,7 +37,8 @@ export function useFriendLocations(
   session: Session | null
 ): UseFriendLocationsReturn {
   const friendMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-  const [selectedFriendPinory, setSelectedFriendPinory] = useState<Pinory | null>(null);
+  const [selectedFriendPinory, setSelectedFriendPinory] =
+    useState<Pinory | null>(null);
   const [showFriendDetailsDialog, setShowFriendDetailsDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -47,8 +48,8 @@ export function useFriendLocations(
       setIsMobile(globalThis.innerWidth < 768);
     };
     checkMobile();
-    globalThis.addEventListener('resize', checkMobile);
-    return () => globalThis.removeEventListener('resize', checkMobile);
+    globalThis.addEventListener("resize", checkMobile);
+    return () => globalThis.removeEventListener("resize", checkMobile);
   }, []);
 
   // Fetch friend location notes when friends layer is enabled or friend filter changes
@@ -64,10 +65,13 @@ export function useFriendLocations(
     if (!mapRef.current || !mapLoaded) return;
 
     const map = mapRef.current;
-    
+
     // Additional safety check
-    if (!map.getCanvasContainer || typeof map.getCanvasContainer !== 'function') {
-      console.warn('Map not fully initialized yet');
+    if (
+      !map.getCanvasContainer ||
+      typeof map.getCanvasContainer !== "function"
+    ) {
+      console.warn("Map not fully initialized yet");
       return;
     }
 
@@ -87,11 +91,11 @@ export function useFriendLocations(
       return;
     }
 
-    console.log('🎨 Rendering friend location markers:', friendPinories.length);
+    console.log("🎨 Rendering friend location markers:", friendPinories.length);
 
     // Create markers for friend locations
     friendPinories.forEach((friendPinory) => {
-      const markerElement = document.createElement('div');
+      const markerElement = document.createElement("div");
       const root = createRoot(markerElement);
 
       // Get first image - API returns 'images' array or 'media' array
@@ -102,7 +106,7 @@ export function useFriendLocations(
             ? friendPinory.media[0].url
             : undefined;
 
-      console.log('🎨 Friend note image check:', {
+      console.log("🎨 Friend note image check:", {
         id: friendPinory.id,
         hasImages: !!(friendPinory as any).images?.length,
         images: (friendPinory as any).images,
@@ -116,12 +120,12 @@ export function useFriendLocations(
           friendName={
             friendPinory.creator?.name ||
             friendPinory.creator?.email ||
-            'Friend'
+            "Friend"
           }
           friendAvatarUrl={friendPinory.creator?.avatarUrl}
           imageUrl={imageUrl}
           category={(friendPinory.category as CategoryType) || undefined}
-          mood={friendPinory.note ? undefined : '📍'}
+          mood={friendPinory.note ? undefined : "📍"}
           onClick={() => {
             setSelectedFriendPinory(friendPinory);
 
@@ -139,7 +143,7 @@ export function useFriendLocations(
 
       // Final safety check before adding marker
       if (!mapRef.current) {
-        console.warn('Map reference lost during friend marker creation');
+        console.warn("Map reference lost during friend marker creation");
         return;
       }
 

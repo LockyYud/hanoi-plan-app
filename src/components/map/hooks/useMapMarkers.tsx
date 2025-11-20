@@ -80,10 +80,13 @@ export function useMapMarkers(
     }
 
     const map = mapRef.current;
-    
+
     // Additional safety check
-    if (!map.getCanvasContainer || typeof map.getCanvasContainer !== 'function') {
-      console.warn('Map not fully initialized yet for markers');
+    if (
+      !map.getCanvasContainer ||
+      typeof map.getCanvasContainer !== "function"
+    ) {
+      console.warn("Map not fully initialized yet for markers");
       return;
     }
 
@@ -98,7 +101,7 @@ export function useMapMarkers(
     for (const cluster of clusters) {
       // Re-check map reference inside loop
       if (!mapRef.current) {
-        console.warn('Map reference lost during marker rendering');
+        console.warn("Map reference lost during marker rendering");
         continue;
       }
 
@@ -170,7 +173,7 @@ export function useMapMarkers(
 
           // Final safety check before adding cluster marker
           if (!mapRef.current) {
-            console.warn('Map reference lost during cluster marker creation');
+            console.warn("Map reference lost during cluster marker creation");
             continue;
           }
 
@@ -211,7 +214,9 @@ export function useMapMarkers(
 
           // Final safety check before adding individual marker
           if (!mapRef.current) {
-            console.warn('Map reference lost during individual marker creation');
+            console.warn(
+              "Map reference lost during individual marker creation"
+            );
             continue;
           }
 

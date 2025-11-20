@@ -1,16 +1,16 @@
 /**
  * Integration Tests for Refactored MapContainer
- * 
+ *
  * Tests all major user flows and feature integrations
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { SessionProvider } from 'next-auth/react';
-import { MapContainer } from '../map-container-refactored';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { SessionProvider } from "next-auth/react";
+import { MapContainer } from "../map-container-refactored";
 
 // Mock Mapbox GL
-vi.mock('mapbox-gl', () => ({
+vi.mock("mapbox-gl", () => ({
   default: {
     Map: vi.fn(() => ({
       on: vi.fn(),
@@ -21,7 +21,10 @@ vi.mock('mapbox-gl', () => ({
       })),
       flyTo: vi.fn(),
       getBounds: vi.fn(() => ({
-        toArray: () => [[-180, -90], [180, 90]],
+        toArray: () => [
+          [-180, -90],
+          [180, 90],
+        ],
       })),
       getZoom: vi.fn(() => 13),
     })),
@@ -32,7 +35,7 @@ vi.mock('mapbox-gl', () => ({
       setLngLat: vi.fn().mockReturnThis(),
       addTo: vi.fn().mockReturnThis(),
       remove: vi.fn(),
-      getElement: vi.fn(() => document.createElement('div')),
+      getElement: vi.fn(() => document.createElement("div")),
     })),
     Popup: vi.fn(() => ({
       setLngLat: vi.fn().mockReturnThis(),
@@ -44,22 +47,22 @@ vi.mock('mapbox-gl', () => ({
 }));
 
 // Mock next-auth
-vi.mock('next-auth/react', () => ({
+vi.mock("next-auth/react", () => ({
   useSession: () => ({
     data: {
       user: {
-        id: 'test-user-id',
-        name: 'Test User',
-        email: 'test@example.com',
+        id: "test-user-id",
+        name: "Test User",
+        email: "test@example.com",
       },
     },
-    status: 'authenticated',
+    status: "authenticated",
   }),
   SessionProvider: ({ children }: any) => children,
 }));
 
 // Mock stores
-vi.mock('@/lib/store', () => ({
+vi.mock("@/lib/store", () => ({
   useMapStore: () => ({
     center: [105.8342, 21.0285],
     zoom: 13,
@@ -76,7 +79,7 @@ vi.mock('@/lib/store', () => ({
   useMemoryLaneStore: () => ({
     routeNotes: [],
     setRouteNotes: vi.fn(),
-    routeSortBy: 'time',
+    routeSortBy: "time",
     setRouteSortBy: vi.fn(),
     showRoute: false,
     setShowRoute: vi.fn(),
@@ -91,15 +94,15 @@ vi.mock('@/lib/store', () => ({
 }));
 
 // Mock geolocation
-vi.mock('@/lib/geolocation', () => ({
+vi.mock("@/lib/geolocation", () => ({
   removeRouteFromMap: vi.fn(),
 }));
 
-describe('MapContainer Integration Tests', () => {
+describe("MapContainer Integration Tests", () => {
   beforeEach(() => {
     // Set up Mapbox token
-    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'test-token';
-    
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = "test-token";
+
     // Mock fetch for API calls
     global.fetch = vi.fn(() =>
       Promise.resolve({
@@ -113,56 +116,58 @@ describe('MapContainer Integration Tests', () => {
     vi.clearAllMocks();
   });
 
-  describe('Component Rendering', () => {
-    it('should render without crashing', () => {
+  describe("Component Rendering", () => {
+    it("should render without crashing", () => {
       const { container } = render(
         <SessionProvider session={null}>
           <MapContainer />
         </SessionProvider>
       );
-      
+
       expect(container).toBeTruthy();
     });
 
-    it('should render map container element', () => {
+    it("should render map container element", () => {
       const { container } = render(
         <SessionProvider session={null}>
           <MapContainer />
         </SessionProvider>
       );
-      
-      const mapContainer = container.querySelector('[data-testid="map-container"]');
+
+      const mapContainer = container.querySelector(
+        '[data-testid="map-container"]'
+      );
       expect(mapContainer || container.firstChild).toBeTruthy();
     });
 
-    it('should apply custom className', () => {
+    it("should apply custom className", () => {
       const { container } = render(
         <SessionProvider session={null}>
           <MapContainer className="custom-class" />
         </SessionProvider>
       );
-      
-      expect(container.firstChild).toHaveClass('custom-class');
+
+      expect(container.firstChild).toHaveClass("custom-class");
     });
   });
 
-  describe('Error Handling', () => {
-    it('should show error when Mapbox token is missing', () => {
+  describe("Error Handling", () => {
+    it("should show error when Mapbox token is missing", () => {
       delete process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-      
+
       const { container } = render(
         <SessionProvider session={null}>
           <MapContainer />
         </SessionProvider>
       );
-      
+
       // Should show error UI
-      expect(container.textContent).toContain('Bản đồ không khả dụng');
+      expect(container.textContent).toContain("Bản đồ không khả dụng");
     });
   });
 
-  describe('Hook Integration', () => {
-    it('should initialize all hooks correctly', async () => {
+  describe("Hook Integration", () => {
+    it("should initialize all hooks correctly", async () => {
       render(
         <SessionProvider session={null}>
           <MapContainer />
@@ -176,18 +181,19 @@ describe('MapContainer Integration Tests', () => {
       });
     });
 
-    it('should fetch location notes on mount', async () => {
+    it("should fetch location notes on mount", async () => {
       const mockFetch = vi.fn(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve([
-            {
-              id: '1',
-              lat: 21.0285,
-              lng: 105.8342,
-              title: 'Test Location',
-            },
-          ]),
+          json: () =>
+            Promise.resolve([
+              {
+                id: "1",
+                lat: 21.0285,
+                lng: 105.8342,
+                title: "Test Location",
+              },
+            ]),
         })
       );
       global.fetch = mockFetch as any;
@@ -204,8 +210,8 @@ describe('MapContainer Integration Tests', () => {
     });
   });
 
-  describe('User Interactions', () => {
-    it('should handle map clicks', async () => {
+  describe("User Interactions", () => {
+    it("should handle map clicks", async () => {
       const { container } = render(
         <SessionProvider session={null}>
           <MapContainer />
@@ -220,10 +226,10 @@ describe('MapContainer Integration Tests', () => {
     });
   });
 
-  describe('Mobile Responsiveness', () => {
-    it('should detect mobile viewport', () => {
+  describe("Mobile Responsiveness", () => {
+    it("should detect mobile viewport", () => {
       // Mock mobile viewport
-      Object.defineProperty(window, 'innerWidth', {
+      Object.defineProperty(window, "innerWidth", {
         writable: true,
         configurable: true,
         value: 375,
@@ -239,9 +245,9 @@ describe('MapContainer Integration Tests', () => {
       expect(true).toBe(true);
     });
 
-    it('should detect desktop viewport', () => {
+    it("should detect desktop viewport", () => {
       // Mock desktop viewport
-      Object.defineProperty(window, 'innerWidth', {
+      Object.defineProperty(window, "innerWidth", {
         writable: true,
         configurable: true,
         value: 1920,
@@ -258,8 +264,8 @@ describe('MapContainer Integration Tests', () => {
     });
   });
 
-  describe('Memory Management', () => {
-    it('should cleanup on unmount', () => {
+  describe("Memory Management", () => {
+    it("should cleanup on unmount", () => {
       const { unmount } = render(
         <SessionProvider session={null}>
           <MapContainer />
@@ -272,9 +278,9 @@ describe('MapContainer Integration Tests', () => {
   });
 });
 
-describe('Feature Integration Tests', () => {
+describe("Feature Integration Tests", () => {
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'test-token';
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = "test-token";
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
@@ -283,8 +289,8 @@ describe('Feature Integration Tests', () => {
     ) as any;
   });
 
-  describe('Location Notes', () => {
-    it('should integrate with useLocationNotes hook', async () => {
+  describe("Location Notes", () => {
+    it("should integrate with useLocationNotes hook", async () => {
       render(
         <SessionProvider session={null}>
           <MapContainer />
@@ -297,8 +303,8 @@ describe('Feature Integration Tests', () => {
     });
   });
 
-  describe('Clustering', () => {
-    it('should handle marker clustering', async () => {
+  describe("Clustering", () => {
+    it("should handle marker clustering", async () => {
       const mockLocations = Array.from({ length: 100 }, (_, i) => ({
         id: `loc-${i}`,
         lat: 21.0285 + Math.random() * 0.1,
@@ -326,8 +332,8 @@ describe('Feature Integration Tests', () => {
     });
   });
 
-  describe('UI Layers Integration', () => {
-    it('should render all UI layers', () => {
+  describe("UI Layers Integration", () => {
+    it("should render all UI layers", () => {
       const { container } = render(
         <SessionProvider session={null}>
           <MapContainer />

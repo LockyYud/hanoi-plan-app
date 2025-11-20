@@ -166,7 +166,7 @@ export function useUserLocation(
     const updateUserLocation = useCallback(async () => {
         // CRITICAL: Cache map reference at start to prevent race conditions
         const currentMap = mapRef.current;
-        
+
         // Check both mapRef.current and session before proceeding
         if (!currentMap || !session) {
             console.log('⏸️ User location update skipped: map or session not ready');
@@ -187,13 +187,13 @@ export function useUserLocation(
 
         try {
             const location = await getCurrentLocation();
-            
+
             // Re-check map reference after async operation
             if (!mapRef.current) {
                 console.warn('Map unmounted during location fetch');
                 return;
             }
-            
+
             console.log('📍 User location:', location);
             setUserLocation(location);
             setError(null);
@@ -219,13 +219,13 @@ export function useUserLocation(
 
             // Create new marker only if none exists
             const markerElement = createUserLocationMarker(session?.user?.image);
-            
+
             // Final safety check before adding to map
             if (!mapRef.current) {
                 console.error('Map reference lost during marker creation');
                 return;
             }
-            
+
             userLocationMarker.current = new mapboxgl.Marker({
                 element: markerElement,
                 anchor: 'center',

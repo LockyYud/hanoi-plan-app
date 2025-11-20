@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Map as MapIcon } from "lucide-react";
 import { Journey } from "@/lib/types";
 import { JourneyCard } from "@/components/journey/journey-card";
-import { useMemoryLaneStore, type LocationNote } from "@/lib/store";
+import { useMemoryLaneStore, type Pinory } from "@/lib/store";
 import { toast } from "sonner";
 
 interface JourneysTabProps {
@@ -51,8 +51,8 @@ export function JourneysTab({
   };
 
   const handleShowOnMap = (journey: Journey) => {
-    // Convert journey stops to LocationNote format for RouteDisplay
-    const routeNotes: LocationNote[] = journey.stops.map((stop) => {
+    // Convert journey stops to Pinory format for RouteDisplay
+    const routeNotes: Pinory[] = journey.stops.map((stop) => {
       const place = stop.place;
       const openHours = (place.openHours as Record<string, unknown>) || {};
 

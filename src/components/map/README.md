@@ -39,7 +39,9 @@ src/components/map/
 The map component follows a **layered architecture** with clear separation of concerns:
 
 ### 1. **Hooks Layer** (Business Logic)
+
 Custom hooks encapsulate all stateful business logic:
+
 - Map initialization and configuration
 - User interactions and events
 - Data fetching and mutations
@@ -47,14 +49,18 @@ Custom hooks encapsulate all stateful business logic:
 - Side effects
 
 ### 2. **Presentation Layer** (UI Components)
+
 UI layers are pure presentational components:
+
 - Compose smaller UI elements
 - Receive data via props
 - No business logic
 - Conditional rendering only
 
 ### 3. **Main Component** (Orchestration)
+
 The main component orchestrates everything:
+
 - Uses hooks for logic
 - Passes data to layers
 - Wires up callbacks
@@ -82,19 +88,21 @@ The main component orchestrates everything:
 ## 🔌 Custom Hooks API
 
 ### useMapInitialization
+
 **Purpose**: Initialize and configure the Mapbox map instance
 
 ```typescript
 const {
-  mapRef,           // React ref to map instance
-  containerRef,     // React ref to container div
-  mapLoaded,        // Boolean: is map ready?
-  mapError,         // Error message if initialization failed
-  hasMapboxToken    // Boolean: is token configured?
+  mapRef, // React ref to map instance
+  containerRef, // React ref to container div
+  mapLoaded, // Boolean: is map ready?
+  mapError, // Error message if initialization failed
+  hasMapboxToken, // Boolean: is token configured?
 } = useMapInitialization(center, zoom);
 ```
 
 **Features**:
+
 - Mapbox token validation
 - Map controls setup (navigation, scale, geolocate)
 - Error boundary handling
@@ -103,20 +111,22 @@ const {
 ---
 
 ### useMapBounds
+
 **Purpose**: Track map viewport bounds and zoom level
 
 ```typescript
 const {
-  mapBounds,        // LngLatBounds object
-  currentZoom       // Current zoom level (number)
+  mapBounds, // LngLatBounds object
+  currentZoom, // Current zoom level (number)
 } = useMapBounds(
   mapRef,
   mapLoaded,
-  onBoundsChange    // Callback when bounds change
+  onBoundsChange // Callback when bounds change
 );
 ```
 
 **Features**:
+
 - Throttled updates (100ms) for performance
 - Automatic bounds calculation
 - Zoom level tracking
@@ -124,21 +134,23 @@ const {
 ---
 
 ### useMapInteractions
+
 **Purpose**: Handle user interactions with the map
 
 ```typescript
 const {
-  clickedLocation,          // {lat, lng, address} or null
-  setClickedLocation,       // Update clicked location
-  clickedLocationMarker     // Marker ref for blue dot
+  clickedLocation, // {lat, lng, address} or null
+  setClickedLocation, // Update clicked location
+  clickedLocationMarker, // Marker ref for blue dot
 } = useMapInteractions(
   mapRef,
   mapLoaded,
-  onLocationSelect          // Callback when location selected
+  onLocationSelect // Callback when location selected
 );
 ```
 
 **Features**:
+
 - Click event handling
 - Blue dot marker placement
 - Reverse geocoding
@@ -147,21 +159,23 @@ const {
 ---
 
 ### useLocationNotes
+
 **Purpose**: Manage location notes (pinories) CRUD operations
 
 ```typescript
 const {
-  locationNotes,            // Array of Pinory objects
-  isLoading,                // Loading state
-  error,                    // Error message
-  addLocationNote,          // (data) => Promise<void>
-  updateLocationNote,       // (id, data) => Promise<void>
-  deleteLocationNote,       // (id) => Promise<void>
-  loadLocationNotes         // () => Promise<void>
+  locationNotes, // Array of Pinory objects
+  isLoading, // Loading state
+  error, // Error message
+  addLocationNote, // (data) => Promise<void>
+  updateLocationNote, // (id, data) => Promise<void>
+  deleteLocationNote, // (id) => Promise<void>
+  loadLocationNotes, // () => Promise<void>
 } = useLocationNotes(session, mapLoaded);
 ```
 
 **Features**:
+
 - Full CRUD operations
 - API integration
 - Session-based authentication
@@ -171,17 +185,19 @@ const {
 ---
 
 ### useUserLocation
+
 **Purpose**: Display user's current location marker
 
 ```typescript
 useUserLocation(
   mapRef,
   mapLoaded,
-  session       // NextAuth session for avatar
+  session // NextAuth session for avatar
 );
 ```
 
 **Features**:
+
 - Google Maps style marker
 - Pulse animation
 - Avatar rendering
@@ -191,26 +207,28 @@ useUserLocation(
 ---
 
 ### useFriendLocations
+
 **Purpose**: Display friend location markers
 
 ```typescript
 const {
-  selectedFriendPinory,         // Selected friend's pinory
-  setSelectedFriendPinory,      // Update selection
-  showFriendDetailsDialog,      // Dialog visibility
-  setShowFriendDetailsDialog    // Toggle dialog
+  selectedFriendPinory, // Selected friend's pinory
+  setSelectedFriendPinory, // Update selection
+  showFriendDetailsDialog, // Dialog visibility
+  setShowFriendDetailsDialog, // Toggle dialog
 } = useFriendLocations(
   mapRef,
   mapLoaded,
-  showFriendsLayer,     // Visibility toggle
-  selectedFriendId,     // Currently selected friend
-  friendPinories,       // Friend's pinories data
-  fetchFriendPinories,  // Fetch function
+  showFriendsLayer, // Visibility toggle
+  selectedFriendId, // Currently selected friend
+  friendPinories, // Friend's pinories data
+  fetchFriendPinories, // Fetch function
   session
 );
 ```
 
 **Features**:
+
 - Friend marker rendering
 - Friend pinory fetching
 - Mobile detection
@@ -220,22 +238,24 @@ const {
 ---
 
 ### useMapMarkers
+
 **Purpose**: Render location note markers with clustering
 
 ```typescript
 useMapMarkers({
   mapRef,
   mapLoaded,
-  locationNotes,        // Array of notes to display
-  mapBounds,            // Current viewport bounds
-  currentZoom,          // Current zoom level
-  selectedPinory,       // Currently selected note
-  onMarkerClick,        // Callback when marker clicked
-  clusterIndex          // Supercluster instance
+  locationNotes, // Array of notes to display
+  mapBounds, // Current viewport bounds
+  currentZoom, // Current zoom level
+  selectedPinory, // Currently selected note
+  onMarkerClick, // Callback when marker clicked
+  clusterIndex, // Supercluster instance
 });
 ```
 
 **Features**:
+
 - Supercluster integration
 - Efficient marker lifecycle
 - Click event delegation
@@ -245,6 +265,7 @@ useMapMarkers({
 ---
 
 ### useRouteDisplay
+
 **Purpose**: Display routes for Memory Lane feature
 
 ```typescript
@@ -252,6 +273,7 @@ useRouteDisplay(mapRef, mapLoaded);
 ```
 
 **Features**:
+
 - Listens for Memory Lane events
 - Renders route on map
 - Cleanup on unmount
@@ -261,6 +283,7 @@ useRouteDisplay(mapRef, mapLoaded);
 ## 🎨 UI Layers API
 
 ### MapControlsLayer
+
 **Purpose**: Render map controls and action buttons
 
 ```typescript
@@ -276,6 +299,7 @@ useRouteDisplay(mapRef, mapLoaded);
 ```
 
 **Composes**:
+
 - `MapControls` - Main map control buttons
 - `FloatingActionButton` - Quick actions
 - `FriendsLayerControl` - Friend layer toggle
@@ -283,6 +307,7 @@ useRouteDisplay(mapRef, mapLoaded);
 ---
 
 ### MapPopupLayer
+
 **Purpose**: Manage all popup types with mutual exclusivity
 
 ```typescript
@@ -292,18 +317,18 @@ useRouteDisplay(mapRef, mapLoaded);
   onCloseSelectedNote={() => {}}
   onViewNoteDetails={() => {}}
   onDeleteNote={() => {}}
-  
+
   // Clicked location popup
   clickedLocation={location}
   showLocationForm={boolean}
   onCloseClickedLocation={() => {}}
   onAddNote={() => {}}
-  
+
   // Direction popup
   showDirectionPopup={boolean}
   directionInfo={info}
   onCloseDirection={() => {}}
-  
+
   // Friend location popup
   selectedFriendPinory={pinory}
   isMobile={boolean}
@@ -314,6 +339,7 @@ useRouteDisplay(mapRef, mapLoaded);
 ```
 
 **Manages**:
+
 - `PinoryPopup` - Show selected note details
 - `DirectionPopup` - Show route directions
 - `FriendLocationPopup` - Show friend's location
@@ -324,6 +350,7 @@ useRouteDisplay(mapRef, mapLoaded);
 ---
 
 ### MapDialogLayer
+
 **Purpose**: Manage all dialogs and forms
 
 ```typescript
@@ -333,36 +360,36 @@ useRouteDisplay(mapRef, mapLoaded);
   clickedLocation={location}
   onCloseLocationForm={() => {}}
   onSubmitLocationForm={(data) => {}}
-  
+
   // Edit note form
   showEditForm={boolean}
   editingNote={pinory}
   onCloseEditForm={() => {}}
   onSubmitEditForm={(data) => {}}
-  
+
   // Note details dialog
   showDetailsDialog={boolean}
   selectedPinory={pinory}
   onCloseDetailsDialog={() => {}}
   onEditNote={() => {}}
   onDeleteNote={() => {}}
-  
+
   // Friend details dialog
   showFriendDetailsDialog={boolean}
   selectedFriendPinory={pinory}
   onCloseFriendDetailsDialog={() => {}}
   onAddToFavorites={() => {}}
-  
+
   // Journey creation dialog
   showJourneyDialog={boolean}
   onCloseJourneyDialog={() => {}}
   onJourneySuccess={() => {}}
-  
+
   // Memory Lane dialog
   showMemoryLane={boolean}
   onCloseMemoryLane={() => {}}
   onShowRoute={(notes, sortBy) => {}}
-  
+
   // Route display
   showRoute={boolean}
   routeNotes={notes}
@@ -373,6 +400,7 @@ useRouteDisplay(mapRef, mapLoaded);
 ```
 
 **Manages**:
+
 - `LocationNoteForm` - Add new location note
 - `LocationNoteForm` (edit mode) - Edit existing note
 - `NoteDetailsView` - View note details
@@ -386,6 +414,7 @@ useRouteDisplay(mapRef, mapLoaded);
 ## 🛠️ Utilities
 
 ### mapGeocoding.ts
+
 Geocoding helper functions using Mapbox API
 
 ```typescript
@@ -399,6 +428,7 @@ const coords = await forwardGeocode(address);
 ---
 
 ### mapClustering.ts
+
 Supercluster configuration and helpers
 
 ```typescript
@@ -446,6 +476,7 @@ NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
 ### Map Configuration
 
 Default configuration in `useMapInitialization`:
+
 - **Style**: `mapbox://styles/mapbox/streets-v12`
 - **Center**: From `useMapStore` (default: Hanoi)
 - **Zoom**: From `useMapStore` (default: 13)
@@ -458,14 +489,14 @@ Default configuration in `useMapInitialization`:
 ### Testing Hooks
 
 ```typescript
-import { renderHook } from '@testing-library/react';
-import { useMapInitialization } from './hooks';
+import { renderHook } from "@testing-library/react";
+import { useMapInitialization } from "./hooks";
 
-test('initializes map correctly', () => {
-  const { result } = renderHook(() => 
+test("initializes map correctly", () => {
+  const { result } = renderHook(() =>
     useMapInitialization([105.8342, 21.0285], 13)
   );
-  
+
   expect(result.current.mapLoaded).toBe(false);
   // ... more assertions
 });
@@ -485,7 +516,7 @@ test('renders controls', () => {
       onCreateJourney={jest.fn()}
     />
   );
-  
+
   expect(getByText('Add Location')).toBeInTheDocument();
 });
 ```
@@ -527,18 +558,19 @@ test('renders controls', () => {
 
 ```typescript
 // Before
-import { MapContainer } from '@/components/map/map-container';
+import { MapContainer } from "@/components/map/map-container";
 
 // After
-import { MapContainer } from '@/components/map/map-container-refactored';
+import { MapContainer } from "@/components/map/map-container-refactored";
 
 // Or after migration:
-import { MapContainer } from '@/components/map'; // Uses new version
+import { MapContainer } from "@/components/map"; // Uses new version
 ```
 
 ### API Compatibility
 
 The refactored component maintains **100% API compatibility** with the original:
+
 - Same props interface
 - Same functionality
 - Same store integrations

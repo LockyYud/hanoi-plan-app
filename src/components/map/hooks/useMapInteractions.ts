@@ -46,7 +46,7 @@ export function useMapInteractions(
     if (!mapRef.current || !mapLoaded) return;
 
     const map = mapRef.current;
-    
+
     // Additional safety check: ensure map is fully functional
     if (!map.on || typeof map.on !== 'function') {
       console.warn('Map event system not ready yet');
@@ -59,7 +59,7 @@ export function useMapInteractions(
         console.warn('Map reference lost during click handling');
         return;
       }
-      
+
       const { lng, lat } = e.lngLat;
       console.log('🗺️ Map clicked at:', { lng, lat });
 
@@ -71,13 +71,13 @@ export function useMapInteractions(
 
       // Create new marker at clicked location
       const markerElement = createClickedMarkerElement();
-      
+
       // Safety check before adding marker
       if (!mapRef.current) {
         console.warn('Map reference lost during marker creation');
         return;
       }
-      
+
       clickedLocationMarker.current = new mapboxgl.Marker({
         element: markerElement,
         anchor: 'center',
@@ -112,7 +112,7 @@ export function useMapInteractions(
     if (!mapRef.current || !mapLoaded) return;
 
     const map = mapRef.current;
-    
+
     // Additional safety check
     if (!map.flyTo || typeof map.flyTo !== 'function') {
       console.warn('Map navigation methods not ready yet');
@@ -124,7 +124,7 @@ export function useMapInteractions(
     ) => {
       // Re-check map reference
       if (!mapRef.current) return;
-      
+
       if (event.detail) {
         const { lat, lng } = event.detail;
         mapRef.current.flyTo({
@@ -152,7 +152,7 @@ export function useMapInteractions(
     ) => {
       // Re-check map reference
       if (!mapRef.current) return;
-      
+
       if (event.detail) {
         console.log('🗺️ Map: Showing direction popup:', event.detail);
 
