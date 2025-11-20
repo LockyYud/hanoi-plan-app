@@ -1,6 +1,6 @@
 /**
  * MapDialogLayer
- * 
+ *
  * UI layer component that manages all map dialogs:
  * - LocationNoteForm (add/edit)
  * - NoteDetailsView
@@ -10,19 +10,23 @@
  * - RouteDisplay
  */
 
-import React from 'react';
-import type { Pinory } from '@/lib/types';
-import { LocationNoteForm } from '../location-note-form';
-import { NoteDetailsView } from '../note-details-view';
-import { FriendLocationDetailsView } from '../friend-location-details-view';
-import { CreateJourneyDialog } from '@/components/journey/create-journey-dialog';
-import { MemoryLaneView } from '@/components/timeline/memory-lane-view';
-import { RouteDisplay } from '@/components/timeline/route-display';
+import React from "react";
+import type { Pinory } from "@/lib/types";
+import { LocationNoteForm } from "../location-note-form";
+import { NoteDetailsView } from "../note-details-view";
+import { FriendLocationDetailsView } from "../friend-location-details-view";
+import { CreateJourneyDialog } from "@/components/journey/create-journey-dialog";
+import { MemoryLaneView } from "@/components/timeline/memory-lane-view";
+import { RouteDisplay } from "@/components/timeline/route-display";
 
 interface MapDialogLayerProps {
   // Location form (add mode)
   readonly showLocationForm: boolean;
-  readonly clickedLocation: { lng: number; lat: number; address?: string } | null;
+  readonly clickedLocation: {
+    lng: number;
+    lat: number;
+    address?: string;
+  } | null;
   readonly onCloseLocationForm: () => void;
   readonly onSubmitLocationForm: (data: any) => void;
 
@@ -117,7 +121,7 @@ export function MapDialogLayer({
           }}
           existingNote={{
             id: editingNote.id,
-            content: editingNote.content || '',
+            content: editingNote.content || "",
             mood: editingNote.mood,
             images: editingNote.images,
             placeName: editingNote.placeName || editingNote.name,
@@ -170,7 +174,7 @@ export function MapDialogLayer({
         <RouteDisplay
           map={mapInstance}
           notes={routeNotes}
-          sortBy={routeSortBy as 'time' | 'custom'}
+          sortBy={routeSortBy as "time" | "custom"}
           onClose={onCloseRoute}
         />
       )}

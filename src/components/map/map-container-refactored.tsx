@@ -2,28 +2,28 @@
 
 /**
  * MapContainer - Refactored
- * 
+ *
  * Orchestrates map functionality using modular hooks and UI layers.
  * All business logic has been extracted into custom hooks.
  * All UI rendering has been organized into presentational layers.
- * 
+ *
  * This file is now < 200 lines and focuses solely on composition.
  */
 
-import { useCallback, useState, useMemo, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import Supercluster from 'supercluster';
+import { useCallback, useState, useMemo, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import Supercluster from "supercluster";
 import {
   useMapStore,
   useUIStore,
   usePinoryStore,
   useMemoryLaneStore,
   useFriendStore,
-} from '@/lib/store';
-import type { Pinory } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import { MapPin } from 'lucide-react';
-import { removeRouteFromMap } from '@/lib/geolocation';
+} from "@/lib/store";
+import type { Pinory } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { MapPin } from "lucide-react";
+import { removeRouteFromMap } from "@/lib/geolocation";
 
 // Custom hooks
 import {
@@ -35,17 +35,13 @@ import {
   useFriendLocations,
   useMapMarkers,
   useRouteDisplay,
-} from './hooks';
+} from "./hooks";
 
 // UI Layers
-import {
-  MapControlsLayer,
-  MapPopupLayer,
-  MapDialogLayer,
-} from './layers';
+import { MapControlsLayer, MapPopupLayer, MapDialogLayer } from "./layers";
 
 // Utils
-import { createClusterIndex } from './utils/mapClustering';
+import { createClusterIndex } from "./utils/mapClustering";
 
 interface MapContainerProps {
   readonly className?: string;
@@ -110,11 +106,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
   const notesManager = useLocationNotes(session, mapInit.mapLoaded);
 
   // 5. User location marker
-  useUserLocation(
-    mapInit.mapRef,
-    mapInit.mapLoaded,
-    session
-  );
+  useUserLocation(mapInit.mapRef, mapInit.mapLoaded, session);
 
   // 6. Friend locations
   const friendLocations = useFriendLocations(
@@ -130,16 +122,18 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
   // 7. Create cluster index from location notes
   const points = useMemo(() => {
     return notesManager.locationNotes.map((note) => ({
-      type: 'Feature' as const,
+      type: "Feature" as const,
       properties: note,
       geometry: {
-        type: 'Point' as const,
+        type: "Point" as const,
         coordinates: [note.lng, note.lat] as [number, number],
       },
     }));
   }, [notesManager.locationNotes]);
 
-  const [clusterIndex, setClusterIndex] = useState<Supercluster<Pinory> | null>(null);
+  const [clusterIndex, setClusterIndex] = useState<Supercluster<Pinory> | null>(
+    null
+  );
 
   useEffect(() => {
     if (points.length === 0) {
@@ -184,8 +178,8 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
   useEffect(() => {
     const checkMobile = () => setIsMobile(globalThis.innerWidth < 768);
     checkMobile();
-    globalThis.addEventListener('resize', checkMobile);
-    return () => globalThis.removeEventListener('resize', checkMobile);
+    globalThis.addEventListener("resize", checkMobile);
+    return () => globalThis.removeEventListener("resize", checkMobile);
   }, []);
 
   // Handle showing directions
@@ -196,14 +190,26 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         setShowDirectionPopup(true);
       }
     };
-    globalThis.addEventListener('showDirections', handleShowDirections as EventListener);
-    return () => globalThis.removeEventListener('showDirections', handleShowDirections as EventListener);
+    globalThis.addEventListener(
+      "showDirections",
+      handleShowDirections as EventListener
+    );
+    return () =>
+      globalThis.removeEventListener(
+        "showDirections",
+        handleShowDirections as EventListener
+      );
   }, []);
 
   // Render error state
   if (mapInit.mapError || !mapInit.hasMapboxToken) {
     return (
-      <div className={cn('relative flex items-center justify-center bg-gray-100', className)}>
+      <div
+        className={cn(
+          "relative flex items-center justify-center bg-gray-100",
+          className
+        )}
+      >
         <div className="text-center max-w-md p-8">
           <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
             <MapPin className="h-8 w-8 text-red-600" />
@@ -211,14 +217,16 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Bản đồ không khả dụng
           </h3>
-          <p className="text-sm text-gray-600">{mapInit.mapError || 'Cần cấu hình Mapbox Token'}</p>
+          <p className="text-sm text-gray-600">
+            {mapInit.mapError || "Cần cấu hình Mapbox Token"}
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={cn('relative', className)} suppressHydrationWarning>
+    <div className={cn("relative", className)} suppressHydrationWarning>
       {/* Map Container */}
       <div ref={mapInit.containerRef} className="w-full h-full relative z-0" />
 
@@ -251,13 +259,13 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         onCloseSelectedNote={() => setSelectedPinory(null)}
         onViewNoteDetails={() => setShowDetailsDialog(true)}
         onDeleteNote={async () => {
-          if (selectedPinory && confirm('Bạn có chắc muốn xóa ghi chú này?')) {
+          if (selectedPinory && confirm("Bạn có chắc muốn xóa ghi chú này?")) {
             try {
               await notesManager.deleteLocationNote(selectedPinory.id);
               setSelectedPinory(null);
             } catch (error) {
-              console.error('Failed to delete note:', error);
-              alert('Không thể xóa ghi chú. Vui lòng thử lại.');
+              console.error("Failed to delete note:", error);
+              alert("Không thể xóa ghi chú. Vui lòng thử lại.");
             }
           }
         }}
@@ -282,8 +290,12 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         }}
         selectedFriendPinory={friendLocations.selectedFriendPinory}
         isMobile={isMobile}
-        onCloseFriendLocation={() => friendLocations.setSelectedFriendPinory(null)}
-        onViewFriendDetails={() => friendLocations.setShowFriendDetailsDialog(true)}
+        onCloseFriendLocation={() =>
+          friendLocations.setSelectedFriendPinory(null)
+        }
+        onViewFriendDetails={() =>
+          friendLocations.setShowFriendDetailsDialog(true)
+        }
         mapRef={mapInit.mapRef}
       />
 
@@ -320,7 +332,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
           }
         }}
         onDeleteNote={() => {
-          console.log('Delete from details view:', selectedPinory?.id);
+          console.log("Delete from details view:", selectedPinory?.id);
         }}
         showFriendDetailsDialog={friendLocations.showFriendDetailsDialog}
         selectedFriendPinory={friendLocations.selectedFriendPinory}
@@ -331,20 +343,22 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         onAddToFavorites={async () => {
           if (friendLocations.selectedFriendPinory) {
             try {
-              const response = await fetch('/api/favorites', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ placeId: friendLocations.selectedFriendPinory.id }),
-                credentials: 'include',
+              const response = await fetch("/api/favorites", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  placeId: friendLocations.selectedFriendPinory.id,
+                }),
+                credentials: "include",
               });
               if (response.ok) {
-                alert('Added to favorites!');
+                alert("Added to favorites!");
                 friendLocations.setShowFriendDetailsDialog(false);
                 friendLocations.setSelectedFriendPinory(null);
               }
             } catch (error) {
-              console.error('Failed to add to favorites:', error);
-              alert('Error adding to favorites');
+              console.error("Failed to add to favorites:", error);
+              alert("Error adding to favorites");
             }
           }
         }}
@@ -352,13 +366,13 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         onCloseJourneyDialog={() => setShowJourneyDialog(false)}
         onJourneySuccess={() => {
           notesManager.loadLocationNotes();
-          globalThis.dispatchEvent(new CustomEvent('journeyCreated'));
+          globalThis.dispatchEvent(new CustomEvent("journeyCreated"));
         }}
         showMemoryLane={showMemoryLane}
         onCloseMemoryLane={() => setShowMemoryLane(false)}
         onShowRoute={(notes, sortBy) => {
           setMemoryLaneRouteNotes(notes);
-          setMemoryLaneRouteSortBy(sortBy as 'time' | 'custom');
+          setMemoryLaneRouteSortBy(sortBy as "time" | "custom");
           setMemoryLaneShowRoute(true);
           setShowMemoryLane(false);
         }}
