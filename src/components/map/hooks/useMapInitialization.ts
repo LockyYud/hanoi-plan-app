@@ -25,7 +25,7 @@ export function useMapInitialization(
   // Check if Mapbox token is available and valid
   const hasMapboxToken = Boolean(
     process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN &&
-      process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN !== 'your-mapbox-token-here'
+    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN !== 'your-mapbox-token-here'
   );
 
   useEffect(() => {

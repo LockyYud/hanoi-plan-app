@@ -15,44 +15,44 @@ import type { Pinory } from '@/lib/types';
 import type { UseRouteDisplayReturn } from '../types/map.types';
 
 export function useRouteDisplay(
-  mapRef: React.RefObject<mapboxgl.Map | null>,
-  mapLoaded: boolean
+    mapRef: React.RefObject<mapboxgl.Map | null>,
+    mapLoaded: boolean
 ): UseRouteDisplayReturn {
-  const [showRoute, setShowRoute] = useState(false);
-  const [routeNotes, setRouteNotes] = useState<Pinory[]>([]);
-  const [routeSortBy, setRouteSortBy] = useState<string>('time');
+    const [showRoute, setShowRoute] = useState(false);
+    const [routeNotes, setRouteNotes] = useState<Pinory[]>([]);
+    const [routeSortBy, setRouteSortBy] = useState<string>('time');
 
-  // Set route information
-  const setRouteInfo = useCallback(
-    (notes: Pinory[], sortBy: string) => {
-      if (!mapRef.current || !mapLoaded) return;
+    // Set route information
+    const setRouteInfo = useCallback(
+        (notes: Pinory[], sortBy: string) => {
+            if (!mapRef.current || !mapLoaded) return;
 
-      setRouteNotes(notes);
-      setRouteSortBy(sortBy);
-      setShowRoute(true);
+            setRouteNotes(notes);
+            setRouteSortBy(sortBy);
+            setShowRoute(true);
 
-      console.log('🛣️ Route display:', {
-        notesCount: notes.length,
-        sortBy,
-      });
-    },
-    [mapRef, mapLoaded]
-  );
+            console.log('🛣️ Route display:', {
+                notesCount: notes.length,
+                sortBy,
+            });
+        },
+        [mapRef, mapLoaded]
+    );
 
-  // Clear route
-  const clearRoute = useCallback(() => {
-    setShowRoute(false);
-    setRouteNotes([]);
-    setRouteSortBy('time');
+    // Clear route
+    const clearRoute = useCallback(() => {
+        setShowRoute(false);
+        setRouteNotes([]);
+        setRouteSortBy('time');
 
-    console.log('🛣️ Route cleared');
-  }, []);
+        console.log('🛣️ Route cleared');
+    }, []);
 
-  return {
-    showRoute,
-    routeNotes,
-    routeSortBy,
-    setRouteInfo,
-    clearRoute,
-  };
+    return {
+        showRoute,
+        routeNotes,
+        routeSortBy,
+        setRouteInfo,
+        clearRoute,
+    };
 }

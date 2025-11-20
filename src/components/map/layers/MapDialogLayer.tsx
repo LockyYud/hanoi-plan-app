@@ -1,17 +1,16 @@
 /**
  * MapDialogLayer
  * 
- * UI layer that manages all dialog/modal displays:
+ * UI layer component that manages all map dialogs:
  * - LocationNoteForm (add/edit)
- * - NoteDetailsView (view note details)
- * - FriendLocationDetailsView (view friend's note)
- * - CreateJourneyDialog (create journey)
- * - MemoryLaneView (timeline view)
- * - RouteDisplay (route on map)
+ * - NoteDetailsView
+ * - FriendLocationDetailsView
+ * - CreateJourneyDialog
+ * - MemoryLaneView
+ * - RouteDisplay
  */
 
 import React from 'react';
-import mapboxgl from 'mapbox-gl';
 import type { Pinory } from '@/lib/types';
 import { LocationNoteForm } from '../location-note-form';
 import { NoteDetailsView } from '../note-details-view';
@@ -21,34 +20,34 @@ import { MemoryLaneView } from '@/components/timeline/memory-lane-view';
 import { RouteDisplay } from '@/components/timeline/route-display';
 
 interface MapDialogLayerProps {
-  // Location form (add new note)
+  // Location form (add mode)
   readonly showLocationForm: boolean;
   readonly clickedLocation: { lng: number; lat: number; address?: string } | null;
   readonly onCloseLocationForm: () => void;
-  readonly onSubmitLocationForm: (data: any) => Promise<void>;
+  readonly onSubmitLocationForm: (data: any) => void;
 
-  // Edit form
+  // Location form (edit mode)
   readonly showEditForm: boolean;
   readonly editingNote: Pinory | null;
   readonly onCloseEditForm: () => void;
-  readonly onSubmitEditForm: (data: any) => Promise<void>;
+  readonly onSubmitEditForm: (data: any) => void;
 
-  // Note details view
+  // Note details dialog
   readonly showDetailsDialog: boolean;
   readonly selectedPinory: Pinory | null;
-  readonly onCloseDetails: () => void;
+  readonly onCloseDetailsDialog: () => void;
   readonly onEditNote: () => void;
-  readonly onDeleteNoteFromDetails: () => void;
+  readonly onDeleteNote: () => void;
 
-  // Friend location details
+  // Friend location details dialog
   readonly showFriendDetailsDialog: boolean;
   readonly selectedFriendPinory: Pinory | null;
-  readonly onCloseFriendDetails: () => void;
-  readonly onAddToFavorites: () => Promise<void>;
+  readonly onCloseFriendDetailsDialog: () => void;
+  readonly onAddToFavorites: () => void;
 
   // Journey dialog
   readonly showJourneyDialog: boolean;
-  readonly onCloseJourney: () => void;
+  readonly onCloseJourneyDialog: () => void;
   readonly onJourneySuccess: () => void;
 
   // Memory Lane
@@ -59,8 +58,8 @@ interface MapDialogLayerProps {
   // Route display
   readonly showRoute: boolean;
   readonly routeNotes: Pinory[];
-  readonly routeSortBy: 'time' | 'custom';
-  readonly mapForRoute: mapboxgl.Map | null;
+  readonly routeSortBy: string;
+  readonly mapInstance: mapboxgl.Map | null;
   readonly onCloseRoute: () => void;
 }
 
@@ -75,15 +74,15 @@ export function MapDialogLayer({
   onSubmitEditForm,
   showDetailsDialog,
   selectedPinory,
-  onCloseDetails,
+  onCloseDetailsDialog,
   onEditNote,
-  onDeleteNoteFromDetails,
+  onDeleteNote,
   showFriendDetailsDialog,
   selectedFriendPinory,
-  onCloseFriendDetails,
+  onCloseFriendDetailsDialog,
   onAddToFavorites,
   showJourneyDialog,
-  onCloseJourney,
+  onCloseJourneyDialog,
   onJourneySuccess,
   showMemoryLane,
   onCloseMemoryLane,
@@ -91,12 +90,12 @@ export function MapDialogLayer({
   showRoute,
   routeNotes,
   routeSortBy,
-  mapForRoute,
+  mapInstance,
   onCloseRoute,
-}: MapDialogLayerProps) {
+}: Readonly<MapDialogLayerProps>) {
   return (
     <>
-      {/* Location form for adding new note */}
+      {/* Add Location Note Form */}
       {clickedLocation && showLocationForm && (
         <LocationNoteForm
           isOpen={showLocationForm}
@@ -106,7 +105,7 @@ export function MapDialogLayer({
         />
       )}
 
-      {/* Edit form for existing note */}
+      {/* Edit Location Note Form */}
       {editingNote && showEditForm && (
         <LocationNoteForm
           isOpen={showEditForm}
@@ -131,47 +130,47 @@ export function MapDialogLayer({
         />
       )}
 
-      {/* Note details view */}
+      {/* Note Details Dialog */}
       {selectedPinory && showDetailsDialog && (
         <NoteDetailsView
           isOpen={showDetailsDialog}
-          onClose={onCloseDetails}
+          onClose={onCloseDetailsDialog}
           note={selectedPinory}
           onEdit={onEditNote}
-          onDelete={onDeleteNoteFromDetails}
+          onDelete={onDeleteNote}
         />
       )}
 
-      {/* Friend location details view */}
+      {/* Friend Location Details Dialog */}
       {selectedFriendPinory && showFriendDetailsDialog && (
         <FriendLocationDetailsView
           isOpen={showFriendDetailsDialog}
           locationNote={selectedFriendPinory}
-          onClose={onCloseFriendDetails}
+          onClose={onCloseFriendDetailsDialog}
           onAddToFavorites={onAddToFavorites}
         />
       )}
 
-      {/* Create journey dialog */}
+      {/* Create Journey Dialog */}
       <CreateJourneyDialog
         isOpen={showJourneyDialog}
-        onClose={onCloseJourney}
+        onClose={onCloseJourneyDialog}
         onSuccess={onJourneySuccess}
       />
 
-      {/* Memory Lane view */}
+      {/* Memory Lane View */}
       <MemoryLaneView
         isOpen={showMemoryLane}
         onClose={onCloseMemoryLane}
         onShowRoute={onShowRoute}
       />
 
-      {/* Route display */}
+      {/* Route Display */}
       {showRoute && routeNotes.length >= 2 && (
         <RouteDisplay
-          map={mapForRoute}
+          map={mapInstance}
           notes={routeNotes}
-          sortBy={routeSortBy}
+          sortBy={routeSortBy as 'time' | 'custom'}
           onClose={onCloseRoute}
         />
       )}

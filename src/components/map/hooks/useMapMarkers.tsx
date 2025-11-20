@@ -1,27 +1,27 @@
 /**
  * useMapMarkers
- * 
+ *
  * Custom hook to manage all map markers with clustering support.
  * Handles Supercluster initialization, cluster rendering, and marker lifecycle.
- * 
+ *
  * @param params - Configuration object
  * @returns Clusters and markers ref
  */
 
-import { useEffect, useRef, useMemo } from 'react';
-import mapboxgl from 'mapbox-gl';
-import Supercluster from 'supercluster';
-import { createRoot } from 'react-dom/client';
-import { CategoryType } from '@prisma/client';
-import type { Pinory } from '@/lib/types';
-import type { UseMapMarkersReturn } from '../types/map.types';
-import { ClusterMarker } from '../cluster-marker';
+import { useEffect, useRef, useMemo } from "react";
+import mapboxgl from "mapbox-gl";
+import Supercluster from "supercluster";
+import { createRoot } from "react-dom/client";
+import { CategoryType } from "@prisma/client";
+import type { Pinory } from "@/lib/types";
+import type { UseMapMarkersReturn } from "../types/map.types";
+import { ClusterMarker } from "../cluster-marker";
 import {
   createMapPinElement,
   destroyMapPinElement,
   type ReactMapPinElement,
-} from '../marker-helper';
-import { getClusterLeaves } from '../utils/mapClustering';
+} from "../marker-helper";
+import { getClusterLeaves } from "../utils/mapClustering";
 
 interface UseMapMarkersParams {
   mapRef: React.RefObject<mapboxgl.Map | null>;
@@ -34,7 +34,9 @@ interface UseMapMarkersParams {
   clusterIndex: Supercluster<Pinory> | null;
 }
 
-export function useMapMarkers(params: UseMapMarkersParams): UseMapMarkersReturn {
+export function useMapMarkers(
+  params: UseMapMarkersParams
+): UseMapMarkersReturn {
   const {
     mapRef,
     mapLoaded,
@@ -65,7 +67,7 @@ export function useMapMarkers(params: UseMapMarkersParams): UseMapMarkersReturn 
         roundedZoom
       );
     } catch (error) {
-      console.error('Error getting clusters:', error);
+      console.error("Error getting clusters:", error);
       return [];
     }
   }, [mapBounds, clusterIndex, locationNotes.length, Math.floor(currentZoom)]);
@@ -108,7 +110,7 @@ export function useMapMarkers(params: UseMapMarkersParams): UseMapMarkersReturn 
 
         // For clusters, recreate if doesn't exist or point count changed
         if (!existingMarker) {
-          const clusterElement = document.createElement('div');
+          const clusterElement = document.createElement("div");
           const root = createRoot(clusterElement);
           const mapRefCurrent = mapRef.current;
 
@@ -124,7 +126,7 @@ export function useMapMarkers(params: UseMapMarkersParams): UseMapMarkersReturn 
                 })
                 .filter(Boolean) as string[];
             } catch (error) {
-              console.error('Error getting cluster leaves:', error);
+              console.error("Error getting cluster leaves:", error);
             }
           }
 
@@ -147,7 +149,7 @@ export function useMapMarkers(params: UseMapMarkersParams): UseMapMarkersReturn 
                     duration: 500,
                   });
                 } catch (error) {
-                  console.error('Error expanding cluster:', error);
+                  console.error("Error expanding cluster:", error);
                 }
               }}
             />
@@ -181,7 +183,7 @@ export function useMapMarkers(params: UseMapMarkersParams): UseMapMarkersReturn 
 
           // Create new marker with updated state
           const markerElement = createMapPinElement({
-            category: 'cafe' as CategoryType,
+            category: "cafe" as CategoryType,
             note: note,
             mood: note.mood,
             isSelected: !!isSelected,

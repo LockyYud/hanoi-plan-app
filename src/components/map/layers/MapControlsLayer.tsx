@@ -1,8 +1,8 @@
 /**
  * MapControlsLayer
  * 
- * UI layer that renders all map controls:
- * - MapControls (zoom, location, etc)
+ * UI layer component that renders all map controls including:
+ * - MapControls (zoom, etc.)
  * - FloatingActionButton (create note, journey)
  * - FriendsLayerControl (toggle friends layer)
  */
@@ -23,7 +23,7 @@ export function MapControlsLayer({
   mapRef,
   onCreateNote,
   onCreateJourney,
-}: MapControlsLayerProps) {
+}: Readonly<MapControlsLayerProps>) {
   return (
     <>
       <MapControls mapRef={mapRef} />
