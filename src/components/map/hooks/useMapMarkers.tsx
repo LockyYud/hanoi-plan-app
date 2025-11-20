@@ -74,7 +74,16 @@ export function useMapMarkers(
 
   // Render clustered markers
   useEffect(() => {
+    // CRITICAL: Check both mapRef.current and mapLoaded
     if (!mapRef.current || !mapLoaded) {
+      return;
+    }
+
+    const map = mapRef.current;
+    
+    // Additional safety check
+    if (!map.getCanvasContainer || typeof map.getCanvasContainer !== 'function') {
+      console.warn('Map not fully initialized yet for markers');
       return;
     }
 
@@ -87,7 +96,11 @@ export function useMapMarkers(
     const newMarkers = new Map<string, mapboxgl.Marker>();
 
     for (const cluster of clusters) {
-      if (!mapRef.current) continue;
+      // Re-check map reference inside loop
+      if (!mapRef.current) {
+        console.warn('Map reference lost during marker rendering');
+        continue;
+      }
 
       const [lng, lat] = cluster.geometry.coordinates;
       const props = cluster.properties as any;
@@ -155,6 +168,12 @@ export function useMapMarkers(
             />
           );
 
+          // Final safety check before adding cluster marker
+          if (!mapRef.current) {
+            console.warn('Map reference lost during cluster marker creation');
+            continue;
+          }
+
           const marker = new mapboxgl.Marker(clusterElement)
             .setLngLat([lng, lat])
             .addTo(mapRef.current);
@@ -189,6 +208,12 @@ export function useMapMarkers(
             isSelected: !!isSelected,
             onClick: () => onMarkerClick(note),
           });
+
+          // Final safety check before adding individual marker
+          if (!mapRef.current) {
+            console.warn('Map reference lost during individual marker creation');
+            continue;
+          }
 
           const marker = new mapboxgl.Marker(markerElement)
             .setLngLat([lng, lat])

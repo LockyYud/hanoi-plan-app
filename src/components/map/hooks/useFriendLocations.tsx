@@ -60,7 +60,16 @@ export function useFriendLocations(
 
   // Render friend location markers
   useEffect(() => {
+    // CRITICAL: Check both mapRef.current and mapLoaded
     if (!mapRef.current || !mapLoaded) return;
+
+    const map = mapRef.current;
+    
+    // Additional safety check
+    if (!map.getCanvasContainer || typeof map.getCanvasContainer !== 'function') {
+      console.warn('Map not fully initialized yet');
+      return;
+    }
 
     // Clear existing friend markers
     friendMarkersRef.current.forEach((marker) => {
@@ -128,9 +137,15 @@ export function useFriendLocations(
 
       (markerElement as ReactMapPinElement)._reactRoot = root;
 
+      // Final safety check before adding marker
+      if (!mapRef.current) {
+        console.warn('Map reference lost during friend marker creation');
+        return;
+      }
+
       const marker = new mapboxgl.Marker(markerElement)
         .setLngLat([friendPinory.lng, friendPinory.lat])
-        .addTo(mapRef.current!);
+        .addTo(mapRef.current);
 
       friendMarkersRef.current.set(friendPinory.id, marker);
     });

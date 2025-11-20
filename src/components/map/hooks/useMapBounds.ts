@@ -33,26 +33,50 @@ export function useMapBounds(
   );
   const [currentZoom, setCurrentZoom] = useState(0);
   const lastBoundsUpdate = useRef<number>(0);
+  const isInitialized = useRef<boolean>(false);
+  
+  // Stable callback ref to avoid dependency issues
+  const onBoundsChangeRef = useRef(onBoundsChange);
+  useEffect(() => {
+    onBoundsChangeRef.current = onBoundsChange;
+  }, [onBoundsChange]);
 
   useEffect(() => {
+    // CRITICAL: Check both mapRef.current and mapLoaded
     if (!mapRef.current || !mapLoaded) return;
 
     const map = mapRef.current;
+    
+    // Additional safety check: ensure map is fully initialized
+    if (!map.getBounds || typeof map.getZoom !== 'function') {
+      console.warn('Map methods not available yet');
+      return;
+    }
 
-    // Set initial bounds on load
-    const initialBounds = map.getBounds();
-    const initialZoom = map.getZoom();
-    setMapBounds(initialBounds);
-    setCurrentZoom(initialZoom);
+    // Set initial bounds ONLY ONCE
+    if (!isInitialized.current) {
+      const initialBounds = map.getBounds();
+      const initialZoom = map.getZoom();
+      
+      // Verify bounds is valid before setting state
+      if (!initialBounds) {
+        console.warn('Map bounds not available yet');
+        return;
+      }
+      
+      setMapBounds(initialBounds);
+      setCurrentZoom(initialZoom);
+      isInitialized.current = true;
 
-    // Call initial bounds change callback
-    if (onBoundsChange && initialBounds) {
-      onBoundsChange({
-        north: initialBounds.getNorth(),
-        south: initialBounds.getSouth(),
-        east: initialBounds.getEast(),
-        west: initialBounds.getWest(),
-      });
+      // Call initial bounds change callback
+      if (onBoundsChangeRef.current && initialBounds) {
+        onBoundsChangeRef.current({
+          north: initialBounds.getNorth(),
+          south: initialBounds.getSouth(),
+          east: initialBounds.getEast(),
+          west: initialBounds.getWest(),
+        });
+      }
     }
 
     // Track moveend events with throttling
@@ -61,22 +85,24 @@ export function useMapBounds(
       const timeSinceLastUpdate = now - lastBoundsUpdate.current;
 
       // Throttle updates to reduce cluster recalculations
-      if (timeSinceLastUpdate >= throttleMs || !mapBounds) {
+      if (timeSinceLastUpdate >= throttleMs) {
         const bounds = map.getBounds();
         const zoom = map.getZoom();
 
-        setMapBounds(bounds);
-        setCurrentZoom(zoom);
-        lastBoundsUpdate.current = now;
+        if (bounds) {
+          setMapBounds(bounds);
+          setCurrentZoom(zoom);
+          lastBoundsUpdate.current = now;
 
-        // Call bounds change callback if provided
-        if (onBoundsChange && bounds) {
-          onBoundsChange({
-            north: bounds.getNorth(),
-            south: bounds.getSouth(),
-            east: bounds.getEast(),
-            west: bounds.getWest(),
-          });
+          // Call bounds change callback if provided
+          if (onBoundsChangeRef.current) {
+            onBoundsChangeRef.current({
+              north: bounds.getNorth(),
+              south: bounds.getSouth(),
+              east: bounds.getEast(),
+              west: bounds.getWest(),
+            });
+          }
         }
       }
     };
@@ -88,7 +114,7 @@ export function useMapBounds(
     return () => {
       map.off('moveend', handleMoveEnd);
     };
-  }, [mapRef, mapLoaded, onBoundsChange, throttleMs, mapBounds]);
+  }, [mapRef, mapLoaded, throttleMs]); // REMOVED mapBounds and onBoundsChange from dependencies
 
   return {
     mapBounds,
