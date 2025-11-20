@@ -7,4 +7,6 @@
 
 export { useMapInitialization } from './useMapInitialization';
 export { useMapBounds } from './useMapBounds';
+export { useMapInteractions } from './useMapInteractions';
+export { useLocationNotes } from './useLocationNotes';
 
