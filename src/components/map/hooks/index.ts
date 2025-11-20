@@ -9,4 +9,8 @@ export { useMapInitialization } from './useMapInitialization';
 export { useMapBounds } from './useMapBounds';
 export { useMapInteractions } from './useMapInteractions';
 export { useLocationNotes } from './useLocationNotes';
+export { useUserLocation } from './useUserLocation';
+export { useFriendLocations } from './useFriendLocations';
+export { useMapMarkers } from './useMapMarkers';
+export { useRouteDisplay } from './useRouteDisplay';
 

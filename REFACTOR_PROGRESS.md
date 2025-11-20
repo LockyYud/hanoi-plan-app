@@ -1,6 +1,6 @@
 # 🚀 Map Container Refactor - Progress Report
 
-## ✅ Completed (20%)
+## ✅ Completed (40%)
 
 ### Phase 0: Preparation ✓
 - ✅ Created branch `refactor/map-container-modular`
@@ -25,47 +25,50 @@
 - ✅ Tracks zoom level changes
 - ✅ Optional callback for store integration
 
+### Phase 1.3: useMapInteractions Hook ✓
+- ✅ Extracted map click handler (~180 lines)
+- ✅ Extracted clicked location marker (blue dot)
+- ✅ Extracted reverse geocoding → `mapGeocoding.ts` utility
+- ✅ Extracted focus/directions event listeners
+- ✅ Proper marker cleanup
+
+### Phase 1.4: useLocationNotes Hook ✓
+- ✅ Extracted CRUD operations (~270 lines)
+- ✅ Load notes with loading/error states
+- ✅ Add note with instant UI update (flushSync)
+- ✅ Update note via API
+- ✅ Delete note with cleanup
+- ✅ Session/auth integration
+- ✅ Sidebar event dispatching
+
 ## 🔄 Next Steps
 
-### Phase 1.3: useMapInteractions (Next)
-- [ ] Extract map click handler
-- [ ] Extract clicked location marker (blue dot)
-- [ ] Extract reverse geocoding
-- [ ] Extract focus/directions event listeners
-
-### Phase 1.4: useLocationNotes
-- [ ] Extract CRUD operations
-- [ ] Extract API calls
-- [ ] Extract loading/error states
+### Phase 1.5: useUserLocation (Next)
+- [ ] Extract user location tracking
+- [ ] Extract Google Maps style marker
+- [ ] Handle location errors
 
 ### Remaining Hooks
-- Phase 1.5: useUserLocation
-- Phase 1.6: useFriendLocations  
-- Phase 1.7: useMapMarkers (complex - clustering)
-- Phase 1.8: useRouteDisplay
+- Phase 1.6: useFriendLocations (friend markers)
+- Phase 1.7: useMapMarkers (clustering - most complex)
+- Phase 1.8: useRouteDisplay (routes & Memory Lane)
 
 ## 📊 Impact So Far
 
-**Lines Extracted:** ~160 lines  
-**Files Created:** 5  
-**Commits:** 2  
+**Lines Extracted:** ~610 lines (60%+ of original logic!)
+**Files Created:** 8
+**Commits:** 3
 
 **Original file:** 1000+ lines  
-**After all hooks:** Target < 200 lines
+**Remaining in MapContainer:** ~400 lines (still need to extract 3 more hooks)
+**Target:** < 200 lines
 
-## 🎯 Strategy
+## 🎯 Next Milestone
 
-1. **Extract hooks first** (Phase 1) - Removes 70% of logic
-2. **Then extract layers** (Phase 2) - Organizes UI
-3. **Finally refactor MapContainer** (Phase 3) - Clean composition
-
-This modular approach allows:
-- ✅ Testing each piece independently
-- ✅ Gradual refactor without breaking changes
-- ✅ Easy rollback if issues arise
-- ✅ Reusable hooks for other components
+Complete remaining 4 hooks (Phase 1.5-1.8) to finish Phase 1.
+Estimated: 1 more day of work.
 
 ---
 
-**Status:** On track ✅  
-**Estimated completion:** 2-3 more days for all hooks
+**Status:** Excellent progress! 🚀  
+**Phase 1 completion:** 50% (4/8 hooks done)
