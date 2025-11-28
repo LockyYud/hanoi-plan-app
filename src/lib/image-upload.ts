@@ -171,21 +171,57 @@ async function uploadViaProxy(file: File, noteId?: string): Promise<ImageUploadR
     }
 }
 
+/**
+ * Upload multiple files in parallel with concurrency limit
+ */
+async function uploadWithConcurrency(
+    files: File[],
+    noteId: string | undefined,
+    concurrency: number = 3,
+    onProgress?: (completed: number, total: number) => void
+): Promise<ImageUploadResponse[]> {
+    const results: ImageUploadResponse[] = new Array(files.length);
+    let completedCount = 0;
+
+    // Create chunks based on concurrency limit
+    const chunks: number[][] = [];
+    for (let i = 0; i < files.length; i += concurrency) {
+        const chunk: number[] = [];
+        for (let j = i; j < Math.min(i + concurrency, files.length); j++) {
+            chunk.push(j);
+        }
+        chunks.push(chunk);
+    }
+
+    // Process each chunk in parallel
+    for (const chunk of chunks) {
+        const chunkPromises = chunk.map(async (index) => {
+            const result = await uploadViaProxy(files[index], noteId);
+            results[index] = result;
+            completedCount++;
+            onProgress?.(completedCount, files.length);
+            return result;
+        });
+
+        await Promise.all(chunkPromises);
+    }
+
+    return results;
+}
+
 export function useImageUpload() {
     const uploadImage = async (file: File, noteId?: string): Promise<ImageUploadResponse> => {
         return uploadViaProxy(file, noteId);
     };
 
-    const uploadMultipleImages = async (files: File[], noteId?: string): Promise<ImageUploadResponse[]> => {
-        // Upload images sequentially to avoid overwhelming the server
-        const results: ImageUploadResponse[] = [];
-
-        for (const file of files) {
-            const result = await uploadImage(file, noteId);
-            results.push(result);
-        }
-
-        return results;
+    const uploadMultipleImages = async (
+        files: File[],
+        noteId?: string,
+        onProgress?: (completed: number, total: number) => void
+    ): Promise<ImageUploadResponse[]> => {
+        // Upload images in parallel with concurrency limit of 3
+        // This balances speed and server load
+        return uploadWithConcurrency(files, noteId, 3, onProgress);
     };
 
     return {

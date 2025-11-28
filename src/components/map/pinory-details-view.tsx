@@ -27,7 +27,7 @@ import {
 import { toast } from "sonner";
 import type { Pinory } from "@/lib/types";
 
-interface NoteDetailsViewProps {
+interface PinoryDetailsViewProps {
     readonly isOpen: boolean;
     readonly onClose: () => void;
     readonly pinory: Pinory;
@@ -35,13 +35,13 @@ interface NoteDetailsViewProps {
     readonly onDelete?: () => void;
 }
 
-export function NoteDetailsView({
+export function PinoryDetailsView({
     isOpen,
     onClose,
     pinory,
     onEdit,
     onDelete,
-}: NoteDetailsViewProps) {
+}: PinoryDetailsViewProps) {
     const [fullPinory, setFullPinory] = useState<Pinory | null>(null);
     const [isLoadingImages, setIsLoadingImages] = useState(false);
     const [loadError, setLoadError] = useState<string | null>(null);
@@ -61,11 +61,11 @@ export function NoteDetailsView({
     const velocityRef = useRef(0);
     const rafIdRef = useRef<number | null>(null);
 
-    const loadFullNote = useCallback(async () => {
+    const loadFullPinory = useCallback(async () => {
         setIsLoadingImages(true);
         setLoadError(null);
         try {
-            console.log(`🔄 Loading images for note ${pinory.id}...`);
+            console.log(`🔄 Loading images for pinory ${pinory.id}...`);
             console.log(`🔄 Request URL: /api/location-notes/${pinory.id}`);
 
             const controller = new AbortController();
@@ -100,7 +100,7 @@ export function NoteDetailsView({
                     lng: pinory.lng,
                     lat: pinory.lat,
                     address: pinory.address,
-                    content: pinory.note || "",
+                    content: pinory.content || "",
                     name: pinory.name,
                     mood: pinory.mood, // This might not exist in Place model
                     timestamp: new Date(pinory.createdAt),
@@ -161,20 +161,6 @@ export function NoteDetailsView({
 
     // Load full note with images when dialog opens (only if images not already loaded)
     useEffect(() => {
-        console.log("🔍 Note details useEffect:", {
-            isOpen,
-            noteId: pinory.id,
-            hasImages: pinory.hasImages,
-            imagesAlreadyLoaded: !!pinory.images?.length,
-            fullNoteExists: !!fullPinory?.images?.length,
-            shouldLoad:
-                isOpen &&
-                pinory.id &&
-                pinory.hasImages &&
-                !pinory.images?.length &&
-                !fullPinory?.images?.length,
-        });
-
         // Only make API call if dialog is open, note has images, but they're not already loaded
         if (
             isOpen &&
@@ -184,7 +170,7 @@ export function NoteDetailsView({
             !fullPinory?.images?.length
         ) {
             console.log("✅ Images not yet loaded, fetching from API...");
-            loadFullNote();
+            loadFullPinory();
         } else if (isOpen && pinory.images?.length) {
             console.log(
                 "✅ Images already provided in note data, no API call needed"
@@ -204,7 +190,7 @@ export function NoteDetailsView({
         pinory.hasImages,
         pinory.images?.length,
         fullPinory?.images?.length,
-        loadFullNote,
+        loadFullPinory,
         pinory,
     ]);
 
@@ -222,10 +208,10 @@ export function NoteDetailsView({
             if (pinory.images?.length) {
                 setFullPinory(pinory);
             } else if (pinory.hasImages) {
-                loadFullNote();
+                loadFullPinory();
             }
         }
-    }, [isOpen, pinory, displayPinory.content, loadFullNote]);
+    }, [isOpen, pinory, displayPinory.content, loadFullPinory]);
 
     const formatDateTime = (date: Date) => {
         return new Date(date).toLocaleString("vi-VN", {
@@ -683,7 +669,7 @@ export function NoteDetailsView({
                         onTouchEnd={handleDragEnd}
                     >
                         {/* Close button khi không có ảnh hoặc 2+ ảnh & expanded */}
-                        {(!displayPinory.images ||
+                        {/* {(!displayPinory.images ||
                             displayPinory.images.length === 0 ||
                             (displayPinory.images.length >= 2 &&
                                 isExpanded)) && (
@@ -698,16 +684,11 @@ export function NoteDetailsView({
                             >
                                 <X className="h-4 w-4" strokeWidth={2.5} />
                             </Button>
-                        )}
+                        )} */}
 
                         <div className="flex items-start gap-2.5">
                             <div className="flex-1 min-w-0 pr-10">
                                 {/* Hiển thị nội dung trước */}
-                                {displayPinory.content && (
-                                    <p className="text-sm text-[#EDEDED] mb-2 leading-relaxed line-clamp-2">
-                                        {displayPinory.content}
-                                    </p>
-                                )}
                                 <h2 className="text-base font-semibold text-[#A0A0A0] mb-1 leading-tight">
                                     {displayPinory.placeName ||
                                         "Ghi chú địa điểm"}
@@ -808,13 +789,9 @@ export function NoteDetailsView({
                             displayPinory.images &&
                             displayPinory.images.length >= 2 && (
                                 <div className="space-y-2">
-                                    <h3 className="text-xs font-semibold text-[#A0A0A0] flex items-center gap-1.5 uppercase tracking-wide">
-                                        📷 Tất cả ảnh (
-                                        {displayPinory.images.length})
-                                    </h3>
                                     <SmartImageGallery
                                         images={displayPinory.images}
-                                        noteId={displayPinory.id || pinory.id}
+                                        pinoryId={displayPinory.id || pinory.id}
                                         onImageClick={(index) => {
                                             setCurrentImageIndex(index);
                                             setShowLightbox(true);
@@ -827,10 +804,6 @@ export function NoteDetailsView({
                         {/* Text Content */}
                         {displayPinory.content && (
                             <div>
-                                <h3 className="text-xs font-semibold text-[#A0A0A0] mb-2 flex items-center gap-1.5 uppercase tracking-wide">
-                                    <Heart className="h-3.5 w-3.5" />
-                                    Nội dung
-                                </h3>
                                 <p className="text-sm text-[#EDEDED] leading-relaxed whitespace-pre-wrap">
                                     {displayPinory.content}
                                 </p>
@@ -965,7 +938,7 @@ export function NoteDetailsView({
                                                     {loadError}
                                                 </span>
                                                 <Button
-                                                    onClick={loadFullNote}
+                                                    onClick={loadFullPinory}
                                                     variant="outline"
                                                     size="sm"
                                                     className="bg-red-900/20 hover:bg-red-900/30 text-red-400 border-red-800/50 rounded-lg"
@@ -1014,7 +987,7 @@ export function NoteDetailsView({
                                                     images={
                                                         displayPinory.images
                                                     }
-                                                    noteId={displayPinory.id}
+                                                    pinoryId={displayPinory.id}
                                                     onImageClick={(index) => {
                                                         setCurrentImageIndex(
                                                             index

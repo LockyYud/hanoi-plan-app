@@ -7,9 +7,8 @@ import { z } from "zod";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
-    ChevronUp,
+    Clock,
     Globe,
     Image as ImageIcon,
     Loader2,
@@ -18,6 +17,7 @@ import {
     Plus,
     Save,
     Star,
+    Tag,
     Users,
     X,
 } from "lucide-react";
@@ -29,18 +29,17 @@ import { useCategoryStore } from "@/lib/store";
 import { useCategoryAPI } from "@/lib/hooks";
 import { useSession } from "next-auth/react";
 
-const LocationNoteSchema = z.object({
-    category: z.string().min(1, "Chọn một danh mục"),
+const PinorySchema = z.object({
+    category: z.string().optional(), // Category is optional now
     content: z.string().max(280, "Nội dung tối đa 280 ký tự").optional(),
-    mood: z.enum(["😍", "😊", "😐", "🙁", "😴"]).optional(),
     placeName: z.string().min(1, "Tên địa điểm không được để trống"),
     visitTime: z.string().min(1, "Thời gian thăm không được để trống"),
     visibility: z.enum(["private", "friends", "public"]),
 });
 
-type LocationNoteFormData = z.infer<typeof LocationNoteSchema>;
+type PinoryFormData = z.infer<typeof PinorySchema>;
 
-interface LocationNoteFormProps {
+interface PinoryFormProps {
     readonly isOpen: boolean;
     readonly onClose: () => void;
     readonly location: {
@@ -48,10 +47,9 @@ interface LocationNoteFormProps {
         lat: number;
         address?: string;
     };
-    readonly existingNote?: {
+    readonly existingPinory?: {
         id: string;
         content: string;
-        mood?: string;
         images?: string[];
         placeName?: string;
         visitTime?: string;
@@ -60,7 +58,7 @@ interface LocationNoteFormProps {
         visibility?: string;
     };
     readonly onSubmit: (
-        data: LocationNoteFormData & {
+        data: PinoryFormData & {
             id?: string;
             lng: number;
             lat: number;
@@ -72,24 +70,24 @@ interface LocationNoteFormProps {
     ) => Promise<void> | void;
 }
 
-export function LocationNoteForm({
+export function PinoryForm({
     isOpen,
     onClose,
     location,
-    existingNote,
+    existingPinory,
     onSubmit,
-}: LocationNoteFormProps) {
+}: PinoryFormProps) {
     const { data: session } = useSession();
 
     // Form state
     const [selectedCategory, setSelectedCategory] = useState<string>(
-        existingNote?.category || ""
+        existingPinory?.category || ""
     );
     const [customCategoryName, setCustomCategoryName] = useState<string>("");
-    const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
-    const [showAllCategories, setShowAllCategories] = useState<boolean>(false);
     const [showVisibilityMenu, setShowVisibilityMenu] =
         useState<boolean>(false);
+    const [showCategoryMenu, setShowCategoryMenu] = useState<boolean>(false);
+    const [showTimeMenu, setShowTimeMenu] = useState<boolean>(false);
 
     // Text area ref for auto-focus
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -103,7 +101,7 @@ export function LocationNoteForm({
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
     const [coverImageIndex, setCoverImageIndex] = useState<number>(
-        existingNote?.coverImageIndex || 0
+        existingPinory?.coverImageIndex || 0
     );
 
     // Upload state
@@ -131,27 +129,19 @@ export function LocationNoteForm({
     // Fetch categories when form opens
     useEffect(() => {
         if (isOpen && session) {
-            console.log("📝 LocationNoteForm: Fetching categories...", {
+            console.log("📝 PinoryForm: Fetching categories...", {
                 isOpen,
                 hasSession: !!session,
                 currentCategories: categories.length,
             });
             fetchCategories(session);
         } else {
-            console.log("📝 LocationNoteForm: Not fetching categories", {
+            console.log("📝 PinoryForm: Not fetching categories", {
                 isOpen,
                 hasSession: !!session,
             });
         }
     }, [isOpen, session, fetchCategories]);
-
-    const moods = [
-        { emoji: "😍", label: "Yêu thích" },
-        { emoji: "😊", label: "Vui vẻ" },
-        { emoji: "😐", label: "Bình thường" },
-        { emoji: "🙁", label: "Không hài lòng" },
-        { emoji: "😴", label: "Thư giãn" },
-    ];
 
     const {
         register,
@@ -160,42 +150,22 @@ export function LocationNoteForm({
         reset,
         setValue,
         watch,
-    } = useForm<LocationNoteFormData>({
-        resolver: zodResolver(LocationNoteSchema),
+    } = useForm<PinoryFormData>({
+        resolver: zodResolver(PinorySchema),
         defaultValues: {
-            category: existingNote?.category || "",
-            content: existingNote?.content || "",
-            mood:
-                existingNote?.mood &&
-                moods.some((m) => m.emoji === existingNote.mood)
-                    ? (existingNote.mood as "😍" | "😊" | "😐" | "🙁" | "😴")
-                    : undefined,
-            placeName: existingNote?.placeName || location.address || "",
+            category: existingPinory?.category || "",
+            content: existingPinory?.content || "",
+            placeName: existingPinory?.placeName || location.address || "",
             visitTime:
-                existingNote?.visitTime ||
+                existingPinory?.visitTime ||
                 new Date().toISOString().slice(0, 16),
             visibility:
-                (existingNote?.visibility as
+                (existingPinory?.visibility as
                     | "private"
                     | "friends"
                     | "public") || "private",
         },
     });
-
-    // Auto-select first category if none selected (only when categories exist)
-    useEffect(() => {
-        if (
-            isOpen &&
-            categories.length > 0 &&
-            !selectedCategory &&
-            !existingNote
-        ) {
-            const firstCategory = categories[0];
-            setSelectedCategory(firstCategory.id);
-            setValue("category", firstCategory.id);
-            console.log("📝 Auto-selected first category:", firstCategory.name);
-        }
-    }, [isOpen, categories, selectedCategory, existingNote, setValue]);
 
     // Close visibility menu when clicking outside
     useEffect(() => {
@@ -223,23 +193,20 @@ export function LocationNoteForm({
     const { ref: contentRegisterRef, ...contentRegisterRest } =
         register("content");
 
-    // Sync selectedCategory with existingNote when form opens for editing
+    // Sync selectedCategory with existingPinory when form opens for editing
     useEffect(() => {
-        if (isOpen && existingNote?.category) {
-            console.log(
-                "📝 LocationNoteForm: Setting category from existingNote",
-                {
-                    category: existingNote.category,
-                }
-            );
-            setSelectedCategory(existingNote.category);
-            setValue("category", existingNote.category);
+        if (isOpen && existingPinory?.category) {
+            console.log("📝 PinoryForm: Setting category from existingPinory", {
+                category: existingPinory.category,
+            });
+            setSelectedCategory(existingPinory.category);
+            setValue("category", existingPinory.category);
         }
-    }, [isOpen, existingNote, setValue]);
+    }, [isOpen, existingPinory, setValue]);
 
     // Log categories changes
     useEffect(() => {
-        console.log("📝 LocationNoteForm: Categories updated", {
+        console.log("📝 PinoryForm: Categories updated", {
             count: categories.length,
             isLoading: isLoadingCategories,
             categories: categories.map((c) => ({ id: c.id, name: c.name })),
@@ -253,7 +220,6 @@ export function LocationNoteForm({
             content: contentValue,
             placeName: watch("placeName"),
             visitTime: watch("visitTime"),
-            mood: watch("mood"),
             visibility: watch("visibility"),
         };
 
@@ -267,9 +233,9 @@ export function LocationNoteForm({
             setHasUnsavedChanges(hasChanges);
         }
 
-        if (hasChanges && !existingNote) {
+        if (hasChanges && !existingPinory) {
             // Save draft to localStorage
-            const draftKey = `location-note-draft-${location.lng}-${location.lat}`;
+            const draftKey = `pinory-draft-${location.lng}-${location.lat}`;
             localStorage.setItem(draftKey, JSON.stringify(formData));
         }
     }, [
@@ -279,14 +245,14 @@ export function LocationNoteForm({
         existingImageUrls.length,
         watch,
         location,
-        existingNote,
+        existingPinory,
         hasUnsavedChanges,
     ]);
 
     // Load draft on mount
     useEffect(() => {
-        if (!existingNote) {
-            const draftKey = `location-note-draft-${location.lng}-${location.lat}`;
+        if (!existingPinory) {
+            const draftKey = `pinory-draft-${location.lng}-${location.lat}`;
             const draft = localStorage.getItem(draftKey);
             if (draft) {
                 try {
@@ -299,7 +265,6 @@ export function LocationNoteForm({
                         setValue("placeName", draftData.placeName);
                     if (draftData.visitTime)
                         setValue("visitTime", draftData.visitTime);
-                    if (draftData.mood) setValue("mood", draftData.mood);
                     if (draftData.visibility)
                         setValue("visibility", draftData.visibility);
                 } catch (error) {
@@ -307,7 +272,7 @@ export function LocationNoteForm({
                 }
             }
         }
-    }, [existingNote, location, setValue]);
+    }, [existingPinory, location, setValue]);
 
     // Open lightbox
     const openLightbox = (images: string[], startIndex: number = 0) => {
@@ -423,13 +388,13 @@ export function LocationNoteForm({
 
     // Initialize form data
     useEffect(() => {
-        if (existingNote) {
-            setSelectedCategory(existingNote.category || "");
-            setValue("category", existingNote.category || "");
-            if (existingNote.images && existingNote.images.length > 0) {
-                setExistingImageUrls(existingNote.images);
+        if (existingPinory) {
+            setSelectedCategory(existingPinory.category || "");
+            setValue("category", existingPinory.category || "");
+            if (existingPinory.images && existingPinory.images.length > 0) {
+                setExistingImageUrls(existingPinory.images);
             }
-            setCoverImageIndex(existingNote.coverImageIndex || 0);
+            setCoverImageIndex(existingPinory.coverImageIndex || 0);
         } else {
             setExistingImageUrls([]);
             setImages([]);
@@ -437,15 +402,15 @@ export function LocationNoteForm({
             setSelectedCategory("");
             setCoverImageIndex(0);
         }
-    }, [existingNote, setValue]);
+    }, [existingPinory, setValue]);
 
     // Form submission
-    const onFormSubmit = async (data: LocationNoteFormData) => {
+    const onFormSubmit = async (data: PinoryFormData) => {
         try {
             setIsUploadingImages(true);
 
-            if (existingNote) {
-                // Editing existing note
+            if (existingPinory) {
+                // Editing existing pinory
                 setUploadProgress("Đang xử lý ảnh...");
 
                 const imageUrls: string[] = [];
@@ -456,10 +421,15 @@ export function LocationNoteForm({
                 }
 
                 if (images.length > 0) {
-                    setUploadProgress(`Đang upload ${images.length} ảnh...`);
+                    setUploadProgress(`Đang upload 0/${images.length} ảnh...`);
                     const uploadResults = await uploadMultipleImages(
                         images,
-                        existingNote.id
+                        existingPinory.id,
+                        (completed, total) => {
+                            setUploadProgress(
+                                `Đang upload ${completed}/${total} ảnh...`
+                            );
+                        }
                     );
 
                     let successCount = 0;
@@ -473,7 +443,7 @@ export function LocationNoteForm({
                     setUploadProgress(
                         `Đã upload ${successCount}/${images.length} ảnh thành công`
                     );
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    await new Promise((resolve) => setTimeout(resolve, 500));
                 }
 
                 setUploadProgress("Đang cập nhật ghi chú...");
@@ -481,7 +451,7 @@ export function LocationNoteForm({
                 // Wait for onSubmit to complete (API call)
                 await onSubmit({
                     ...data,
-                    id: existingNote.id,
+                    id: existingPinory.id,
                     lng: location.lng,
                     lat: location.lat,
                     address: location.address || "",
@@ -490,10 +460,10 @@ export function LocationNoteForm({
                     coverImageIndex,
                 });
             } else {
-                // Creating new note
-                setUploadProgress("Đang tạo ghi chú...");
+                // Creating new pinory
+                setUploadProgress("Đang tạo pinory...");
 
-                const noteResponse = await fetch("/api/location-notes", {
+                const pinoryResponse = await fetch("/api/location-notes", {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
@@ -502,7 +472,6 @@ export function LocationNoteForm({
                         lat: location.lat,
                         address: location.address || "",
                         content: data.content,
-                        mood: data.mood,
                         categoryIds: data.category ? [data.category] : [], // Convert single category to array for API
                         placeName: data.placeName,
                         visitTime: data.visitTime,
@@ -510,19 +479,26 @@ export function LocationNoteForm({
                     }),
                 });
 
-                if (!noteResponse.ok) {
-                    const errorData = await noteResponse.json();
-                    throw new Error(errorData.error || "Failed to create note");
+                if (!pinoryResponse.ok) {
+                    const errorData = await pinoryResponse.json();
+                    throw new Error(
+                        errorData.error || "Failed to create pinory"
+                    );
                 }
 
-                const createdNote = await noteResponse.json();
+                const createdPinory = await pinoryResponse.json();
 
                 const imageUrls: string[] = [];
                 if (images.length > 0) {
-                    setUploadProgress(`Đang upload ${images.length} ảnh...`);
+                    setUploadProgress(`Đang upload 0/${images.length} ảnh...`);
                     const uploadResults = await uploadMultipleImages(
                         images,
-                        createdNote.id
+                        createdPinory.id,
+                        (completed, total) => {
+                            setUploadProgress(
+                                `Đang upload ${completed}/${total} ảnh...`
+                            );
+                        }
                     );
 
                     let successCount = 0;
@@ -536,25 +512,22 @@ export function LocationNoteForm({
                     setUploadProgress(
                         `Đã upload ${successCount}/${images.length} ảnh thành công`
                     );
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    await new Promise((resolve) => setTimeout(resolve, 500));
                 }
 
                 setUploadProgress("Hoàn tất...");
 
-                console.log(
-                    "📝 LocationNoteForm: Calling onSubmit with data:",
-                    {
-                        id: createdNote.id,
-                        content: data.content?.substring(0, 20),
-                        lng: location.lng,
-                        lat: location.lat,
-                        images: imageUrls.length,
-                    }
-                );
+                console.log("📝 PinoryForm: Calling onSubmit with data:", {
+                    id: createdPinory.id,
+                    content: data.content?.substring(0, 20),
+                    lng: location.lng,
+                    lat: location.lat,
+                    images: imageUrls.length,
+                });
 
                 onSubmit({
                     ...data,
-                    id: createdNote.id,
+                    id: createdPinory.id,
                     lng: location.lng,
                     lat: location.lat,
                     address: location.address || "",
@@ -563,13 +536,11 @@ export function LocationNoteForm({
                     coverImageIndex,
                 });
 
-                console.log(
-                    "✅ LocationNoteForm: onSubmit called successfully"
-                );
+                console.log("✅ PinoryForm: onSubmit called successfully");
             }
 
             // Reset form and clear draft
-            const draftKey = `location-note-draft-${location.lng}-${location.lat}`;
+            const draftKey = `pinory-draft-${location.lng}-${location.lat}`;
             localStorage.removeItem(draftKey);
 
             reset();
@@ -584,9 +555,9 @@ export function LocationNoteForm({
             setShowUndoToast(true);
             setTimeout(() => setShowUndoToast(false), 5000);
 
-            // Only close form here if creating new note
+            // Only close form here if creating new pinory
             // When editing, parent (map-container) will close the form
-            if (!existingNote) {
+            if (!existingPinory) {
                 onClose();
             }
         } catch (error) {
@@ -610,16 +581,15 @@ export function LocationNoteForm({
 
     const handleClose = () => {
         // Save draft if there are unsaved changes
-        if (hasUnsavedChanges && !existingNote) {
+        if (hasUnsavedChanges && !existingPinory) {
             const formData = {
                 category: selectedCategory,
                 content: watch("content"),
                 placeName: watch("placeName"),
                 visitTime: watch("visitTime"),
-                mood: watch("mood"),
                 visibility: watch("visibility"),
             };
-            const draftKey = `location-note-draft-${location.lng}-${location.lat}`;
+            const draftKey = `pinory-draft-${location.lng}-${location.lat}`;
             localStorage.setItem(draftKey, JSON.stringify(formData));
         }
 
@@ -631,7 +601,8 @@ export function LocationNoteForm({
         setSelectedCategory("");
         setCoverImageIndex(0);
         setCustomCategoryName("");
-        setShowAdvanced(false);
+        setShowCategoryMenu(false);
+        setShowTimeMenu(false);
         setHasUnsavedChanges(false);
         onClose();
     };
@@ -686,10 +657,22 @@ export function LocationNoteForm({
                                         ref={(e) => {
                                             contentRegisterRef(e);
                                             textareaRef.current = e;
+                                            // Auto-resize textarea
+                                            if (e) {
+                                                e.style.height = "auto";
+                                                e.style.height =
+                                                    e.scrollHeight + "px";
+                                            }
                                         }}
                                         placeholder="Bạn nghĩ gì về địa điểm này?"
-                                        rows={3}
-                                        className="resize-none bg-transparent border-0 text-[var(--foreground)] placeholder-[var(--color-neutral-500)] text-lg leading-relaxed transition-colors focus:outline-none min-h-[80px] pr-16 w-full"
+                                        onInput={(e) => {
+                                            const target =
+                                                e.target as HTMLTextAreaElement;
+                                            target.style.height = "auto";
+                                            target.style.height =
+                                                target.scrollHeight + "px";
+                                        }}
+                                        className="resize-none bg-transparent border-0 border-none text-[var(--foreground)] placeholder-[var(--color-neutral-500)] text-lg leading-relaxed transition-colors focus:outline-none focus:ring-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[60px] pr-16 w-full overflow-hidden"
                                     />
                                     <div className="absolute bottom-2 right-2 text-xs text-[var(--color-neutral-500)] pointer-events-none">
                                         {contentValue.length}/280
@@ -730,7 +713,7 @@ export function LocationNoteForm({
                                             {existingImageUrls.map(
                                                 (url, index) => (
                                                     <div
-                                                        key={`existing-image-${existingNote?.id || "new"}-${index}`}
+                                                        key={`existing-image-${existingPinory?.id || "new"}-${index}`}
                                                         className={`group relative bg-[var(--color-neutral-900)] overflow-hidden ${
                                                             totalImages === 1
                                                                 ? "aspect-[4/3]"
@@ -922,399 +905,108 @@ export function LocationNoteForm({
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    </div>
 
-                            {/* Add to post - Facebook style actions bar */}
-                            <div className="flex items-center justify-between p-3 border border-[var(--color-neutral-800)] rounded-lg">
-                                <span className="text-sm font-medium text-[var(--foreground)]">
-                                    Thêm vào bài viết
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() =>
-                                            document
-                                                .getElementById("images")
-                                                ?.click()
-                                        }
-                                        className="h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] text-green-500"
-                                        title="Thêm ảnh"
-                                    >
-                                        <ImageIcon className="h-5 w-5" />
-                                    </Button>
+                    {/* Add to post - Facebook style actions bar */}
+                    <div className="flex items-center justify-between px-7 py-3 border-t border-[var(--color-neutral-800)] bg-[var(--background)] flex-shrink-0">
+                        <span className="text-sm font-medium text-[var(--foreground)]">
+                            Thêm vào bài viết
+                        </span>
+                        <div className="flex items-center gap-1">
+                            {/* Image Button */}
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                    document.getElementById("images")?.click()
+                                }
+                                className="h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] text-green-500"
+                                title="Thêm ảnh"
+                            >
+                                <ImageIcon className="h-5 w-5" />
+                            </Button>
 
-                                    {/* Visibility Button with Dropdown */}
-                                    <div className="relative visibility-menu-container">
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() =>
-                                                setShowVisibilityMenu(
-                                                    !showVisibilityMenu
-                                                )
-                                            }
-                                            className="h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] text-blue-500"
-                                            title="Ai có thể xem?"
-                                        >
-                                            {watch("visibility") ===
-                                                "private" && (
-                                                <Lock className="h-5 w-5" />
-                                            )}
-                                            {watch("visibility") ===
-                                                "friends" && (
-                                                <Users className="h-5 w-5" />
-                                            )}
-                                            {watch("visibility") ===
-                                                "public" && (
-                                                <Globe className="h-5 w-5" />
-                                            )}
-                                        </Button>
-
-                                        {/* Visibility Dropdown Menu */}
-                                        {showVisibilityMenu && (
-                                            <div className="absolute bottom-full right-0 mb-2 w-64 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-lg shadow-xl z-50 p-2">
-                                                <div className="space-y-1">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setValue(
-                                                                "visibility",
-                                                                "private"
-                                                            );
-                                                            setShowVisibilityMenu(
-                                                                false
-                                                            );
-                                                        }}
-                                                        className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
-                                                            watch(
-                                                                "visibility"
-                                                            ) === "private"
-                                                                ? "bg-blue-500/20 border border-blue-500"
-                                                                : "hover:bg-[var(--color-neutral-800)]"
-                                                        }`}
-                                                    >
-                                                        <Lock className="h-5 w-5 flex-shrink-0" />
-                                                        <div className="flex-1">
-                                                            <div className="font-medium text-sm">
-                                                                Riêng tư
-                                                            </div>
-                                                            <div className="text-xs text-[var(--color-neutral-500)]">
-                                                                Chỉ bạn có thể
-                                                                xem
-                                                            </div>
-                                                        </div>
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setValue(
-                                                                "visibility",
-                                                                "friends"
-                                                            );
-                                                            setShowVisibilityMenu(
-                                                                false
-                                                            );
-                                                        }}
-                                                        className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
-                                                            watch(
-                                                                "visibility"
-                                                            ) === "friends"
-                                                                ? "bg-blue-500/20 border border-blue-500"
-                                                                : "hover:bg-[var(--color-neutral-800)]"
-                                                        }`}
-                                                    >
-                                                        <Users className="h-5 w-5 flex-shrink-0" />
-                                                        <div className="flex-1">
-                                                            <div className="font-medium text-sm">
-                                                                Bạn bè
-                                                            </div>
-                                                            <div className="text-xs text-[var(--color-neutral-500)]">
-                                                                Bạn bè của bạn
-                                                                có thể xem
-                                                            </div>
-                                                        </div>
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setValue(
-                                                                "visibility",
-                                                                "public"
-                                                            );
-                                                            setShowVisibilityMenu(
-                                                                false
-                                                            );
-                                                        }}
-                                                        className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
-                                                            watch(
-                                                                "visibility"
-                                                            ) === "public"
-                                                                ? "bg-blue-500/20 border border-blue-500"
-                                                                : "hover:bg-[var(--color-neutral-800)]"
-                                                        }`}
-                                                    >
-                                                        <Globe className="h-5 w-5 flex-shrink-0" />
-                                                        <div className="flex-1">
-                                                            <div className="font-medium text-sm">
-                                                                Công khai
-                                                            </div>
-                                                            <div className="text-xs text-[var(--color-neutral-500)]">
-                                                                Mọi người có thể
-                                                                xem
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* ADVANCED OPTIONS - Independent Collapsible Section */}
-                            <div className="space-y-4 p-4 bg-[var(--color-neutral-900)]/30 rounded-lg border border-[var(--color-neutral-800)]">
-                                {/* Collapsible Header */}
-                                <button
+                            {/* Category Button with Dropdown */}
+                            <div className="relative">
+                                <Button
                                     type="button"
-                                    onClick={() =>
-                                        setShowAdvanced(!showAdvanced)
-                                    }
-                                    className="w-full flex items-center justify-between hover:bg-[var(--color-neutral-800)]/30 p-2 -m-2 rounded-lg transition-colors"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        setShowCategoryMenu(!showCategoryMenu);
+                                        setShowVisibilityMenu(false);
+                                        setShowTimeMenu(false);
+                                    }}
+                                    className={`h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] ${selectedCategory ? "text-purple-500" : "text-[var(--color-neutral-500)]"}`}
+                                    title="Chọn danh mục"
                                 >
-                                    <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
-                                        <MapPin className="h-4 w-4" />
-                                        Thông tin chi tiết
-                                    </h3>
-                                    <ChevronUp
-                                        className={`h-4 w-4 text-[var(--color-neutral-500)] transition-transform duration-200 ${
-                                            showAdvanced ? "" : "rotate-180"
-                                        }`}
-                                    />
-                                </button>
+                                    <Tag className="h-5 w-5" />
+                                </Button>
 
-                                {/* Collapsible Content */}
-                                {showAdvanced && (
-                                    <div className="space-y-4 pt-3 border-t border-[var(--color-neutral-700)]">
-                                        {/* CATEGORY SELECTION */}
+                                {/* Category Dropdown Menu */}
+                                {showCategoryMenu && (
+                                    <div className="absolute bottom-full right-0 mb-2 w-72 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-lg shadow-xl z-50 p-3">
                                         <div className="space-y-3">
+                                            <div className="text-sm font-medium text-[var(--foreground)]">
+                                                Danh mục
+                                            </div>
+
                                             {isLoadingCategories ? (
-                                                <div className="flex items-center justify-center py-4">
-                                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-primary-500)]"></div>
-                                                    <span className="ml-3 text-sm text-[var(--color-neutral-500)]">
-                                                        Đang tải danh mục...
+                                                <div className="flex items-center py-2">
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary-500)]"></div>
+                                                    <span className="ml-2 text-sm text-[var(--color-neutral-500)]">
+                                                        Đang tải...
                                                     </span>
                                                 </div>
                                             ) : (
-                                                <div className="space-y-3">
-                                                    {/* Empty state when no categories */}
-                                                    {categories.length ===
-                                                        0 && (
-                                                        <div className="flex flex-col items-center justify-center py-4 text-center">
-                                                            <div className="text-3xl mb-2">
-                                                                📂
-                                                            </div>
-                                                            <p className="text-sm text-[var(--color-neutral-500)] mb-1">
-                                                                Chưa có danh mục
-                                                                nào
-                                                            </p>
-                                                            <p className="text-xs text-[var(--color-neutral-600)]">
-                                                                Tạo danh mục đầu
-                                                                tiên ở dưới
-                                                            </p>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Selected category display - only when categories exist */}
-                                                    {categories.length > 0 &&
-                                                        selectedCategory && (
-                                                            <div className="flex items-center justify-between p-3 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-xl">
-                                                                {(() => {
-                                                                    const category =
-                                                                        categories.find(
-                                                                            (
-                                                                                c
-                                                                            ) =>
-                                                                                c.id ===
-                                                                                selectedCategory
-                                                                        );
-                                                                    if (
-                                                                        !category
-                                                                    )
-                                                                        return null;
-
-                                                                    return (
-                                                                        <>
-                                                                            <div className="flex items-center gap-3">
-                                                                                {category.icon && (
-                                                                                    <span className="text-lg">
-                                                                                        {
-                                                                                            category.icon
-                                                                                        }
-                                                                                    </span>
-                                                                                )}
-                                                                                <span className="text-sm font-medium text-[var(--foreground)]">
-                                                                                    {
-                                                                                        category.name
-                                                                                    }
-                                                                                </span>
-                                                                            </div>
-                                                                            <Button
-                                                                                type="button"
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                onClick={() =>
-                                                                                    setShowAllCategories(
-                                                                                        !showAllCategories
-                                                                                    )
-                                                                                }
-                                                                                className="text-[var(--color-neutral-500)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] px-3"
-                                                                            >
-                                                                                Đổi
-                                                                            </Button>
-                                                                        </>
-                                                                    );
-                                                                })()}
-                                                            </div>
-                                                        )}
-
-                                                    {/* Category selection - only when categories exist and (no selection or "Đổi" clicked) */}
-                                                    {categories.length > 0 &&
-                                                        (!selectedCategory ||
-                                                            showAllCategories) && (
-                                                            <>
-                                                                {/* Top 4 popular categories */}
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    {categories
-                                                                        .slice(
-                                                                            0,
-                                                                            4
-                                                                        )
-                                                                        .map(
-                                                                            (
-                                                                                category
-                                                                            ) => (
-                                                                                <button
-                                                                                    key={
-                                                                                        category.id
-                                                                                    }
-                                                                                    type="button"
-                                                                                    onClick={() => {
-                                                                                        selectCategory(
-                                                                                            category.id
-                                                                                        );
-                                                                                        setShowAllCategories(
-                                                                                            false
-                                                                                        );
-                                                                                    }}
-                                                                                    className={`p-3 rounded-xl border transition-all duration-200 text-left ${
-                                                                                        selectedCategory ===
-                                                                                        category.id
-                                                                                            ? "border-blue-500 bg-blue-500/10"
-                                                                                            : "border-[var(--color-neutral-700)] hover:border-blue-400/50 hover:bg-[var(--color-neutral-700)] bg-[var(--color-neutral-900)]"
-                                                                                    }`}
-                                                                                >
-                                                                                    <div className="flex items-center gap-3">
-                                                                                        {category.icon && (
-                                                                                            <span className="text-base">
-                                                                                                {
-                                                                                                    category.icon
-                                                                                                }
-                                                                                            </span>
-                                                                                        )}
-                                                                                        <span className="text-sm font-medium text-[var(--foreground)]">
-                                                                                            {
-                                                                                                category.name
-                                                                                            }
-                                                                                        </span>
-                                                                                    </div>
-                                                                                </button>
-                                                                            )
-                                                                        )}
-                                                                </div>
-
-                                                                {/* More categories button */}
-                                                                {categories.length >
-                                                                    4 && (
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() =>
-                                                                            setShowAllCategories(
-                                                                                !showAllCategories
-                                                                            )
-                                                                        }
-                                                                        className="w-full border-[var(--color-neutral-700)] text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] h-11"
-                                                                    >
-                                                                        {showAllCategories
-                                                                            ? "Thu gọn"
-                                                                            : `Xem thêm ${categories.length - 4} loại`}
-                                                                    </Button>
-                                                                )}
-
-                                                                {/* All categories (when expanded) */}
-                                                                {showAllCategories &&
-                                                                    categories.length >
-                                                                        4 && (
-                                                                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
-                                                                            {categories
-                                                                                .slice(
-                                                                                    4
-                                                                                )
-                                                                                .map(
-                                                                                    (
-                                                                                        category
-                                                                                    ) => (
-                                                                                        <button
-                                                                                            key={
-                                                                                                category.id
-                                                                                            }
-                                                                                            type="button"
-                                                                                            onClick={() => {
-                                                                                                selectCategory(
-                                                                                                    category.id
-                                                                                                );
-                                                                                                setShowAllCategories(
-                                                                                                    false
-                                                                                                );
-                                                                                            }}
-                                                                                            className={`p-3 rounded-xl border transition-all duration-200 text-left ${
-                                                                                                selectedCategory ===
-                                                                                                category.id
-                                                                                                    ? "border-blue-500 bg-blue-500/10"
-                                                                                                    : "border-[var(--color-neutral-700)] hover:border-blue-400/50 hover:bg-[var(--color-neutral-700)] bg-[var(--color-neutral-900)]"
-                                                                                            }`}
-                                                                                        >
-                                                                                            <div className="flex items-center gap-3">
-                                                                                                {category.icon && (
-                                                                                                    <span className="text-base">
-                                                                                                        {
-                                                                                                            category.icon
-                                                                                                        }
-                                                                                                    </span>
-                                                                                                )}
-                                                                                                <span className="text-sm font-medium text-[var(--foreground)]">
-                                                                                                    {
-                                                                                                        category.name
-                                                                                                    }
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        </button>
-                                                                                    )
-                                                                                )}
-                                                                        </div>
-                                                                    )}
-                                                            </>
-                                                        )}
-
-                                                    {/* Custom category input - ALWAYS SHOW */}
-                                                    <div
-                                                        className={`flex gap-2 ${categories.length > 0 ? "pt-2 border-t border-[var(--color-neutral-700)]" : ""}`}
+                                                <>
+                                                    {/* Category Select */}
+                                                    <select
+                                                        value={selectedCategory}
+                                                        onChange={(e) => {
+                                                            selectCategory(
+                                                                e.target.value
+                                                            );
+                                                        }}
+                                                        className="w-full h-10 px-3 bg-[var(--color-neutral-800)] border border-[var(--color-neutral-700)] text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-colors appearance-none cursor-pointer text-sm"
+                                                        style={{
+                                                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                                            backgroundPosition:
+                                                                "right 0.5rem center",
+                                                            backgroundRepeat:
+                                                                "no-repeat",
+                                                            backgroundSize:
+                                                                "1rem",
+                                                        }}
                                                     >
+                                                        <option value="">
+                                                            Không chọn
+                                                        </option>
+                                                        {categories.map(
+                                                            (category) => (
+                                                                <option
+                                                                    key={
+                                                                        category.id
+                                                                    }
+                                                                    value={
+                                                                        category.id
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        category.icon
+                                                                    }{" "}
+                                                                    {
+                                                                        category.name
+                                                                    }
+                                                                </option>
+                                                            )
+                                                        )}
+                                                    </select>
+
+                                                    {/* Create new category */}
+                                                    <div className="flex gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
                                                         <Input
                                                             value={
                                                                 customCategoryName
@@ -1325,8 +1017,8 @@ export function LocationNoteForm({
                                                                         .value
                                                                 )
                                                             }
-                                                            placeholder="+ Tạo loại mới"
-                                                            className="flex-1 h-11 bg-[var(--color-neutral-900)] border-[var(--color-neutral-700)] text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-[var(--radius-xl)] focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]"
+                                                            placeholder="Tạo mới..."
+                                                            className="flex-1 h-9 text-sm bg-[var(--color-neutral-800)] border-[var(--color-neutral-700)] text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-lg"
                                                             onKeyDown={(e) => {
                                                                 if (
                                                                     e.key ===
@@ -1347,76 +1039,170 @@ export function LocationNoteForm({
                                                             disabled={
                                                                 !customCategoryName.trim()
                                                             }
-                                                            className="h-11 w-11 p-0 border-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-700)] text-[var(--color-neutral-500)] hover:text-[var(--foreground)]"
+                                                            className="h-9 px-2 border-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-700)]"
                                                         >
                                                             <Plus className="h-4 w-4" />
                                                         </Button>
                                                     </div>
-
-                                                    {errors.category && (
-                                                        <p className="text-sm text-red-400 flex items-center gap-1">
-                                                            <span>⚠️</span>
-                                                            {
-                                                                errors.category
-                                                                    .message
-                                                            }
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                </>
                                             )}
                                         </div>
+                                    </div>
+                                )}
+                            </div>
 
-                                        {/* MORE OPTIONS - Time, Mood, Place Name */}
-                                        <div className="space-y-4 pt-4 border-t border-[var(--color-neutral-700)]">
-                                            {/* Visit Time */}
-                                            <div className="space-y-2">
-                                                <Label className="text-sm font-medium text-[var(--color-neutral-400)]">
-                                                    Thời gian
-                                                </Label>
-                                                <Input
-                                                    type="datetime-local"
-                                                    {...register("visitTime")}
-                                                    className="h-10 bg-[var(--color-neutral-800)]/80 border-[var(--color-neutral-700)] hover:border-[var(--color-neutral-600)] focus:border-blue-500/50 text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 transition-colors"
-                                                />
+                            {/* Time Button with Dropdown */}
+                            <div className="relative">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        setShowTimeMenu(!showTimeMenu);
+                                        setShowVisibilityMenu(false);
+                                        setShowCategoryMenu(false);
+                                    }}
+                                    className="h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] text-orange-500"
+                                    title="Thời gian ghé thăm"
+                                >
+                                    <Clock className="h-5 w-5" />
+                                </Button>
+
+                                {/* Time Dropdown Menu */}
+                                {showTimeMenu && (
+                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-lg shadow-xl z-50 p-3">
+                                        <div className="space-y-2">
+                                            <div className="text-sm font-medium text-[var(--foreground)]">
+                                                Thời gian ghé thăm
                                             </div>
+                                            <Input
+                                                type="datetime-local"
+                                                {...register("visitTime")}
+                                                className="h-10 bg-[var(--color-neutral-800)] border-[var(--color-neutral-700)] text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
 
-                                            {/* Mood */}
-                                            <div className="space-y-2">
-                                                <Label className="text-sm font-medium text-[var(--color-neutral-400)]">
-                                                    Tâm trạng
-                                                </Label>
-                                                <div className="flex gap-2">
-                                                    {moods.map((mood) => (
-                                                        <button
-                                                            key={mood.emoji}
-                                                            type="button"
-                                                            onClick={() =>
-                                                                setValue(
-                                                                    "mood",
-                                                                    mood.emoji as
-                                                                        | "😍"
-                                                                        | "😊"
-                                                                        | "😐"
-                                                                        | "🙁"
-                                                                        | "😴"
-                                                                )
-                                                            }
-                                                            className={`p-2 rounded-lg border-2 transition-all duration-200 min-h-[40px] min-w-[40px] hover:scale-105 ${
-                                                                watch(
-                                                                    "mood"
-                                                                ) === mood.emoji
-                                                                    ? "border-blue-500 bg-blue-500/20 shadow-sm"
-                                                                    : "border-[var(--color-neutral-700)] hover:border-blue-500/50 hover:bg-[var(--color-neutral-700)]/50"
-                                                            }`}
-                                                            title={mood.label}
-                                                        >
-                                                            <div className="text-lg">
-                                                                {mood.emoji}
-                                                            </div>
-                                                        </button>
-                                                    ))}
+                            {/* Visibility Button with Dropdown */}
+                            <div className="relative visibility-menu-container">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        setShowVisibilityMenu(
+                                            !showVisibilityMenu
+                                        );
+                                        setShowCategoryMenu(false);
+                                        setShowTimeMenu(false);
+                                    }}
+                                    className="h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] text-blue-500"
+                                    title="Ai có thể xem?"
+                                >
+                                    {watch("visibility") === "private" && (
+                                        <Lock className="h-5 w-5" />
+                                    )}
+                                    {watch("visibility") === "friends" && (
+                                        <Users className="h-5 w-5" />
+                                    )}
+                                    {watch("visibility") === "public" && (
+                                        <Globe className="h-5 w-5" />
+                                    )}
+                                </Button>
+
+                                {/* Visibility Dropdown Menu */}
+                                {showVisibilityMenu && (
+                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-lg shadow-xl z-50 p-2">
+                                        <div className="space-y-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setValue(
+                                                        "visibility",
+                                                        "private"
+                                                    );
+                                                    setShowVisibilityMenu(
+                                                        false
+                                                    );
+                                                }}
+                                                className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
+                                                    watch("visibility") ===
+                                                    "private"
+                                                        ? "bg-blue-500/20 border border-blue-500"
+                                                        : "hover:bg-[var(--color-neutral-800)]"
+                                                }`}
+                                            >
+                                                <Lock className="h-5 w-5 flex-shrink-0" />
+                                                <div className="flex-1">
+                                                    <div className="font-medium text-sm">
+                                                        Riêng tư
+                                                    </div>
+                                                    <div className="text-xs text-[var(--color-neutral-500)]">
+                                                        Chỉ bạn có thể xem
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setValue(
+                                                        "visibility",
+                                                        "friends"
+                                                    );
+                                                    setShowVisibilityMenu(
+                                                        false
+                                                    );
+                                                }}
+                                                className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
+                                                    watch("visibility") ===
+                                                    "friends"
+                                                        ? "bg-blue-500/20 border border-blue-500"
+                                                        : "hover:bg-[var(--color-neutral-800)]"
+                                                }`}
+                                            >
+                                                <Users className="h-5 w-5 flex-shrink-0" />
+                                                <div className="flex-1">
+                                                    <div className="font-medium text-sm">
+                                                        Bạn bè
+                                                    </div>
+                                                    <div className="text-xs text-[var(--color-neutral-500)]">
+                                                        Bạn bè của bạn có thể
+                                                        xem
+                                                    </div>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setValue(
+                                                        "visibility",
+                                                        "public"
+                                                    );
+                                                    setShowVisibilityMenu(
+                                                        false
+                                                    );
+                                                }}
+                                                className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
+                                                    watch("visibility") ===
+                                                    "public"
+                                                        ? "bg-blue-500/20 border border-blue-500"
+                                                        : "hover:bg-[var(--color-neutral-800)]"
+                                                }`}
+                                            >
+                                                <Globe className="h-5 w-5 flex-shrink-0" />
+                                                <div className="flex-1">
+                                                    <div className="font-medium text-sm">
+                                                        Công khai
+                                                    </div>
+                                                    <div className="text-xs text-[var(--color-neutral-500)]">
+                                                        Mọi người có thể xem
+                                                    </div>
+                                                </div>
+                                            </button>
                                         </div>
                                     </div>
                                 )}
@@ -1440,11 +1226,7 @@ export function LocationNoteForm({
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={
-                                    isSubmitting ||
-                                    isUploadingImages ||
-                                    (!selectedCategory && categories.length > 0)
-                                }
+                                disabled={isSubmitting || isUploadingImages}
                                 className="min-h-[44px] px-8 bg-blue-600 hover:bg-blue-700 text-white border-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
                             >
                                 {isUploadingImages ? (
@@ -1457,10 +1239,10 @@ export function LocationNoteForm({
                                         <Save className="h-4 w-4 mr-2" />
                                         {isSubmitting && "Đang lưu..."}
                                         {!isSubmitting &&
-                                            existingNote &&
+                                            existingPinory &&
                                             "Cập nhật ghi chú"}
                                         {!isSubmitting &&
-                                            !existingNote &&
+                                            !existingPinory &&
                                             "Lưu ghi chú"}
                                     </>
                                 )}

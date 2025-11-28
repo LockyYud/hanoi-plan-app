@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 interface SmartImageGalleryProps {
     readonly images: string[];
-    readonly noteId?: string;
+    readonly pinoryId?: string;
     readonly onImageClick: (index: number) => void;
     readonly className?: string;
     readonly variant?: "desktop" | "mobile";
@@ -26,7 +26,7 @@ interface SmartImageGalleryProps {
  */
 export function SmartImageGallery({
     images,
-    noteId,
+    pinoryId,
     onImageClick,
     className,
     variant = "desktop",

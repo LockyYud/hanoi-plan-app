@@ -25,19 +25,19 @@ import { toast } from "sonner";
 import type { Pinory } from "@/lib/types";
 import Image from "next/image";
 
-interface FriendLocationDetailsViewProps {
+interface FriendPinoryDetailsViewProps {
     readonly isOpen: boolean;
     readonly onClose: () => void;
     readonly pinory: Pinory;
     readonly onAddToFavorites?: () => void;
 }
 
-export function FriendLocationDetailsView({
+export function FriendPinoryDetailsView({
     isOpen,
     onClose,
     pinory,
     onAddToFavorites,
-}: FriendLocationDetailsViewProps) {
+}: FriendPinoryDetailsViewProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showLightbox, setShowLightbox] = useState(false);
     const [isMobile, setIsMobile] = useState(false);

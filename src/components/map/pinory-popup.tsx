@@ -469,19 +469,18 @@ export function PinoryPopup({
                                 </div>
                             )}
 
-                            {/* Images - Smart Adaptive Layout */}
+                            {/* Images - larger display */}
                             {pinory?.images && pinory.images.length > 0 && (
                                 <div>
-                                    {/* 1 ảnh: Full width, aspect ratio 4:3 */}
-                                    {pinory.images.length === 1 && (
-                                        <div className="w-full aspect-[4/3] bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden">
+                                    {pinory.images.length === 1 ? (
+                                        <div className="w-full h-40 bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden">
                                             {isValidImageUrl(
                                                 pinory.images[0]
                                             ) ? (
                                                 <ImageDisplay
                                                     src={pinory.images[0]}
                                                     alt="Ảnh ghi chú"
-                                                    className="w-full h-full object-cover bg-neutral-950"
+                                                    className="w-full h-full object-contain bg-neutral-950"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center">
@@ -491,13 +490,11 @@ export function PinoryPopup({
                                                 </div>
                                             )}
                                         </div>
-                                    )}
-
-                                    {/* 2 ảnh: 2 cột bằng nhau */}
-                                    {pinory.images.length === 2 && (
-                                        <div className="grid grid-cols-2 gap-1.5">
-                                            {pinory.images.map(
-                                                (image, index) => (
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {pinory.images
+                                                .slice(0, 2)
+                                                .map((image, index) => (
                                                     <div
                                                         key={index}
                                                         className="aspect-square bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden"
@@ -508,7 +505,7 @@ export function PinoryPopup({
                                                             <ImageDisplay
                                                                 src={image}
                                                                 alt={`Ảnh ${index + 1}`}
-                                                                className="w-full h-full object-cover bg-neutral-950"
+                                                                className="w-full h-full object-contain bg-neutral-950"
                                                             />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center">
@@ -518,202 +515,17 @@ export function PinoryPopup({
                                                             </div>
                                                         )}
                                                     </div>
-                                                )
+                                                ))}
+                                            {pinory.images.length > 4 && (
+                                                <div className="aspect-square bg-neutral-800 rounded-lg border border-neutral-700 flex items-center justify-center">
+                                                    <span className="text-sm text-[#A0A0A0]">
+                                                        +
+                                                        {pinory.images.length -
+                                                            4}{" "}
+                                                        ảnh
+                                                    </span>
+                                                </div>
                                             )}
-                                        </div>
-                                    )}
-
-                                    {/* 3 ảnh: Hero trái + 2 ảnh stack phải */}
-                                    {pinory.images.length === 3 && (
-                                        <div className="grid grid-cols-2 gap-1.5 h-40">
-                                            {/* Hero image bên trái */}
-                                            <div className="row-span-2 bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden">
-                                                {isValidImageUrl(
-                                                    pinory.images[0]
-                                                ) ? (
-                                                    <ImageDisplay
-                                                        src={pinory.images[0]}
-                                                        alt="Ảnh 1"
-                                                        className="w-full h-full object-cover bg-neutral-950"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center">
-                                                        <span className="text-lg text-[#A0A0A0]">
-                                                            📷
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {/* 2 ảnh stack bên phải */}
-                                            <div className="flex flex-col gap-1.5">
-                                                {pinory.images
-                                                    .slice(1, 3)
-                                                    .map((image, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="flex-1 bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden"
-                                                        >
-                                                            {isValidImageUrl(
-                                                                image
-                                                            ) ? (
-                                                                <ImageDisplay
-                                                                    src={image}
-                                                                    alt={`Ảnh ${index + 2}`}
-                                                                    className="w-full h-full object-cover bg-neutral-950"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center">
-                                                                    <span className="text-lg text-[#A0A0A0]">
-                                                                        📷
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* 4 ảnh: Hero trái + 1 ảnh trên + 2 ảnh dưới (phải) */}
-                                    {pinory.images.length === 4 && (
-                                        <div className="grid grid-cols-2 gap-1.5 h-44">
-                                            {/* Hero image bên trái */}
-                                            <div className="row-span-2 bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden">
-                                                {isValidImageUrl(
-                                                    pinory.images[0]
-                                                ) ? (
-                                                    <ImageDisplay
-                                                        src={pinory.images[0]}
-                                                        alt="Ảnh 1"
-                                                        className="w-full h-full object-cover bg-neutral-950"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center">
-                                                        <span className="text-lg text-[#A0A0A0]">
-                                                            📷
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {/* Cột phải: 1 ảnh trên + 2 ảnh dưới */}
-                                            <div className="flex flex-col gap-1.5">
-                                                {/* Ảnh trên */}
-                                                <div className="h-1/2 bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden">
-                                                    {isValidImageUrl(
-                                                        pinory.images[1]
-                                                    ) ? (
-                                                        <ImageDisplay
-                                                            src={
-                                                                pinory.images[1]
-                                                            }
-                                                            alt="Ảnh 2"
-                                                            className="w-full h-full object-cover bg-neutral-950"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center">
-                                                            <span className="text-lg text-[#A0A0A0]">
-                                                                📷
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {/* 2 ảnh dưới */}
-                                                <div className="h-1/2 grid grid-cols-2 gap-1.5">
-                                                    {pinory.images
-                                                        .slice(2, 4)
-                                                        .map((image, index) => (
-                                                            <div
-                                                                key={index}
-                                                                className="bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden"
-                                                            >
-                                                                {isValidImageUrl(
-                                                                    image
-                                                                ) ? (
-                                                                    <ImageDisplay
-                                                                        src={
-                                                                            image
-                                                                        }
-                                                                        alt={`Ảnh ${index + 3}`}
-                                                                        className="w-full h-full object-cover bg-neutral-950"
-                                                                    />
-                                                                ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center">
-                                                                        <span className="text-lg text-[#A0A0A0]">
-                                                                            📷
-                                                                        </span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* 5+ ảnh: Hero trái + 2x2 grid phải với "+X" overlay */}
-                                    {pinory.images.length >= 5 && (
-                                        <div className="grid grid-cols-2 gap-1.5 h-44">
-                                            {/* Hero image bên trái */}
-                                            <div className="row-span-2 bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden">
-                                                {isValidImageUrl(
-                                                    pinory.images[0]
-                                                ) ? (
-                                                    <ImageDisplay
-                                                        src={pinory.images[0]}
-                                                        alt="Ảnh 1"
-                                                        className="w-full h-full object-cover bg-neutral-950"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center">
-                                                        <span className="text-lg text-[#A0A0A0]">
-                                                            📷
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {/* 2x2 grid bên phải */}
-                                            <div className="grid grid-cols-2 grid-rows-2 gap-1.5">
-                                                {pinory.images
-                                                    .slice(1, 5)
-                                                    .map((image, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="relative bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden"
-                                                        >
-                                                            {isValidImageUrl(
-                                                                image
-                                                            ) ? (
-                                                                <ImageDisplay
-                                                                    src={image}
-                                                                    alt={`Ảnh ${index + 2}`}
-                                                                    className="w-full h-full object-cover bg-neutral-950"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center">
-                                                                    <span className="text-lg text-[#A0A0A0]">
-                                                                        📷
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                            {/* Overlay "+X" trên ảnh cuối nếu có nhiều hơn 5 ảnh */}
-                                                            {index === 3 &&
-                                                                pinory.images &&
-                                                                pinory.images
-                                                                    .length >
-                                                                    5 && (
-                                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
-                                                                        <span className="text-white font-semibold text-sm">
-                                                                            +
-                                                                            {pinory
-                                                                                .images
-                                                                                .length -
-                                                                                5}
-                                                                        </span>
-                                                                    </div>
-                                                                )}
-                                                        </div>
-                                                    ))}
-                                            </div>
                                         </div>
                                     )}
                                 </div>

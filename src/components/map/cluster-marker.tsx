@@ -4,6 +4,17 @@ import { memo, useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
+// Random rotations for natural look
+const ROTATIONS = [
+    "rotate-0",
+    "rotate-1",
+    "-rotate-1",
+    "rotate-2",
+    "-rotate-2",
+    "rotate-3",
+    "-rotate-3",
+];
+
 interface ClusterMarkerProps {
     pointCount: number;
     onClick: () => void;
@@ -18,20 +29,9 @@ export const ClusterMarker = memo(
         imageUrls = [],
         rotationInterval = 3000,
     }: ClusterMarkerProps) => {
-        // Random rotation between -6 to 6 degrees for natural look
+        // Random rotation for natural look
         const randomRotation = useMemo(() => {
-            const rotations = [
-                "-rotate-6",
-                "-rotate-3",
-                "-rotate-2",
-                "-rotate-1",
-                "rotate-0",
-                "rotate-1",
-                "rotate-2",
-                "rotate-3",
-                "rotate-6",
-            ];
-            return rotations[Math.floor(Math.random() * rotations.length)];
+            return ROTATIONS[Math.floor(Math.random() * ROTATIONS.length)];
         }, []);
 
         // State for current image index
@@ -61,31 +61,31 @@ export const ClusterMarker = memo(
                     container: "w-16 h-20",
                     image: "w-14 h-14",
                     imagePx: 56,
-                    border: "border-4",
-                    badge: "w-7 h-7 text-xs",
+                    border: "border-2",
+                    badge: "w-6 h-6 text-xs",
                 };
             if (count < 50)
                 return {
                     container: "w-20 h-24",
                     image: "w-18 h-18",
                     imagePx: 72,
-                    border: "border-6",
-                    badge: "w-8 h-8 text-sm",
+                    border: "border-2",
+                    badge: "w-7 h-7 text-sm",
                 };
             if (count < 100)
                 return {
                     container: "w-24 h-28",
                     image: "w-22 h-22",
                     imagePx: 88,
-                    border: "border-6",
-                    badge: "w-9 h-9 text-base",
+                    border: "border-2",
+                    badge: "w-8 h-8 text-base",
                 };
             return {
                 container: "w-28 h-32",
                 image: "w-26 h-26",
                 imagePx: 104,
-                border: "border-6",
-                badge: "w-10 h-10 text-lg",
+                border: "border-2",
+                badge: "w-9 h-9 text-lg",
             };
         };
 
@@ -121,15 +121,14 @@ export const ClusterMarker = memo(
                 )}
                 style={{
                     filter: "drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25))",
-                    transformOrigin: "bottom center",
                 }}
             >
-                {/* Photo container with white border and rounded corners - Polaroid style */}
+                {/* Photo container with thin border */}
                 <div
                     className={cn(
-                        "relative bg-gradient-to-br from-white to-neutral-100 rounded-2xl overflow-hidden",
+                        "relative bg-white rounded-sm overflow-hidden",
                         "transition-all duration-300 group-hover:shadow-2xl",
-                        "ring-2 ring-white group-hover:ring-[#FF6B6B]",
+                        "border border-neutral-200",
                         config.border,
                         config.image
                     )}
@@ -142,9 +141,6 @@ export const ClusterMarker = memo(
                             width={config.imagePx}
                             height={config.imagePx}
                             className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
-                            style={{
-                                imageRendering: "crisp-edges",
-                            }}
                         />
                     ) : (
                         // Fallback gradient background if no images
@@ -157,11 +153,11 @@ export const ClusterMarker = memo(
                         />
                     )}
 
-                    {/* Count badge in top-right corner (where mood badge would be) */}
+                    {/* Count badge in top-right corner */}
                     <div
                         className={cn(
                             "absolute -top-1.5 -right-1.5",
-                            "rounded-full border-3 border-white",
+                            "rounded-full border-2 border-white",
                             "flex items-center justify-center",
                             "shadow-xl group-hover:scale-110 transition-transform duration-300",
                             "bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] text-white font-bold",
@@ -198,7 +194,7 @@ export const ClusterMarker = memo(
 
                     {/* Pulse ring animation */}
                     <div
-                        className="absolute -inset-2 rounded-2xl bg-[#FF6B6B]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                        className="absolute -inset-2 rounded-sm bg-[#FF6B6B]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                         style={{
                             animation: "clusterPulse 2s ease-in-out infinite",
                         }}
