@@ -53,8 +53,8 @@ export async function GET(req: NextRequest) {
                     }
                 })
 
-                // Đếm số places (location notes) public
-                const locationNotesCount = await prisma.place.count({
+                // Đếm số places (pinories) public
+                const pinoriesCount = await prisma.place.count({
                     where: {
                         createdBy: user.id,
                         visibility: "public"
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
                     friendshipStatus: friendship?.status || null,
                     friendshipId: friendship?.id || null,
                     isSentByMe: friendship?.requesterId === session.user.id,
-                    locationNotesCount
+                    pinoriesCount
                 }
             })
         )

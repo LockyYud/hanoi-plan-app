@@ -26,7 +26,7 @@ import { getClusterLeaves } from "../utils/mapClustering";
 interface UseMapMarkersParams {
   mapRef: React.RefObject<mapboxgl.Map | null>;
   mapLoaded: boolean;
-  locationNotes: Pinory[];
+  pinories: Pinory[];
   mapBounds: mapboxgl.LngLatBounds | null;
   currentZoom: number;
   selectedPinory: Pinory | null;
@@ -40,7 +40,7 @@ export function useMapMarkers(
   const {
     mapRef,
     mapLoaded,
-    locationNotes,
+    pinories,
     mapBounds,
     currentZoom,
     selectedPinory,
@@ -51,7 +51,7 @@ export function useMapMarkers(
 
   // Get clusters for current viewport (with optimization to reduce recalculations)
   const clusters = useMemo(() => {
-    if (!mapBounds || !clusterIndex || locationNotes.length === 0) return [];
+    if (!mapBounds || !clusterIndex || pinories.length === 0) return [];
 
     try {
       // Round zoom to reduce unnecessary recalculations for tiny zoom changes
@@ -70,7 +70,7 @@ export function useMapMarkers(
       console.error("Error getting clusters:", error);
       return [];
     }
-  }, [mapBounds, clusterIndex, locationNotes.length, Math.floor(currentZoom)]);
+  }, [mapBounds, clusterIndex, pinories.length, Math.floor(currentZoom)]);
 
   // Render clustered markers
   useEffect(() => {
@@ -90,7 +90,7 @@ export function useMapMarkers(
       return;
     }
 
-    if (clusters.length === 0 && locationNotes.length > 0) {
+    if (clusters.length === 0 && pinories.length > 0) {
       return;
     }
 
@@ -260,7 +260,7 @@ export function useMapMarkers(
     }
   }, [
     clusters,
-    locationNotes.length,
+    pinories.length,
     mapLoaded,
     selectedPinory,
     onMarkerClick,

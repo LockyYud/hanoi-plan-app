@@ -20,6 +20,7 @@ import {
   useMemoryLaneStore,
   useFriendStore,
 } from "@/lib/store";
+import { useFriendAPI } from "@/lib/hooks";
 import type { Pinory } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { MapPin } from "lucide-react";
@@ -30,11 +31,12 @@ import {
   useMapInitialization,
   useMapBounds,
   useMapInteractions,
-  useLocationNotes,
+  usePinories,
   useUserLocation,
   useFriendLocations,
   useMapMarkers,
   useRouteDisplay,
+  useSelectedPinoryZoom,
 } from "./hooks";
 
 // UI Layers
@@ -63,12 +65,11 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
     setShowRoute: setMemoryLaneShowRoute,
     clearRoute: clearMemoryLaneRoute,
   } = useMemoryLaneStore();
-  const {
-    showFriendsLayer,
-    selectedFriendId,
-    friendPinories,
-    fetchFriendPinories,
-  } = useFriendStore();
+  const { showFriendsLayer, selectedFriendId, friendPinories } =
+    useFriendStore();
+
+  // API hooks
+  const { fetchFriendPinories } = useFriendAPI();
 
   // Local UI state
   const [showLocationForm, setShowLocationForm] = useState(false);
@@ -103,7 +104,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
   );
 
   // 4. Manage location notes
-  const notesManager = useLocationNotes(session, mapInit.mapLoaded);
+  const pinoriesManager = usePinories(session, mapInit.mapLoaded);
 
   // 5. User location marker
   useUserLocation(mapInit.mapRef, mapInit.mapLoaded, session);
@@ -121,7 +122,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
 
   // 7. Create cluster index from location notes
   const points = useMemo(() => {
-    return notesManager.locationNotes.map((note) => ({
+    return pinoriesManager.pinories.map((note) => ({
       type: "Feature" as const,
       properties: note,
       geometry: {
@@ -129,7 +130,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         coordinates: [note.lng, note.lat] as [number, number],
       },
     }));
-  }, [notesManager.locationNotes]);
+  }, [pinoriesManager.pinories]);
 
   const [clusterIndex, setClusterIndex] = useState<Supercluster<Pinory> | null>(
     null
@@ -144,7 +145,16 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
     setClusterIndex(index);
   }, [points]);
 
-  // 8. Handle marker clicks
+  // 8. Auto-zoom when pinory is selected (from marker or sidebar)
+  useSelectedPinoryZoom({
+    mapRef: mapInit.mapRef,
+    mapLoaded: mapInit.mapLoaded,
+    selectedPinory,
+    minZoomLevel: 15,
+    duration: 1000,
+  });
+
+  // 9. Handle marker clicks
   const handleMarkerClick = useCallback(
     (pinory: Pinory) => {
       setSelectedPinory(pinory);
@@ -159,11 +169,11 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
     [setSelectedPinory, friendLocations]
   );
 
-  // 9. Render markers with clustering
+  // 10. Render markers with clustering
   useMapMarkers({
     mapRef: mapInit.mapRef,
     mapLoaded: mapInit.mapLoaded,
-    locationNotes: notesManager.locationNotes,
+    pinories: pinoriesManager.pinories,
     mapBounds: boundsInfo.mapBounds,
     currentZoom: boundsInfo.currentZoom,
     selectedPinory,
@@ -171,7 +181,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
     clusterIndex,
   });
 
-  // 10. Route display
+  // 11. Route display
   useRouteDisplay(mapInit.mapRef, mapInit.mapLoaded);
 
   // Detect mobile
@@ -233,18 +243,18 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
       {/* Controls Layer */}
       <MapControlsLayer
         mapRef={mapInit.mapRef}
-        onCreateNote={async (location) => {
+        onCreateNote={async (pinory) => {
           setSelectedPinory(null);
           interactions.setClickedLocation({
-            lng: location.lng,
-            lat: location.lat,
-            address: location.address,
+            lng: pinory.lng,
+            lat: pinory.lat,
+            address: pinory.address,
           });
           setShowLocationForm(true);
 
           if (mapInit.mapRef.current) {
             mapInit.mapRef.current.flyTo({
-              center: [location.lng, location.lat],
+              center: [pinory.lng, pinory.lat],
               zoom: 16,
               duration: 1500,
             });
@@ -261,7 +271,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         onDeleteNote={async () => {
           if (selectedPinory && confirm("Bạn có chắc muốn xóa ghi chú này?")) {
             try {
-              await notesManager.deleteLocationNote(selectedPinory.id);
+              await pinoriesManager.deletePinory(selectedPinory.id);
               setSelectedPinory(null);
             } catch (error) {
               console.error("Failed to delete note:", error);
@@ -269,16 +279,16 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
             }
           }
         }}
-        clickedLocation={interactions.clickedLocation}
-        showLocationForm={showLocationForm}
-        onCloseClickedLocation={() => {
+        clickedPinory={interactions.clickedLocation}
+        showPinoryForm={showLocationForm}
+        onCloseClickedPinory={() => {
           interactions.setClickedLocation(null);
           if (interactions.clickedLocationMarker.current) {
             interactions.clickedLocationMarker.current.remove();
             interactions.clickedLocationMarker.current = null;
           }
         }}
-        onAddNote={() => setShowLocationForm(true)}
+        onAddPinory={() => setShowLocationForm(true)}
         showDirectionPopup={showDirectionPopup}
         directionInfo={directionInfo}
         onCloseDirection={() => {
@@ -290,7 +300,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         }}
         selectedFriendPinory={friendLocations.selectedFriendPinory}
         isMobile={isMobile}
-        onCloseFriendLocation={() =>
+        onCloseFriendPinory={() =>
           friendLocations.setSelectedFriendPinory(null)
         }
         onViewFriendDetails={() =>
@@ -311,14 +321,14 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
             interactions.clickedLocationMarker.current = null;
           }
         }}
-        onSubmitLocationForm={notesManager.addLocationNote}
+        onSubmitLocationForm={pinoriesManager.addPinory}
         showEditForm={showEditForm}
         editingNote={editingNote}
         onCloseEditForm={() => {
           setShowEditForm(false);
           setEditingNote(null);
         }}
-        onSubmitEditForm={notesManager.updateLocationNote}
+        onSubmitEditForm={pinoriesManager.updatePinory}
         showDetailsDialog={showDetailsDialog}
         selectedPinory={selectedPinory}
         onCloseDetailsDialog={() => {
@@ -365,7 +375,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         showJourneyDialog={showJourneyDialog}
         onCloseJourneyDialog={() => setShowJourneyDialog(false)}
         onJourneySuccess={() => {
-          notesManager.loadLocationNotes();
+          pinoriesManager.loadPinories();
           globalThis.dispatchEvent(new CustomEvent("journeyCreated"));
         }}
         showMemoryLane={showMemoryLane}

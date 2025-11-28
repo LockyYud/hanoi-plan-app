@@ -17,19 +17,19 @@ import {
 import Image from "next/image";
 
 interface FriendLocationPopupProps {
-  readonly locationNote: Pinory;
+  readonly pinory: Pinory;
   readonly onClose: () => void;
   readonly onViewDetails?: () => void;
   readonly mapRef?: React.RefObject<any>;
 }
 
 export function FriendLocationPopup({
-  locationNote,
+  pinory,
   onClose,
   onViewDetails,
   mapRef,
 }: FriendLocationPopupProps) {
-  const place = locationNote;
+  const place = pinory;
   const user = place.creator;
   const { rating, note, visitDate } = place;
 

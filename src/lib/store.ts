@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { Place, Group, MapBounds, PinoryFilter, Friendship, FriendWithStats, Pinory, ActivityFeedItem } from "@/lib/types"
+import { Group, MapBounds, PinoryFilter, Friendship, FriendWithStats, Pinory, ActivityFeedItem } from "@/lib/types"
 
 // Legacy type alias for backward compatibility
 /** @deprecated Use Pinory instead */
@@ -87,7 +87,6 @@ interface CategoryStore {
     removeCategory: (id: string) => void
     isLoadingCategories: boolean
     setIsLoadingCategories: (loading: boolean) => void
-    fetchCategories: (session: any) => Promise<void>
 }
 
 export const usePinoryStore = create<PinoryStore>((set) => ({
@@ -182,49 +181,6 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
     })),
     isLoadingCategories: false,
     setIsLoadingCategories: (loading) => set({ isLoadingCategories: loading }),
-
-    // Fetch categories only if not authenticated or if categories are empty
-    fetchCategories: async (session) => {
-        // Don't fetch if already loading
-        if (get().isLoadingCategories) {
-            console.log("⏳ Categories already loading, skipping");
-            return;
-        }
-
-        // Don't fetch if no session
-        if (!session) {
-            console.log("🚫 No session, clearing categories");
-            set({ categories: [], isLoadingCategories: false });
-            return;
-        }
-
-        // Don't fetch if categories already loaded
-        if (get().categories.length > 0) {
-            console.log("✅ Categories already loaded, skipping fetch");
-            return;
-        }
-
-        try {
-            set({ isLoadingCategories: true });
-            console.log("🔄 Fetching categories...");
-
-            const response = await fetch("/api/categories", {
-                credentials: "include",
-            });
-
-            if (response.ok) {
-                const categoriesData = await response.json();
-                console.log("📂 Categories fetched:", categoriesData.length, "items");
-                set({ categories: categoriesData, isLoadingCategories: false });
-            } else {
-                console.error("Failed to fetch categories:", response.status);
-                set({ categories: [], isLoadingCategories: false });
-            }
-        } catch (error) {
-            console.error("❌ Error fetching categories:", error);
-            set({ categories: [], isLoadingCategories: false });
-        }
-    }
 }))
 
 interface FriendStore {
@@ -252,16 +208,6 @@ interface FriendStore {
 
     loading: boolean
     setLoading: (loading: boolean) => void
-
-    fetchFriends: () => Promise<void>
-    fetchFriendRequests: () => Promise<void>
-    fetchFriendPinories: (friendId?: string) => Promise<void>
-    fetchActivityFeed: (type?: string) => Promise<void>
-
-    sendFriendRequest: (targetUserId: string) => Promise<void>
-    acceptFriendRequest: (requestId: string) => Promise<void>
-    rejectFriendRequest: (requestId: string) => Promise<void>
-    unfriend: (friendshipId: string) => Promise<void>
 }
 
 export const useFriendStore = create<FriendStore>((set, get) => ({
@@ -297,168 +243,4 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
 
     loading: false,
     setLoading: (loading) => set({ loading }),
-
-    fetchFriends: async () => {
-        try {
-            set({ loading: true })
-            const response = await fetch("/api/friends", {
-                credentials: "include"
-            })
-            console.log("Fetching friends...")
-            if (response.ok) {
-                const data = await response.json()
-                console.log("Response status:", data)
-                set({ friends: data.friends, loading: false })
-            } else {
-                console.error("Failed to fetch friends:", response.status)
-                set({ loading: false })
-            }
-        } catch (error) {
-            console.error("Error fetching friends:", error)
-            set({ loading: false })
-        }
-    },
-
-    fetchFriendRequests: async () => {
-        try {
-            const response = await fetch("/api/friends/requests?type=received", {
-                credentials: "include"
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                set({ friendRequests: data.requests })
-            } else {
-                console.error("Failed to fetch friend requests:", response.status)
-            }
-        } catch (error) {
-            console.error("Error fetching friend requests:", error)
-        }
-    },
-
-    fetchFriendPinories: async (friendId?: string) => {
-        try {
-            set({ loading: true })
-            const url = friendId
-                ? `/api/location-notes?type=friends&friendId=${friendId}`
-                : "/api/location-notes?type=friends"
-
-            const response = await fetch(url, {
-                credentials: "include"
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                // API trả về array trực tiếp, không có property locationNotes
-                set({ friendPinories: Array.isArray(data) ? data : [], loading: false })
-            } else {
-                console.error("Failed to fetch friend location notes:", response.status)
-                set({ friendPinories: [], loading: false })
-            }
-        } catch (error) {
-            console.error("Error fetching friend location notes:", error)
-            set({ friendPinories: [], loading: false })
-        }
-    },
-
-    fetchActivityFeed: async (type = "all") => {
-        try {
-            set({ loading: true })
-            const response = await fetch(`/api/feed?type=${type}&limit=50`, {
-                credentials: "include"
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                set({ activityFeed: data.feed, loading: false })
-            } else {
-                console.error("Failed to fetch activity feed:", response.status)
-                set({ loading: false })
-            }
-        } catch (error) {
-            console.error("Error fetching activity feed:", error)
-            set({ loading: false })
-        }
-    },
-
-    sendFriendRequest: async (targetUserId: string) => {
-        try {
-            const response = await fetch("/api/friends", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ targetUserId }),
-                credentials: "include"
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                console.log("Friend request sent:", data)
-            } else {
-                const error = await response.json()
-                throw new Error(error.error || "Failed to send friend request")
-            }
-        } catch (error) {
-            console.error("Error sending friend request:", error)
-            throw error
-        }
-    },
-
-    acceptFriendRequest: async (requestId: string) => {
-        try {
-            const response = await fetch(`/api/friends/accept/${requestId}`, {
-                method: "POST",
-                credentials: "include"
-            })
-
-            if (response.ok) {
-                // Remove from requests, add to friends
-                get().removeFriendRequest(requestId)
-                await get().fetchFriends()
-            } else {
-                const error = await response.json()
-                throw new Error(error.error || "Failed to accept friend request")
-            }
-        } catch (error) {
-            console.error("Error accepting friend request:", error)
-            throw error
-        }
-    },
-
-    rejectFriendRequest: async (requestId: string) => {
-        try {
-            const response = await fetch(`/api/friends/reject/${requestId}`, {
-                method: "POST",
-                credentials: "include"
-            })
-
-            if (response.ok) {
-                get().removeFriendRequest(requestId)
-            } else {
-                const error = await response.json()
-                throw new Error(error.error || "Failed to reject friend request")
-            }
-        } catch (error) {
-            console.error("Error rejecting friend request:", error)
-            throw error
-        }
-    },
-
-    unfriend: async (friendshipId: string) => {
-        try {
-            const response = await fetch(`/api/friends?friendshipId=${friendshipId}`, {
-                method: "DELETE",
-                credentials: "include"
-            })
-
-            if (response.ok) {
-                get().removeFriend(friendshipId)
-            } else {
-                const error = await response.json()
-                throw new Error(error.error || "Failed to unfriend")
-            }
-        } catch (error) {
-            console.error("Error unfriending:", error)
-            throw error
-        }
-    }
 }))

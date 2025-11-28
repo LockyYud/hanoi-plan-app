@@ -321,3 +321,13 @@ body {
   scrollbar-width: thin;
   scrollbar-color: rgba(59, 130, 246, 0.4) rgba(229, 231, 235, 0.5);
 }
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}

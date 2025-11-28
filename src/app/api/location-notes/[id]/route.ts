@@ -11,7 +11,7 @@ export async function GET(
     try {
         const session = await getServerSession(authOptions)
 
-        const place = await prisma.place.findUnique({
+        const pinory = await prisma.place.findUnique({
             where: { id: params.id },
             include: {
                 creator: {
@@ -29,7 +29,7 @@ export async function GET(
                 }
             }
         })
-        if (!place) {
+        if (!pinory) {
             return NextResponse.json(
                 { error: "Place not found" },
                 { status: 404 }
@@ -37,14 +37,14 @@ export async function GET(
         }
 
         // Kiểm tra quyền truy cập
-        if (place.visibility === "private") {
-            if (!session?.user?.id || place.createdBy !== session.user.id) {
+        if (pinory.visibility === "private") {
+            if (!session?.user?.id || pinory.createdBy !== session.user.id) {
                 return NextResponse.json(
                     { error: "Forbidden" },
                     { status: 403 }
                 )
             }
-        } else if (place.visibility === "friends") {
+        } else if (pinory.visibility === "friends") {
             if (!session?.user?.id) {
                 return NextResponse.json(
                     { error: "Unauthorized" },
@@ -53,16 +53,16 @@ export async function GET(
             }
 
             // Kiểm tra có phải bạn bè không
-            if (place.createdBy !== session.user.id) {
+            if (pinory.createdBy !== session.user.id) {
                 const friendship = await prisma.friendship.findFirst({
                     where: {
                         OR: [
                             {
                                 requesterId: session.user.id,
-                                addresseeId: place.createdBy
+                                addresseeId: pinory.createdBy
                             },
                             {
-                                requesterId: place.createdBy,
+                                requesterId: pinory.createdBy,
                                 addresseeId: session.user.id
                             }
                         ],
@@ -79,7 +79,7 @@ export async function GET(
             }
         }
 
-        return NextResponse.json({ place })
+        return NextResponse.json({ pinory: pinory })
     } catch (error) {
         console.error("Error fetching place:", error)
         return NextResponse.json(

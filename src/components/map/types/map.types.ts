@@ -45,14 +45,14 @@ export interface UseMapInteractionsReturn {
 /**
  * Location notes return type
  */
-export interface UseLocationNotesReturn {
-  locationNotes: Pinory[];
+export interface UsePinoriesReturn {
+  pinories: Pinory[];
   loading: boolean;
   error: string | null;
-  loadLocationNotes: () => Promise<void>;
-  addLocationNote: (noteData: any) => Promise<void>;
-  updateLocationNote: (noteData: any) => Promise<void>;
-  deleteLocationNote: (noteId: string) => Promise<void>;
+  loadPinories: () => Promise<void>;
+  addPinory: (pinoryData: any) => Promise<Pinory | void>;
+  updatePinory: (pinoryData: any) => Promise<Pinory | void>;
+  deletePinory: (pinoryId: string) => Promise<void>;
 }
 
 /**

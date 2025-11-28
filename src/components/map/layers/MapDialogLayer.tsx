@@ -2,7 +2,7 @@
  * MapDialogLayer
  *
  * UI layer component that manages all map dialogs:
- * - LocationNoteForm (add/edit)
+ * - PinoryForm (add/edit)
  * - NoteDetailsView
  * - FriendLocationDetailsView
  * - CreateJourneyDialog
@@ -139,7 +139,7 @@ export function MapDialogLayer({
         <NoteDetailsView
           isOpen={showDetailsDialog}
           onClose={onCloseDetailsDialog}
-          note={selectedPinory}
+          pinory={selectedPinory}
           onEdit={onEditNote}
           onDelete={onDeleteNote}
         />
@@ -149,7 +149,7 @@ export function MapDialogLayer({
       {selectedFriendPinory && showFriendDetailsDialog && (
         <FriendLocationDetailsView
           isOpen={showFriendDetailsDialog}
-          locationNote={selectedFriendPinory}
+          pinory={selectedFriendPinory}
           onClose={onCloseFriendDetailsDialog}
           onAddToFavorites={onAddToFavorites}
         />

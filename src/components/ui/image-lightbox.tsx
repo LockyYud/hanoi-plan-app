@@ -1,24 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-    ChevronLeft,
-    ChevronRight,
-    X,
-    ZoomIn,
-    ZoomOut,
-    Download,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
+import Image from "next/image";
 
 interface ImageLightboxProps {
-    images: string[];
-    initialIndex?: number;
-    isOpen: boolean;
-    onClose: () => void;
+    readonly images: string[];
+    readonly initialIndex?: number;
+    readonly isOpen: boolean;
+    readonly onClose: () => void;
+    readonly title?: string;
 }
 
 export function ImageLightbox({
@@ -26,21 +18,35 @@ export function ImageLightbox({
     initialIndex = 0,
     isOpen,
     onClose,
-}: ImageLightboxProps) {
+    title,
+}: Readonly<ImageLightboxProps>) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
-    const [zoom, setZoom] = useState(1);
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [imageDimensions, setImageDimensions] = useState<{
+        width: number;
+        height: number;
+    } | null>(null);
+    const [touchStart, setTouchStart] = useState(0);
+    const [touchEnd, setTouchEnd] = useState(0);
 
     // Reset state when lightbox opens/closes
     useEffect(() => {
         if (isOpen) {
             setCurrentIndex(initialIndex);
-            setZoom(1);
-            setPosition({ x: 0, y: 0 });
+            setImageLoaded(false);
+            setImageDimensions(null);
         }
     }, [isOpen, initialIndex]);
+
+    // Reset loading state when image changes
+    useEffect(() => {
+        setImageLoaded(false);
+        setIsTransitioning(true);
+        setImageDimensions(null);
+        const timer = setTimeout(() => setIsTransitioning(false), 300);
+        return () => clearTimeout(timer);
+    }, [currentIndex]);
 
     // Handle keyboard navigation
     useEffect(() => {
@@ -57,202 +63,180 @@ export function ImageLightbox({
                 case "ArrowRight":
                     goToNext();
                     break;
-                case "=":
-                case "+":
-                    handleZoomIn();
-                    break;
-                case "-":
-                    handleZoomOut();
-                    break;
             }
         };
 
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
+        if (isOpen) {
+            document.addEventListener("keydown", handleKeyDown);
+            // Prevent body scroll when lightbox is open
+            document.body.style.overflow = "hidden";
+            return () => {
+                document.removeEventListener("keydown", handleKeyDown);
+                document.body.style.overflow = "unset";
+            };
+        }
     }, [isOpen, currentIndex]);
 
     const goToPrevious = () => {
         setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
-        resetZoom();
     };
 
     const goToNext = () => {
         setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
-        resetZoom();
-    };
-
-    const handleZoomIn = () => {
-        setZoom((prev) => Math.min(prev * 1.5, 4));
-    };
-
-    const handleZoomOut = () => {
-        setZoom((prev) => Math.max(prev / 1.5, 0.5));
-    };
-
-    const resetZoom = () => {
-        setZoom(1);
-        setPosition({ x: 0, y: 0 });
-    };
-
-    const handleDownload = async () => {
-        const currentImage = images[currentIndex];
-        if (!currentImage) return;
-
-        try {
-            const response = await fetch(currentImage);
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `image-${currentIndex + 1}.jpg`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error("Error downloading image:", error);
-        }
-    };
-
-    // Mouse drag handlers
-    const handleMouseDown = (e: React.MouseEvent) => {
-        if (zoom > 1) {
-            setIsDragging(true);
-            setDragStart({
-                x: e.clientX - position.x,
-                y: e.clientY - position.y,
-            });
-        }
-    };
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (isDragging && zoom > 1) {
-            setPosition({
-                x: e.clientX - dragStart.x,
-                y: e.clientY - dragStart.y,
-            });
-        }
-    };
-
-    const handleMouseUp = () => {
-        setIsDragging(false);
     };
 
     if (!isOpen || images.length === 0) return null;
 
     const currentImage = images[currentIndex];
 
+    // Swipe handlers for mobile
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > 50;
+        const isRightSwipe = distance < -50;
+
+        if (isLeftSwipe && images.length > 1) {
+            goToNext();
+        }
+        if (isRightSwipe && images.length > 1) {
+            goToPrevious();
+        }
+
+        setTouchStart(0);
+        setTouchEnd(0);
+    };
+
+    // Calculate container dimensions based on image aspect ratio
+    const getContainerStyle = () => {
+        // Default size while loading
+        if (!imageDimensions || !imageLoaded) {
+            return {
+                width: "auto",
+                height: "auto",
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+            };
+        }
+
+        const { width, height } = imageDimensions;
+        const aspectRatio = width / height;
+
+        // Available space for image (subtract padding and caption)
+        const maxWidth = Math.min(window.innerWidth * 0.9, 1200);
+        const maxHeight = window.innerHeight * 0.9;
+        const captionHeight = 100; // Approximate caption height
+        const padding = 48; // Total padding (24px * 2)
+
+        const availableHeight = maxHeight - captionHeight;
+        const availableWidth = maxWidth - padding;
+
+        let containerWidth: number;
+        let containerHeight: number;
+
+        if (aspectRatio > availableWidth / availableHeight) {
+            // Width-constrained (landscape)
+            containerWidth = Math.min(availableWidth + padding, maxWidth);
+            containerHeight =
+                (containerWidth - padding) / aspectRatio + captionHeight;
+        } else {
+            // Height-constrained (portrait)
+            containerHeight = Math.min(
+                availableHeight + captionHeight,
+                maxHeight
+            );
+            containerWidth =
+                (containerHeight - captionHeight) * aspectRatio + padding;
+        }
+
+        return {
+            width: `${Math.min(containerWidth, maxWidth)}px`,
+            height: `${Math.min(containerHeight, maxHeight)}px`,
+            maxWidth: "90vw",
+            maxHeight: "90vh",
+        };
+    };
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-0 overflow-hidden">
-                <div className="relative w-full h-full flex items-center justify-center">
-                    {/* Close button */}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onClose}
-                        className="absolute top-4 right-4 z-20 h-10 w-10 p-0 bg-black/50 hover:bg-black/70 text-white rounded-full transition-all duration-200"
-                    >
-                        <X className="h-5 w-5" />
-                    </Button>
-
-                    {/* Image counter */}
-                    <div className="absolute top-4 left-4 z-20 px-3 py-1 bg-black/50 text-white text-sm rounded-full">
-                        {currentIndex + 1} / {images.length}
-                    </div>
-
-                    {/* Controls */}
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 bg-black/50 rounded-full px-4 py-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleZoomOut}
-                            disabled={zoom <= 0.5}
-                            className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
-                        >
-                            <ZoomOut className="h-4 w-4" />
-                        </Button>
-
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={resetZoom}
-                            className="h-8 px-3 text-white hover:bg-white/20 rounded-full text-xs"
-                        >
-                            {Math.round(zoom * 100)}%
-                        </Button>
-
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleZoomIn}
-                            disabled={zoom >= 4}
-                            className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
-                        >
-                            <ZoomIn className="h-4 w-4" />
-                        </Button>
-
-                        <div className="w-px h-4 bg-white/30 mx-1" />
-
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleDownload}
-                            className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
-                        >
-                            <Download className="h-4 w-4" />
-                        </Button>
-                    </div>
-
-                    {/* Navigation buttons */}
-                    {images.length > 1 && (
-                        <>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={goToPrevious}
-                                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 h-12 w-12 p-0 bg-black/50 hover:bg-black/70 text-white rounded-full transition-all duration-200"
-                            >
-                                <ChevronLeft className="h-6 w-6" />
-                            </Button>
-
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={goToNext}
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 h-12 w-12 p-0 bg-black/50 hover:bg-black/70 text-white rounded-full transition-all duration-200"
-                            >
-                                <ChevronRight className="h-6 w-6" />
-                            </Button>
-                        </>
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Xem ảnh toàn màn hình"
+            className="fixed inset-0 bg-white/10 backdrop-blur-xl z-[9999] flex items-center justify-center animate-in fade-in duration-300"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                    onClose();
+                }
+            }}
+            onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                    onClose();
+                }
+            }}
+            tabIndex={-1}
+        >
+            {/* Main Container with white background */}
+            <div
+                className="relative bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden transition-all duration-300 pointer-events-none"
+                style={getContainerStyle()}
+            >
+                {/* Image Container */}
+                <div
+                    className="relative flex-1 flex items-center justify-center p-6 bg-white overflow-hidden min-h-[400px] pointer-events-auto"
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {/* Loading skeleton */}
+                    {!imageLoaded && (
+                        <div className="absolute inset-6 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 animate-pulse rounded" />
                     )}
 
-                    {/* Main image */}
                     <div
-                        className="relative w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing"
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                        onMouseLeave={handleMouseUp}
+                        className={`relative flex items-center justify-center transition-opacity duration-500 ${
+                            isTransitioning ? "opacity-0" : "opacity-100"
+                        }`}
                     >
                         {isValidImageUrl(currentImage) ? (
-                            <ImageDisplay
-                                src={currentImage}
-                                alt={`Image ${currentIndex + 1}`}
-                                className="max-w-full max-h-full object-contain transition-transform duration-200"
-                                style={{
-                                    transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
-                                    cursor:
-                                        zoom > 1
-                                            ? isDragging
-                                                ? "grabbing"
-                                                : "grab"
-                                            : "default",
-                                }}
-                                priority
-                            />
+                            <>
+                                <ImageDisplay
+                                    src={currentImage}
+                                    alt={`Ảnh ${currentIndex + 1}`}
+                                    className={`w-auto h-auto max-w-full max-h-full object-contain transition-opacity duration-500 ${
+                                        imageLoaded
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                    }`}
+                                />
+                                <Image
+                                    src={currentImage}
+                                    alt=""
+                                    width={1}
+                                    height={1}
+                                    className="hidden"
+                                    onLoad={(e) => {
+                                        const img =
+                                            e.target as HTMLImageElement;
+                                        setImageDimensions({
+                                            width: img.naturalWidth,
+                                            height: img.naturalHeight,
+                                        });
+                                        setImageLoaded(true);
+                                    }}
+                                    priority
+                                />
+                            </>
                         ) : (
-                            <div className="flex items-center justify-center text-white/70">
+                            <div className="flex items-center justify-center text-gray-400">
                                 <div className="text-center">
                                     <div className="text-4xl mb-2">📷</div>
                                     <div>Không thể tải ảnh</div>
@@ -260,41 +244,65 @@ export function ImageLightbox({
                             </div>
                         )}
                     </div>
-
-                    {/* Thumbnail strip */}
-                    {images.length > 1 && (
-                        <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-20 flex gap-2 bg-black/50 rounded-lg p-2 max-w-[90vw] overflow-x-auto">
-                            {images.map((image, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => {
-                                        setCurrentIndex(index);
-                                        resetZoom();
-                                    }}
-                                    className={cn(
-                                        "relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0",
-                                        currentIndex === index
-                                            ? "border-white"
-                                            : "border-transparent hover:border-white/50"
-                                    )}
-                                >
-                                    {isValidImageUrl(image) ? (
-                                        <ImageDisplay
-                                            src={image}
-                                            alt={`Thumbnail ${index + 1}`}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                                            <span className="text-xs">📷</span>
-                                        </div>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    )}
                 </div>
-            </DialogContent>
-        </Dialog>
+
+                {/* Caption at bottom */}
+                <div className="bg-white border-t border-gray-200 px-6 py-4 flex-shrink-0 pointer-events-auto">
+                    <h3 className="text-gray-900 font-semibold text-lg">
+                        {title || "Ảnh"}
+                    </h3>
+                    <p className="text-gray-500 text-sm mt-1">
+                        Item {currentIndex + 1} of {images.length}
+                    </p>
+                </div>
+            </div>
+
+            {/* Close button - positioned over the white container */}
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onClose();
+                }}
+                className="absolute bg-gray-600/80 hover:bg-gray-700 text-white p-2 rounded z-[200] transition-colors pointer-events-auto"
+                aria-label="Đóng lightbox"
+                style={{
+                    top: "max(1rem, calc((100vh - 90vh) / 2 + 1rem))",
+                    right: "max(1rem, calc((100vw - 90vw) / 2 + 1rem))",
+                }}
+            >
+                <X className="h-5 w-5" strokeWidth={2} />
+            </button>
+
+            {/* Navigation buttons - desktop only, positioned independently */}
+            {images.length > 1 && (
+                <>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            goToPrevious();
+                        }}
+                        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 bg-gray-600/80 hover:bg-gray-700 text-white p-3 rounded transition-colors z-[200] items-center justify-center pointer-events-auto"
+                        aria-label="Ảnh trước"
+                        disabled={isTransitioning}
+                    >
+                        <ChevronLeft className="h-6 w-6" strokeWidth={2} />
+                    </button>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            goToNext();
+                        }}
+                        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 bg-gray-600/80 hover:bg-gray-700 text-white p-3 rounded transition-colors z-[200] items-center justify-center pointer-events-auto"
+                        aria-label="Ảnh tiếp theo"
+                        disabled={isTransitioning}
+                    >
+                        <ChevronRight className="h-6 w-6" strokeWidth={2} />
+                    </button>
+                </>
+            )}
+        </div>
     );
 }

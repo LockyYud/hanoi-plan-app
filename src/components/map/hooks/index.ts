@@ -8,9 +8,10 @@
 export { useMapInitialization } from './useMapInitialization';
 export { useMapBounds } from './useMapBounds';
 export { useMapInteractions } from './useMapInteractions';
-export { useLocationNotes } from './useLocationNotes';
+export { usePinories } from './usePinories';
 export { useUserLocation } from './useUserLocation';
 export { useFriendLocations } from './useFriendLocations';
 export { useMapMarkers } from './useMapMarkers';
 export { useRouteDisplay } from './useRouteDisplay';
+export { useSelectedPinoryZoom } from './useSelectedPinoryZoom';
 

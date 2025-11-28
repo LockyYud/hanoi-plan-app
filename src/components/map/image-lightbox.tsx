@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
-import { X, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageDisplay } from "@/lib/image-utils";
+import Image from "next/image";
 
 interface ImageLightboxProps {
-    images: string[];
-    currentIndex: number;
-    isOpen: boolean;
-    onClose: () => void;
-    onNext: () => void;
-    onPrevious: () => void;
+    readonly images: string[];
+    readonly currentIndex: number;
+    readonly isOpen: boolean;
+    readonly onClose: () => void;
+    readonly onNext: () => void;
+    readonly onPrevious: () => void;
+    readonly title?: string;
 }
 
 export function ImageLightbox({
@@ -20,7 +22,26 @@ export function ImageLightbox({
     onClose,
     onNext,
     onPrevious,
-}: ImageLightboxProps) {
+    title,
+}: Readonly<ImageLightboxProps>) {
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [imageDimensions, setImageDimensions] = useState<{
+        width: number;
+        height: number;
+    } | null>(null);
+    const [touchStart, setTouchStart] = useState(0);
+    const [touchEnd, setTouchEnd] = useState(0);
+
+    // Reset loading state when image changes
+    useEffect(() => {
+        setImageLoaded(false);
+        setIsTransitioning(true);
+        setImageDimensions(null);
+        const timer = setTimeout(() => setIsTransitioning(false), 300);
+        return () => clearTimeout(timer);
+    }, [currentIndex]);
+
     // Handle ESC key
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
@@ -31,7 +52,12 @@ export function ImageLightbox({
 
         if (isOpen) {
             document.addEventListener("keydown", handleEsc);
-            return () => document.removeEventListener("keydown", handleEsc);
+            // Prevent body scroll when lightbox is open
+            document.body.style.overflow = "hidden";
+            return () => {
+                document.removeEventListener("keydown", handleEsc);
+                document.body.style.overflow = "unset";
+            };
         }
     }, [isOpen, onClose]);
 
@@ -56,15 +82,90 @@ export function ImageLightbox({
 
     if (!isOpen || !images.length) return null;
 
+    // Swipe handlers for mobile
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > 50;
+        const isRightSwipe = distance < -50;
+
+        if (isLeftSwipe && images.length > 1) {
+            onNext();
+        }
+        if (isRightSwipe && images.length > 1) {
+            onPrevious();
+        }
+
+        setTouchStart(0);
+        setTouchEnd(0);
+    };
+
+    // Calculate container dimensions based on image aspect ratio
+    const getContainerStyle = () => {
+        // Default size while loading
+        if (!imageDimensions || !imageLoaded) {
+            return {
+                width: "auto",
+                height: "auto",
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+            };
+        }
+
+        const { width, height } = imageDimensions;
+        const aspectRatio = width / height;
+
+        // Available space for image (subtract padding and caption)
+        const maxWidth = Math.min(window.innerWidth * 0.9, 1200);
+        const maxHeight = window.innerHeight * 0.9;
+        const captionHeight = 100; // Approximate caption height
+        const padding = 48; // Total padding (24px * 2)
+
+        const availableHeight = maxHeight - captionHeight;
+        const availableWidth = maxWidth - padding;
+
+        let containerWidth: number;
+        let containerHeight: number;
+
+        if (aspectRatio > availableWidth / availableHeight) {
+            // Width-constrained (landscape)
+            containerWidth = Math.min(availableWidth + padding, maxWidth);
+            containerHeight =
+                (containerWidth - padding) / aspectRatio + captionHeight;
+        } else {
+            // Height-constrained (portrait)
+            containerHeight = Math.min(
+                availableHeight + captionHeight,
+                maxHeight
+            );
+            containerWidth =
+                (containerHeight - captionHeight) * aspectRatio + padding;
+        }
+
+        return {
+            width: `${Math.min(containerWidth, maxWidth)}px`,
+            height: `${Math.min(containerHeight, maxHeight)}px`,
+            maxWidth: "90vw",
+            maxHeight: "90vh",
+        };
+    };
+
     return (
         <div
             role="dialog"
             aria-modal="true"
             aria-label="Xem ảnh toàn màn hình"
-            className="fixed inset-0 bg-black/95 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-300"
+            className="fixed inset-0 bg-white/10 backdrop-blur-xl z-[9999] flex items-center justify-center animate-in fade-in duration-300"
             onClick={(e) => {
-                console.log("Backdrop clicked");
-                // Only close if clicking the backdrop itself
                 if (e.target === e.currentTarget) {
                     onClose();
                 }
@@ -76,60 +177,111 @@ export function ImageLightbox({
             }}
             tabIndex={-1}
         >
-            <div className="relative max-w-4xl max-h-full animate-in zoom-in-95 duration-300">
-                <ImageDisplay
-                    src={images[currentIndex]}
-                    alt={`Ảnh ${currentIndex + 1}`}
-                    className="max-w-full max-h-full object-contain rounded-2xl border-2 border-neutral-700 shadow-2xl"
-                />
-
-                {/* Close button - Enhanced */}
-                <button
-                    onClick={() => {
-                        console.log("Close button clicked");
-                        onClose();
-                    }}
-                    className="absolute top-4 right-4 bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white p-3 rounded-xl transition-all duration-200 border-2 border-white shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 z-10"
-                    aria-label="Đóng lightbox"
-                >
-                    <X className="h-5 w-5" strokeWidth={2.5} />
-                </button>
-
-                {/* Navigation buttons - Enhanced */}
-                {images.length > 1 && (
-                    <>
-                        <button
-                            onClick={onPrevious}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white p-3 rounded-xl transition-all duration-200 border-2 border-white shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 z-10"
-                            aria-label="Ảnh trước"
-                        >
-                            <ChevronRight
-                                className="h-6 w-6 rotate-180"
-                                strokeWidth={2.5}
-                            />
-                        </button>
-                        <button
-                            onClick={onNext}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white p-3 rounded-xl transition-all duration-200 border-2 border-white shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 z-10"
-                            aria-label="Ảnh tiếp theo"
-                        >
-                            <ChevronRight
-                                className="h-6 w-6"
-                                strokeWidth={2.5}
-                            />
-                        </button>
-                    </>
-                )}
-
-                {/* Image counter - Enhanced */}
+            {/* Main Container with white background */}
+            <div
+                className="relative bg-white shadow-2xl flex flex-col overflow-hidden transition-all duration-300 pointer-events-none"
+                style={getContainerStyle()}
+            >
+                {/* Image Container */}
                 <div
-                    className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-neutral-900/95 to-neutral-800/95 text-white px-5 py-2.5 rounded-xl border border-neutral-600 backdrop-blur-md shadow-xl font-bold"
-                    style={{ fontSize: "var(--text-sm)" }}
+                    className="relative flex-1 flex items-center justify-center p-6 bg-white overflow-hidden min-h-[400px] pointer-events-auto"
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                 >
-                    <span className="text-[#FF6B6B]">{currentIndex + 1}</span> /{" "}
-                    {images.length}
+                    {/* Loading skeleton */}
+                    {!imageLoaded && (
+                        <div className="absolute inset-6 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 animate-pulse rounded" />
+                    )}
+
+                    <div
+                        className={`relative flex items-center justify-center transition-opacity duration-500 ${
+                            isTransitioning ? "opacity-0" : "opacity-100"
+                        }`}
+                    >
+                        <ImageDisplay
+                            src={images[currentIndex]}
+                            alt={`Ảnh ${currentIndex + 1}`}
+                            className={`w-auto h-auto max-w-full max-h-full object-contain transition-opacity duration-500 ${
+                                imageLoaded ? "opacity-100" : "opacity-0"
+                            }`}
+                        />
+                        <Image
+                            src={images[currentIndex]}
+                            alt=""
+                            width={1}
+                            height={1}
+                            className="hidden"
+                            onLoad={(e) => {
+                                const img = e.target as HTMLImageElement;
+                                setImageDimensions({
+                                    width: img.naturalWidth,
+                                    height: img.naturalHeight,
+                                });
+                                setImageLoaded(true);
+                            }}
+                            priority
+                        />
+                    </div>
+                </div>
+
+                {/* Caption at bottom */}
+                <div className="bg-white border-t border-gray-200 px-6 py-4 flex-shrink-0 pointer-events-auto">
+                    <h3 className="text-gray-900 font-semibold text-lg">
+                        {title || "Ảnh"}
+                    </h3>
+                    <p className="text-gray-500 text-sm mt-1">
+                        Item {currentIndex + 1} of {images.length}
+                    </p>
                 </div>
             </div>
+
+            {/* Close button - positioned over the white container */}
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onClose();
+                }}
+                className="absolute bg-gray-600/80 hover:bg-gray-700 text-white p-2 rounded z-[200] transition-colors pointer-events-auto"
+                aria-label="Đóng lightbox"
+                style={{
+                    top: "max(1rem, calc((100vh - 90vh) / 2 + 1rem))",
+                    right: "max(1rem, calc((100vw - 90vw) / 2 + 1rem))",
+                }}
+            >
+                <X className="h-5 w-5" strokeWidth={2} />
+            </button>
+
+            {/* Navigation buttons - desktop only, positioned independently */}
+            {images.length > 1 && (
+                <>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onPrevious();
+                        }}
+                        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 bg-gray-600/80 hover:bg-gray-700 text-white p-3 rounded transition-colors z-[200] items-center justify-center pointer-events-auto"
+                        aria-label="Ảnh trước"
+                        disabled={isTransitioning}
+                    >
+                        <ChevronLeft className="h-6 w-6" strokeWidth={2} />
+                    </button>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onNext();
+                        }}
+                        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 bg-gray-600/80 hover:bg-gray-700 text-white p-3 rounded transition-colors z-[200] items-center justify-center pointer-events-auto"
+                        aria-label="Ảnh tiếp theo"
+                        disabled={isTransitioning}
+                    >
+                        <ChevronRight className="h-6 w-6" strokeWidth={2} />
+                    </button>
+                </>
+            )}
         </div>
     );
 }

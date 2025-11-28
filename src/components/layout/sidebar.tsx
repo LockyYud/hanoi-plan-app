@@ -9,6 +9,7 @@ import {
   useCategoryStore,
   useFriendStore,
 } from "@/lib/store";
+import { useFriendAPI, usePinoryAPI } from "@/lib/hooks";
 import type { Pinory } from "@/lib/types";
 import { CategoryType, SourceType, VisibilityType } from "@prisma/client";
 import { cn } from "@/lib/utils";
@@ -83,14 +84,18 @@ export function Sidebar() {
   const { categories } = useCategoryStore();
 
   // Friend store
+  const { friends, friendRequests, activityFeed } = useFriendStore();
+
+  // API hooks
   const {
-    friends,
-    friendRequests,
-    activityFeed,
     fetchFriends,
     fetchFriendRequests,
     fetchActivityFeed,
-  } = useFriendStore();
+    acceptFriendRequest: acceptFriendRequestAPI,
+    rejectFriendRequest: rejectFriendRequestAPI,
+  } = useFriendAPI();
+
+  const { fetchPinories } = usePinoryAPI(session);
 
   // Fetch journeys
   const fetchJourneys = useCallback(async () => {
@@ -116,76 +121,6 @@ export function Sidebar() {
       setLoadingJourneys(false);
     }
   }, [session]);
-
-  // Define fetchPlaces function with useCallback - UNIFIED LOCATION NOTES SYSTEM
-  const fetchPinories = useCallback(async () => {
-    try {
-      console.log(
-        "🔄 fetchPlaces called, session:",
-        session ? "exists" : "null",
-        "status:",
-        status
-      );
-
-      if (status === "loading") {
-        console.log("⏳ Session still loading, skipping fetch");
-        return;
-      }
-
-      setIsLoadingPinories((currentlyLoading) => {
-        if (currentlyLoading) {
-          console.log("⏳ Already fetching, skipping fetch");
-          return true;
-        }
-        return true;
-      });
-
-      if (session) {
-        console.log(
-          "🔍 Fetching location notes for user:",
-          session.user?.email
-        );
-
-        const notesResponse = await fetch(
-          "/api/location-notes?includeImages=true",
-          {
-            credentials: "include",
-          }
-        );
-
-        if (notesResponse.ok) {
-          const pinories = await notesResponse.json();
-          console.log("📍 Pinories:", pinories.length, "items");
-
-          pinories.sort(
-            (a: any, b: any) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-
-          setPinories(pinories);
-          console.log(
-            "📝 Converted",
-            pinories.length,
-            "location notes to place format"
-          );
-        } else {
-          console.error(
-            "Failed to fetch location notes:",
-            notesResponse.status
-          );
-          setPinories([]);
-        }
-      } else {
-        setPinories([]);
-        console.log("🚫 Not logged in, clearing places");
-      }
-    } catch (error) {
-      console.error("❌ Error fetching places:", error);
-      setPinories([]);
-    } finally {
-      setIsLoadingPinories(false);
-    }
-  }, [session, status, setPinories]);
 
   // Load initial data
   useEffect(() => {
@@ -236,12 +171,12 @@ export function Sidebar() {
       }
     };
 
-    window.addEventListener("locationNoteAdded", handlePlacesUpdate);
-    window.addEventListener("locationNoteUpdated", handlePlacesUpdate);
+    window.addEventListener("pinoryAdded", handlePlacesUpdate);
+    window.addEventListener("pinoryUpdated", handlePlacesUpdate);
 
     return () => {
-      window.removeEventListener("locationNoteAdded", handlePlacesUpdate);
-      window.removeEventListener("locationNoteUpdated", handlePlacesUpdate);
+      window.removeEventListener("pinoryAdded", handlePlacesUpdate);
+      window.removeEventListener("pinoryUpdated", handlePlacesUpdate);
     };
   }, [fetchPinories, mounted, session]);
 
@@ -249,19 +184,10 @@ export function Sidebar() {
   const handleAcceptFriendRequest = async (requestId: string) => {
     setProcessingRequest(requestId);
     try {
-      const response = await fetch(`/api/friends/accept/${requestId}`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        toast.success("Đã chấp nhận lời mời kết bạn");
-        fetchFriends();
-        fetchFriendRequests();
-      } else {
-        const error = await response.json();
-        toast.error(error.error || "Không thể chấp nhận lời mời");
-      }
+      await acceptFriendRequestAPI(requestId);
+      toast.success("Đã chấp nhận lời mời kết bạn");
+      fetchFriends();
+      fetchFriendRequests();
     } catch (error) {
       console.error("Error accepting friend request:", error);
       toast.error("Lỗi khi chấp nhận lời mời");
@@ -274,18 +200,9 @@ export function Sidebar() {
   const handleRejectFriendRequest = async (requestId: string) => {
     setProcessingRequest(requestId);
     try {
-      const response = await fetch(`/api/friends/reject/${requestId}`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        toast.success("Đã từ chối lời mời kết bạn");
-        fetchFriendRequests();
-      } else {
-        const error = await response.json();
-        toast.error(error.error || "Không thể từ chối lời mời");
-      }
+      await rejectFriendRequestAPI(requestId);
+      toast.success("Đã từ chối lời mời kết bạn");
+      fetchFriendRequests();
     } catch (error) {
       console.error("Error rejecting friend request:", error);
       toast.error("Lỗi khi từ chối lời mời");

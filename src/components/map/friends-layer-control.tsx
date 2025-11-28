@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useFriendStore } from "@/lib/store";
+import { useFriendAPI } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Users, X, UserCircle2 } from "lucide-react";
@@ -17,9 +18,10 @@ export function FriendsLayerControl() {
     selectedFriendId,
     setSelectedFriendId,
     friends,
-    fetchFriends,
-    friendPinories: friendLocationNotes,
+    friendPinories,
   } = useFriendStore();
+
+  const { fetchFriends } = useFriendAPI();
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -68,7 +70,7 @@ export function FriendsLayerControl() {
               title="Friends' Places"
             >
               <Users className="w-5 h-5" />
-              {showFriendsLayer && friendLocationNotes.length > 0 && (
+              {showFriendsLayer && friendPinories.length > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -83,9 +85,7 @@ export function FriendsLayerControl() {
                     backgroundColor: "var(--color-primary-600)",
                   }}
                 >
-                  {friendLocationNotes.length > 99
-                    ? "99+"
-                    : friendLocationNotes.length}
+                  {friendPinories.length > 99 ? "99+" : friendPinories.length}
                 </motion.span>
               )}
             </Button>
@@ -150,14 +150,14 @@ export function FriendsLayerControl() {
                       }}
                     />
                     Friends' Places
-                    {friendLocationNotes.length > 0 && (
+                    {friendPinories.length > 0 && (
                       <span
                         className="text-white text-xs rounded-full px-2 py-0.5 font-bold"
                         style={{
                           backgroundColor: "var(--color-primary-500)",
                         }}
                       >
-                        {friendLocationNotes.length}
+                        {friendPinories.length}
                       </span>
                     )}
                   </h3>
@@ -292,7 +292,7 @@ export function FriendsLayerControl() {
                             style={{
                               backgroundColor: "var(--color-primary-500)",
                             }}
-                            key={friendLocationNotes.length}
+                            key={friendPinories.length}
                             initial={{ scale: 1.3 }}
                             animate={{ scale: 1 }}
                             transition={{
@@ -300,7 +300,7 @@ export function FriendsLayerControl() {
                               stiffness: 500,
                             }}
                           >
-                            {friendLocationNotes.length}
+                            {friendPinories.length}
                           </motion.span>
                         </div>
                       </motion.button>
@@ -392,14 +392,14 @@ export function FriendsLayerControl() {
                             >
                               {friend.name || friend.email}
                             </span>
-                            {friend.locationNotesCount > 0 && (
+                            {friend.pinoriesCount > 0 && (
                               <motion.span
                                 className="text-xs font-bold rounded-full px-2.5 py-1 min-w-[28px] text-center"
                                 style={{
                                   backgroundColor: "var(--color-neutral-100)",
                                   color: "var(--color-neutral-700)",
                                 }}
-                                key={friend.locationNotesCount}
+                                key={friend.pinoriesCount}
                                 initial={{
                                   scale: 1.3,
                                 }}
@@ -411,7 +411,7 @@ export function FriendsLayerControl() {
                                   stiffness: 500,
                                 }}
                               >
-                                {friend.locationNotesCount}
+                                {friend.pinoriesCount}
                               </motion.span>
                             )}
                           </div>

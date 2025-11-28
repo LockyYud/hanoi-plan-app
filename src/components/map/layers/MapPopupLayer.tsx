@@ -25,14 +25,14 @@ interface MapPopupLayerProps {
   readonly onDeleteNote: () => void;
 
   // Clicked location popup
-  readonly clickedLocation: {
+  readonly clickedPinory: {
     lng: number;
     lat: number;
     address?: string;
   } | null;
-  readonly showLocationForm: boolean;
-  readonly onCloseClickedLocation: () => void;
-  readonly onAddNote: () => void;
+  readonly showPinoryForm: boolean;
+  readonly onCloseClickedPinory: () => void;
+  readonly onAddPinory: () => void;
 
   // Direction popup
   readonly showDirectionPopup: boolean;
@@ -53,7 +53,7 @@ interface MapPopupLayerProps {
   // Friend location popup
   readonly selectedFriendPinory: Pinory | null;
   readonly isMobile: boolean;
-  readonly onCloseFriendLocation: () => void;
+  readonly onCloseFriendPinory: () => void;
   readonly onViewFriendDetails: () => void;
 
   // Map ref for popup positioning
@@ -65,16 +65,16 @@ export function MapPopupLayer({
   onCloseSelectedNote,
   onViewNoteDetails,
   onDeleteNote,
-  clickedLocation,
-  showLocationForm,
-  onCloseClickedLocation,
-  onAddNote,
+  clickedPinory,
+  showPinoryForm,
+  onCloseClickedPinory,
+  onAddPinory,
   showDirectionPopup,
   directionInfo,
   onCloseDirection,
   selectedFriendPinory,
   isMobile,
-  onCloseFriendLocation,
+  onCloseFriendPinory,
   onViewFriendDetails,
   mapRef,
 }: Readonly<MapPopupLayerProps>) {
@@ -96,20 +96,20 @@ export function MapPopupLayer({
       )}
 
       {/* Clicked Location Popup (only show if no note selected and no form shown) */}
-      {clickedLocation && !showLocationForm && !selectedPinory && (
+      {clickedPinory && !showPinoryForm && !selectedPinory && (
         <PinoryPopup
           location={{
-            lng: clickedLocation.lng,
-            lat: clickedLocation.lat,
-            address: clickedLocation.address || "",
+            lng: clickedPinory.lng,
+            lat: clickedPinory.lat,
+            address: clickedPinory.address || "",
           }}
           mapRef={
             mapRef.current
               ? (mapRef as React.RefObject<mapboxgl.Map>)
               : undefined
           }
-          onClose={onCloseClickedLocation}
-          onAddNote={onAddNote}
+          onClose={onCloseClickedPinory}
+          onAddPinory={onAddPinory}
         />
       )}
 
@@ -126,13 +126,13 @@ export function MapPopupLayer({
       {/* Friend Location Popup (Desktop only) */}
       {selectedFriendPinory && !isMobile && (
         <FriendLocationPopup
-          locationNote={selectedFriendPinory}
+          pinory={selectedFriendPinory}
           mapRef={
             mapRef.current
               ? (mapRef as React.RefObject<mapboxgl.Map>)
               : undefined
           }
-          onClose={onCloseFriendLocation}
+          onClose={onCloseFriendPinory}
           onViewDetails={onViewFriendDetails}
         />
       )}

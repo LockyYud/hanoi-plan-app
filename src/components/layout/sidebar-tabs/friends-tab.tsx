@@ -8,7 +8,7 @@ interface Friend {
   name: string | null;
   email: string;
   avatarUrl: string | null;
-  locationNotesCount: number;
+  pinoriesCount: number;
 }
 
 interface FriendRequest {
@@ -152,7 +152,7 @@ export function FriendsTab({
                     {friend.name || friend.email}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {friend.locationNotesCount} ghi chú
+                    {friend.pinoriesCount} pinories
                   </div>
                 </div>
               </div>

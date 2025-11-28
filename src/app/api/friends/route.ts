@@ -75,8 +75,8 @@ export async function GET(req: NextRequest) {
                     ? friendship.addressee
                     : friendship.requester
 
-                // Đếm số places (location notes) và journeys của bạn
-                const [locationNotesCount, journeysCount] = await Promise.all([
+                // Đếm số places (pinories) và journeys của bạn
+                const [pinoriesCount, journeysCount] = await Promise.all([
                     prisma.place.count({
                         where: {
                             createdBy: friend.id,
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
                     friendshipId: friendship.id,
                     friendshipStatus: friendship.status,
                     friendsSince: friendship.createdAt,
-                    locationNotesCount,
+                    pinoriesCount,
                     journeysCount
                 }
             })

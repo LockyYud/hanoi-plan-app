@@ -13,6 +13,7 @@ interface MarkerHelperProps {
   readonly mood?: string;
   readonly isSelected?: boolean;
   readonly onClick?: () => void;
+  readonly isFriendPinory?: boolean;
 }
 
 interface ReactMapPinElement extends HTMLElement {
