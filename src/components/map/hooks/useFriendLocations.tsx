@@ -14,7 +14,7 @@
  * @returns Friend markers state and selected friend pinory
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import mapboxgl from "mapbox-gl";
 import { createRoot } from "react-dom/client";
 import { Session } from "next-auth";
@@ -53,12 +53,20 @@ export function useFriendLocations(
         return () => globalThis.removeEventListener("resize", checkMobile);
     }, []);
 
-    // Fetch friend location notes when friends layer is enabled or friend filter changes
+    // Fetch ALL friend pinories once when friends layer is enabled
     useEffect(() => {
         if (showFriendsLayer && session) {
-            fetchFriendPinories(selectedFriendId || undefined);
+            fetchFriendPinories(); // Fetch all, no friendId filter
         }
-    }, [showFriendsLayer, selectedFriendId, session, fetchFriendPinories]);
+    }, [showFriendsLayer, session, fetchFriendPinories]);
+
+    // Client-side filter by selectedFriendId
+    const filteredPinories = useMemo(() => {
+        if (!selectedFriendId) return friendPinories;
+        return friendPinories.filter(
+            (pinory) => pinory.creator?.id === selectedFriendId
+        );
+    }, [friendPinories, selectedFriendId]);
 
     // Render friend location markers
     useEffect(() => {
@@ -88,17 +96,20 @@ export function useFriendLocations(
         friendMarkersRef.current.clear();
 
         // Only render if friends layer is visible
-        if (!showFriendsLayer || friendPinories.length === 0) {
+        if (!showFriendsLayer || filteredPinories.length === 0) {
             return;
         }
 
         console.log(
             "🎨 Rendering friend location markers:",
-            friendPinories.length
+            filteredPinories.length,
+            selectedFriendId
+                ? `(filtered by friend: ${selectedFriendId})`
+                : "(all friends)"
         );
 
         // Create markers for friend locations
-        friendPinories.forEach((friendPinory) => {
+        filteredPinories.forEach((friendPinory) => {
             const markerElement = document.createElement("div");
             const root = createRoot(markerElement);
 
@@ -175,7 +186,13 @@ export function useFriendLocations(
             });
             friendMarkersRef.current.clear();
         };
-    }, [mapRef, mapLoaded, showFriendsLayer, friendPinories]);
+    }, [
+        mapRef,
+        mapLoaded,
+        showFriendsLayer,
+        filteredPinories,
+        selectedFriendId,
+    ]);
 
     return {
         friendMarkers: friendMarkersRef.current,
