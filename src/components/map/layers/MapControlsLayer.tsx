@@ -9,33 +9,33 @@
 
 import React from "react";
 import mapboxgl from "mapbox-gl";
-import { MapControls } from "../map-controls";
-import { FloatingActionButton } from "../floating-action-button";
-import { FriendsLayerControl } from "../friends-layer-control";
+import { MapControls } from "../core/map-controls";
+import { FloatingActionButton } from "@/components/pinory/floating-action-button";
+import { FriendsLayerControl } from "@/components/friends/friends-layer-control";
 
 interface MapControlsLayerProps {
-  readonly mapRef: React.RefObject<mapboxgl.Map | null>;
-  readonly onCreateNote: (location: {
-    lng: number;
-    lat: number;
-    address?: string;
-  }) => void;
-  readonly onCreateJourney: () => void;
+    readonly mapRef: React.RefObject<mapboxgl.Map | null>;
+    readonly onCreateNote: (location: {
+        lng: number;
+        lat: number;
+        address?: string;
+    }) => void;
+    readonly onCreateJourney: () => void;
 }
 
 export function MapControlsLayer({
-  mapRef,
-  onCreateNote,
-  onCreateJourney,
+    mapRef,
+    onCreateNote,
+    onCreateJourney,
 }: Readonly<MapControlsLayerProps>) {
-  return (
-    <>
-      <MapControls mapRef={mapRef} />
-      <FriendsLayerControl />
-      <FloatingActionButton
-        onCreateNote={onCreateNote}
-        onCreateJourney={onCreateJourney}
-      />
-    </>
-  );
+    return (
+        <>
+            <MapControls mapRef={mapRef} />
+            <FriendsLayerControl />
+            <FloatingActionButton
+                onCreateNote={onCreateNote}
+                onCreateJourney={onCreateJourney}
+            />
+        </>
+    );
 }

@@ -21,11 +21,11 @@ import { Session } from "next-auth";
 import { CategoryType } from "@prisma/client";
 import type { Pinory } from "@/lib/types";
 import type { UseFriendLocationsReturn } from "../types/map.types";
-import { FriendPinoryPin } from "../friend-pinory-pin";
+import { FriendPinoryPin } from "@/components/friends/pinory/friend-pinory-pin";
 import {
     destroyMapPinElement,
     type ReactMapPinElement,
-} from "../marker-helper";
+} from "../markers/marker-helper";
 
 export function useFriendLocations(
     mapRef: React.RefObject<mapboxgl.Map | null>,

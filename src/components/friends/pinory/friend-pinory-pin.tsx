@@ -5,7 +5,12 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { CategoryType } from "@prisma/client";
 import { UserCircle2 } from "lucide-react";
-import { PinBase, PinSize, sizeConfig, categoryConfig } from "./pin-base";
+import { PinBase } from "@/components/map/markers/pin-base";
+import {
+    PinSize,
+    sizeConfig,
+    categoryConfig,
+} from "@/components/map/markers/pin-base";
 
 interface FriendPinoryPinProps {
     readonly friendName: string;

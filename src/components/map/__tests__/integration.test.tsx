@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { SessionProvider } from "next-auth/react";
-import { MapContainer } from "../map-container-refactored";
+import { MapContainer } from "../core/map-container";
 
 // Mock Mapbox GL
 vi.mock("mapbox-gl", () => ({

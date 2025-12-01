@@ -13,9 +13,9 @@
 import React from "react";
 import mapboxgl from "mapbox-gl";
 import type { Pinory } from "@/lib/types";
-import { PinoryPopup } from "../pinory-popup";
-import { DirectionPopup } from "../direction-popup";
-import { FriendLocationPopup } from "../friend-pinory-popup";
+import { PinoryPopup } from "@/components/pinory/popup/pinory-popup";
+import { DirectionPopup } from "@/components/pinory/direction-popup";
+import { FriendLocationPopup } from "@/components/friends/pinory/friend-pinory-popup";
 
 interface MapPopupLayerProps {
     // Selected note popup

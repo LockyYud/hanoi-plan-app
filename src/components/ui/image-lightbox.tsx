@@ -5,22 +5,50 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 import Image from "next/image";
 
+/**
+ * ImageLightbox - Unified lightbox component
+ *
+ * Supports two modes:
+ * 1. Uncontrolled: Pass initialIndex and component manages its own state
+ * 2. Controlled: Pass currentIndex, onNext, onPrevious for external control
+ */
 interface ImageLightboxProps {
     readonly images: string[];
+    /** Initial index for uncontrolled mode */
     readonly initialIndex?: number;
+    /** Current index for controlled mode */
+    readonly currentIndex?: number;
     readonly isOpen: boolean;
     readonly onClose: () => void;
+    /** Callback for next image (controlled mode) */
+    readonly onNext?: () => void;
+    /** Callback for previous image (controlled mode) */
+    readonly onPrevious?: () => void;
     readonly title?: string;
 }
 
 export function ImageLightbox({
     images,
     initialIndex = 0,
+    currentIndex: controlledIndex,
     isOpen,
     onClose,
+    onNext,
+    onPrevious,
     title,
 }: Readonly<ImageLightboxProps>) {
-    const [currentIndex, setCurrentIndex] = useState(initialIndex);
+    // Determine if controlled mode (external control via onNext/onPrevious)
+    const isControlled =
+        controlledIndex !== undefined &&
+        onNext !== undefined &&
+        onPrevious !== undefined;
+
+    // Internal state for uncontrolled mode
+    const [internalIndex, setInternalIndex] = useState(initialIndex);
+
+    // Use controlled or internal index
+    const currentIndex = isControlled ? controlledIndex : internalIndex;
+
     const [imageLoaded, setImageLoaded] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [imageDimensions, setImageDimensions] = useState<{
@@ -30,14 +58,14 @@ export function ImageLightbox({
     const [touchStart, setTouchStart] = useState(0);
     const [touchEnd, setTouchEnd] = useState(0);
 
-    // Reset state when lightbox opens/closes
+    // Reset state when lightbox opens/closes (uncontrolled mode only)
     useEffect(() => {
-        if (isOpen) {
-            setCurrentIndex(initialIndex);
+        if (isOpen && !isControlled) {
+            setInternalIndex(initialIndex);
             setImageLoaded(false);
             setImageDimensions(null);
         }
-    }, [isOpen, initialIndex]);
+    }, [isOpen, initialIndex, isControlled]);
 
     // Reset loading state when image changes
     useEffect(() => {
@@ -47,6 +75,27 @@ export function ImageLightbox({
         const timer = setTimeout(() => setIsTransitioning(false), 300);
         return () => clearTimeout(timer);
     }, [currentIndex]);
+
+    // Navigation handlers - use controlled or internal
+    const goToPrevious = () => {
+        if (isControlled && onPrevious) {
+            onPrevious();
+        } else {
+            setInternalIndex((prev: number) =>
+                prev > 0 ? prev - 1 : images.length - 1
+            );
+        }
+    };
+
+    const goToNext = () => {
+        if (isControlled && onNext) {
+            onNext();
+        } else {
+            setInternalIndex((prev: number) =>
+                prev < images.length - 1 ? prev + 1 : 0
+            );
+        }
+    };
 
     // Handle keyboard navigation
     useEffect(() => {
@@ -75,15 +124,7 @@ export function ImageLightbox({
                 document.body.style.overflow = "unset";
             };
         }
-    }, [isOpen, currentIndex]);
-
-    const goToPrevious = () => {
-        setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
-    };
-
-    const goToNext = () => {
-        setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
-    };
+    }, [isOpen, currentIndex, isControlled, onNext, onPrevious]);
 
     if (!isOpen || images.length === 0) return null;
 

@@ -12,9 +12,9 @@
 
 import React from "react";
 import type { Pinory } from "@/lib/types";
-import { PinoryForm } from "../pinory-form";
-import { PinoryDetailsView } from "../pinory-details-view";
-import { FriendPinoryDetailsView } from "../friend-pinory-details-view";
+import { PinoryForm } from "@/components/pinory/form/pinory-form";
+import { PinoryDetailsView } from "@/components/pinory/details/pinory-details-view";
+import { FriendPinoryDetailsView } from "@/components/friends/pinory/friend-pinory-details-view";
 import { CreateJourneyDialog } from "@/components/journey/create-journey-dialog";
 import { MemoryLaneView } from "@/components/timeline/memory-lane-view";
 import { RouteDisplay } from "@/components/timeline/route-display";

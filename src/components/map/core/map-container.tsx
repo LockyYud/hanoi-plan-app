@@ -37,13 +37,13 @@ import {
     useMapMarkers,
     useRouteDisplay,
     useSelectedPinoryZoom,
-} from "./hooks";
+} from "../hooks";
 
 // UI Layers
-import { MapControlsLayer, MapPopupLayer, MapDialogLayer } from "./layers";
+import { MapControlsLayer, MapPopupLayer, MapDialogLayer } from "../layers";
 
 // Utils
-import { createClusterIndex } from "./utils/mapClustering";
+import { createClusterIndex } from "../utils/mapClustering";
 
 interface MapContainerProps {
     readonly className?: string;
