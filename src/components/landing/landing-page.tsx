@@ -12,7 +12,7 @@ export function LandingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#f8f1e5] via-white to-[#f8f1e5]">
+        <div className="min-h-screen bg-[#f8f1e5]">
             {/* Header */}
             <header className="container mx-auto px-6 py-6">
                 <div className="flex items-center justify-between">
@@ -38,7 +38,7 @@ export function LandingPage() {
                     </div>
                     <button
                         onClick={handleSignIn}
-                        className="px-6 py-2 bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105"
+                        className="px-6 py-2 bg-brand text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105"
                     >
                         Đăng nhập
                     </button>
@@ -53,7 +53,7 @@ export function LandingPage() {
                         <div className="space-y-4">
                             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                                 Ghim lại những
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">
+                                <span className="text-transparent bg-clip-text bg-brand">
                                     {" "}
                                     khoảnh khắc{" "}
                                 </span>
@@ -69,14 +69,14 @@ export function LandingPage() {
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 onClick={handleSignIn}
-                                className="px-8 py-4 bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] text-white rounded-full font-semibold text-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+                                className="px-8 py-4 bg-brand text-white rounded-full font-semibold text-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
                             >
                                 <MapPin className="w-5 h-5" />
                                 Bắt đầu hành trình
                             </button>
                             <a
                                 href="#features"
-                                className="px-8 py-4 bg-white border-2 border-gray-300 text-gray-900 rounded-full font-semibold text-lg hover:border-[#ff6b6b] transition-all duration-300 flex items-center justify-center gap-2"
+                                className="px-8 py-4 bg-white border-2 border-gray-300 text-gray-900 rounded-full font-semibold text-lg hover:border-brand transition-all duration-300 flex items-center justify-center gap-2"
                             >
                                 Tìm hiểu thêm
                             </a>
@@ -106,7 +106,7 @@ export function LandingPage() {
                     <div className="relative animate-slide-up">
                         <div className="relative bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
                             {/* Map Visual */}
-                            <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl overflow-hidden relative">
+                            <div className="aspect-[4/3] bg-blue-100 rounded-2xl overflow-hidden relative">
                                 {/* Map grid pattern */}
                                 <div
                                     className="absolute inset-0 opacity-20"
@@ -121,17 +121,17 @@ export function LandingPage() {
 
                                 {/* Demo pins */}
                                 <div className="absolute top-1/4 left-1/4 animate-bounce delay-100">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] rounded-full shadow-lg flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-brand rounded-full shadow-lg flex items-center justify-center">
                                         <Camera className="w-6 h-6 text-white" />
                                     </div>
                                 </div>
                                 <div className="absolute top-1/2 right-1/3 animate-bounce delay-300">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] rounded-full shadow-lg flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-brand rounded-full shadow-lg flex items-center justify-center">
                                         <Heart className="w-6 h-6 text-white" />
                                     </div>
                                 </div>
                                 <div className="absolute bottom-1/4 left-1/2 animate-bounce delay-500">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] rounded-full shadow-lg flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-brand rounded-full shadow-lg flex items-center justify-center">
                                         <MapPin className="w-6 h-6 text-white" />
                                     </div>
                                 </div>
@@ -162,12 +162,12 @@ export function LandingPage() {
 
                             {/* Floating photo cards */}
                             <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg p-2 rotate-6 animate-float">
-                                <div className="w-20 h-20 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg flex items-center justify-center">
+                                <div className="w-20 h-20 bg-yellow-100 rounded-lg flex items-center justify-center">
                                     <Camera className="w-8 h-8 text-yellow-600" />
                                 </div>
                             </div>
                             <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-2 -rotate-6 animate-float delay-300">
-                                <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-pink-200 rounded-lg flex items-center justify-center">
+                                <div className="w-20 h-20 bg-pink-100 rounded-lg flex items-center justify-center">
                                     <Heart className="w-8 h-8 text-pink-600" />
                                 </div>
                             </div>
@@ -193,7 +193,7 @@ export function LandingPage() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {/* Feature 1 */}
                     <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                        <div className="w-14 h-14 bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] rounded-2xl flex items-center justify-center mb-6">
+                        <div className="w-14 h-14 bg-brand rounded-2xl flex items-center justify-center mb-6">
                             <MapPin className="w-7 h-7 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-3">
@@ -206,7 +206,7 @@ export function LandingPage() {
 
                     {/* Feature 2 */}
                     <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                        <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                        <div className="w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center mb-6">
                             <Camera className="w-7 h-7 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-3">
@@ -219,7 +219,7 @@ export function LandingPage() {
 
                     {/* Feature 3 */}
                     <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                        <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
+                        <div className="w-14 h-14 bg-purple-500 rounded-2xl flex items-center justify-center mb-6">
                             <MapIcon className="w-7 h-7 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-3">
@@ -232,7 +232,7 @@ export function LandingPage() {
 
                     {/* Feature 4 */}
                     <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                        <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6">
+                        <div className="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center mb-6">
                             <Share2 className="w-7 h-7 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-3">
@@ -259,7 +259,7 @@ export function LandingPage() {
                 <div className="grid md:grid-cols-3 gap-8">
                     {/* Step 1 */}
                     <div className="text-center">
-                        <div className="relative mx-auto w-20 h-20 bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] rounded-full flex items-center justify-center mb-6 shadow-lg">
+                        <div className="relative mx-auto w-20 h-20 bg-brand rounded-full flex items-center justify-center mb-6 shadow-lg">
                             <span className="text-3xl font-bold text-white">
                                 1
                             </span>
@@ -274,7 +274,7 @@ export function LandingPage() {
 
                     {/* Step 2 */}
                     <div className="text-center">
-                        <div className="relative mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                        <div className="relative mx-auto w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mb-6 shadow-lg">
                             <span className="text-3xl font-bold text-white">
                                 2
                             </span>
@@ -289,7 +289,7 @@ export function LandingPage() {
 
                     {/* Step 3 */}
                     <div className="text-center">
-                        <div className="relative mx-auto w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                        <div className="relative mx-auto w-20 h-20 bg-purple-500 rounded-full flex items-center justify-center mb-6 shadow-lg">
                             <span className="text-3xl font-bold text-white">
                                 3
                             </span>
@@ -306,7 +306,7 @@ export function LandingPage() {
 
             {/* CTA Section */}
             <section className="container mx-auto px-6 py-20">
-                <div className="bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] rounded-3xl p-12 md:p-16 text-center shadow-2xl">
+                <div className="bg-brand rounded-3xl p-12 md:p-16 text-center shadow-2xl">
                     <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                         Bắt đầu ghim câu chuyện của bạn
                     </h2>
@@ -316,7 +316,7 @@ export function LandingPage() {
                     </p>
                     <button
                         onClick={handleSignIn}
-                        className="px-10 py-5 bg-white text-[#ff6b6b] rounded-full font-bold text-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 inline-flex items-center gap-3"
+                        className="px-10 py-5 bg-white text-brand rounded-full font-bold text-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 inline-flex items-center gap-3"
                     >
                         <MapPin className="w-6 h-6" />
                         Bắt đầu miễn phí

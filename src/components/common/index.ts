@@ -6,3 +6,4 @@
 
 export { default as ErrorBoundary } from "./error-boundary";
 export { Providers } from "./providers";
+export { ThemeToggle } from "./theme-toggle";

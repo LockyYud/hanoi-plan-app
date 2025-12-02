@@ -161,7 +161,7 @@ export function FriendLocationPopup({
                 </div>
             )}
 
-            <Card className="shadow-2xl border border-purple-700/50 rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-900/95 to-neutral-800/95 backdrop-blur-md pointer-events-auto">
+            <Card className="shadow-2xl border border-purple-700/50 rounded-2xl overflow-hidden bg-card/95 backdrop-blur-md pointer-events-auto">
                 <div className="p-4 space-y-3">
                     {/* Header with Friend Info */}
                     <div className="flex items-center gap-2 pb-3 border-b">

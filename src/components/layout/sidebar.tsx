@@ -346,7 +346,7 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "fixed left-0 top-0 h-full w-full md:w-80 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] border-r border-neutral-800/50 transition-all duration-300 ease-in-out z-20 shadow-2xl backdrop-blur-xl",
+        "fixed left-0 top-0 h-full w-full md:w-80 bg-card border-r border-border/50 transition-all duration-300 ease-in-out z-20 shadow-2xl backdrop-blur-xl",
         sidebarOpen
           ? "translate-x-0 opacity-100"
           : "-translate-x-full opacity-0"
@@ -355,12 +355,12 @@ export function Sidebar() {
     >
       <div className="flex flex-col h-full">
         {/* Header with enhanced styling */}
-        <div className="relative p-6 border-b border-neutral-800/50 bg-gradient-to-r from-neutral-900/30 to-neutral-800/30">
-          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#FF6B6B]/30 to-transparent"></div>
+        <div className="relative p-6 border-b border-border/50 bg-card/30">
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-brand/30"></div>
 
           <button
             onClick={() => setSidebarOpen(false)}
-            className="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-lg bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] transition-all duration-300 hover:scale-110"
+            className="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-lg bg-secondary hover:bg-accent text-foreground transition-all duration-300 hover:scale-110"
             title="Đóng sidebar"
           >
             <X className="h-5 w-5" />
@@ -377,7 +377,7 @@ export function Sidebar() {
 
         {/* Navigation Tabs - Icon Only with Labels on Active */}
         <div
-          className="flex border-b border-neutral-800/50 bg-gradient-to-r from-neutral-900/40 to-neutral-800/40 backdrop-blur-sm"
+          className="flex border-b border-border/50 bg-card/40 backdrop-blur-sm"
           role="tablist"
           aria-label="Danh mục chính"
           tabIndex={0}
@@ -419,22 +419,22 @@ export function Sidebar() {
                 tabIndex={isActive ? 0 : -1}
                 className={cn(
                   "flex-1 flex flex-col items-center justify-center gap-1 py-3 text-sm font-medium border-b-2 transition-all duration-300 relative overflow-hidden group",
-                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B6B] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0C0C0C]",
-                  "hover:bg-neutral-800/50",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+                  "hover:bg-secondary/50",
                   isActive
-                    ? "border-[#FF6B6B] text-[#FF6B6B] bg-neutral-800/70 shadow-lg shadow-[#FF6B6B]/10 z-10"
-                    : "border-transparent text-[#A0A0A0] hover:text-[#EDEDED]"
+                    ? "border-brand text-brand bg-secondary/70 shadow-lg shadow-brand/10 z-10"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 )}
                 style={{
                   transform: isActive ? "translateY(-1px)" : "translateY(0)",
                 }}
               >
                 {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B6B]/10 via-neutral-800/60 to-neutral-800/80" />
+                  <div className="absolute inset-0 bg-neutral-800/60" />
                 )}
 
                 {!isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-b from-neutral-700/0 via-neutral-700/0 to-neutral-700/0 group-hover:from-neutral-700/20 group-hover:via-neutral-700/10 group-hover:to-transparent transition-all duration-300" />
+                  <div className="absolute inset-0 bg-transparent group-hover:bg-neutral-700/15 transition-all duration-300" />
                 )}
 
                 <Icon
@@ -463,7 +463,7 @@ export function Sidebar() {
                 )}
 
                 {isActive && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#FF6B6B] rounded-full animate-pulse animate-in fade-in zoom-in duration-300" />
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-brand rounded-full animate-pulse animate-in fade-in zoom-in duration-300" />
                 )}
               </button>
             );
@@ -520,18 +520,18 @@ export function Sidebar() {
               key="social-content"
             >
               {/* Social Sub-Tabs */}
-              <div className="flex border-b border-neutral-800/50 bg-neutral-900/20">
+              <div className="flex border-b border-border/50 bg-card/20">
                 <button
                   onClick={() => setSocialSubTab("friends")}
                   className={cn(
                     "flex-1 py-3 px-4 text-sm font-medium transition-all duration-200 relative group",
                     socialSubTab === "friends"
-                      ? "text-[#FF6B6B] bg-neutral-800/50"
-                      : "text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-800/30 active:scale-95"
+                      ? "text-brand bg-secondary/50"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/30 active:scale-95"
                   )}
                 >
                   {socialSubTab === "friends" && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B6B] animate-in slide-in-from-left duration-200" />
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand animate-in slide-in-from-left duration-200" />
                   )}
                   Bạn bè
                   {friendRequests.length > 0 && (
@@ -545,12 +545,12 @@ export function Sidebar() {
                   className={cn(
                     "flex-1 py-3 px-4 text-sm font-medium transition-all duration-200 relative group",
                     socialSubTab === "feed"
-                      ? "text-[#FF6B6B] bg-neutral-800/50"
-                      : "text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-800/30 active:scale-95"
+                      ? "text-brand bg-secondary/50"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/30 active:scale-95"
                   )}
                 >
                   {socialSubTab === "feed" && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B6B] animate-in slide-in-from-right duration-200" />
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand animate-in slide-in-from-right duration-200" />
                   )}
                   Hoạt động
                 </button>

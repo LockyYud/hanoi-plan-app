@@ -34,9 +34,7 @@ function MediaItem({
     const isVideo = isVideoUrl(src);
 
     return (
-        <div
-            className={cn("relative overflow-hidden bg-neutral-800", className)}
-        >
+        <div className={cn("relative overflow-hidden bg-secondary", className)}>
             {isVideo ? (
                 <>
                     <video
@@ -327,18 +325,18 @@ export function PinoriesTab({
     };
 
     return (
-        <div className="relative h-full flex flex-col bg-[#0A0A0A]">
+        <div className="relative h-full flex flex-col bg-background">
             {/* Header with Search - Sticky */}
-            <div className="sticky top-0 z-20 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-neutral-800/50 p-4">
+            <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/50 p-4">
                 <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#A0A0A0] group-hover:text-white transition-colors duration-200" />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
                     <Input
                         placeholder="Tìm kiếm kỷ niệm..."
                         value={filter.query || ""}
                         onChange={(e) =>
                             setFilter({ ...filter, query: e.target.value })
                         }
-                        className="pl-12 pr-12 h-12 bg-neutral-900/60 border-neutral-800/60 focus:bg-neutral-900 focus:border-neutral-700 focus:ring-2 focus:ring-neutral-700/50 transition-all duration-200 rounded-xl text-white placeholder:text-[#A0A0A0] hover:border-neutral-700"
+                        className="pl-12 pr-12 h-12 bg-secondary border-border/60 focus:bg-accent focus:border-border focus:ring-2 focus:ring-ring/50 transition-all duration-200 rounded-xl text-foreground placeholder:text-muted-foreground hover:border-border"
                     />
                     <Button
                         variant="ghost"
@@ -347,8 +345,8 @@ export function PinoriesTab({
                         className={cn(
                             "absolute right-2 top-1/2 transform -translate-y-1/2 h-9 w-9 p-0 rounded-lg transition-all duration-200",
                             showFilterPopover
-                                ? "text-white bg-neutral-700"
-                                : "text-[#A0A0A0] hover:text-white hover:bg-neutral-800"
+                                ? "text-foreground bg-accent"
+                                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                         )}
                         title="Bộ lọc"
                     >
@@ -358,14 +356,16 @@ export function PinoriesTab({
 
                 {/* Filter Popover */}
                 {showFilterPopover && (
-                    <div className="mt-3 bg-neutral-900 rounded-xl border border-neutral-800 shadow-2xl p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                    <div className="mt-3 bg-secondary rounded-xl border border-border shadow-2xl p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
                         <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-white">Bộ lọc</h4>
+                            <h4 className="font-semibold text-foreground">
+                                Bộ lọc
+                            </h4>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setShowFilterPopover(false)}
-                                className="h-6 w-6 p-0 text-[#A0A0A0] hover:text-white"
+                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                             >
                                 <X className="h-4 w-4" />
                             </Button>
@@ -374,7 +374,7 @@ export function PinoriesTab({
                         {/* Category filters */}
                         {categories.length > 0 && (
                             <div className="space-y-2">
-                                <div className="text-sm font-medium text-white">
+                                <div className="text-sm font-medium text-foreground">
                                     Danh mục
                                 </div>
                                 <div className="flex flex-wrap gap-2">
@@ -394,8 +394,8 @@ export function PinoriesTab({
                                                 className={cn(
                                                     "cursor-pointer px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
                                                     isActive
-                                                        ? "bg-white text-black"
-                                                        : "bg-neutral-800 text-[#A0A0A0] border-neutral-700 hover:bg-neutral-700 hover:text-white"
+                                                        ? "bg-primary text-primary-foreground"
+                                                        : "bg-secondary text-muted-foreground border-border hover:bg-accent hover:text-foreground"
                                                 )}
                                                 onClick={() => {
                                                     const currentCategories =
@@ -438,7 +438,7 @@ export function PinoriesTab({
                         )}
 
                         {/* Actions */}
-                        <div className="flex gap-2 pt-2 border-t border-neutral-800">
+                        <div className="flex gap-2 pt-2 border-t border-border">
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -446,14 +446,14 @@ export function PinoriesTab({
                                     setFilter({});
                                     setShowFilterPopover(false);
                                 }}
-                                className="flex-1 h-9 text-xs bg-neutral-800 hover:bg-neutral-700 border-neutral-700 rounded-lg text-white"
+                                className="flex-1 h-9 text-xs bg-secondary hover:bg-accent border-border rounded-lg text-foreground"
                             >
                                 Đặt lại
                             </Button>
                             <Button
                                 size="sm"
                                 onClick={() => setShowFilterPopover(false)}
-                                className="flex-1 h-9 text-xs bg-white hover:bg-neutral-200 text-black rounded-lg"
+                                className="flex-1 h-9 text-xs bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
                             >
                                 Áp dụng
                             </Button>
@@ -465,7 +465,7 @@ export function PinoriesTab({
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto px-4 pb-20">
                 {isLoadingPinories && (
-                    <div className="text-center py-12 text-[#A0A0A0]">
+                    <div className="text-center py-12 text-muted-foreground">
                         <div className="animate-spin h-8 w-8 mx-auto mb-3 border-2 border-white border-t-transparent rounded-full" />
                         <p className="text-sm">Đang tải...</p>
                     </div>
@@ -473,8 +473,8 @@ export function PinoriesTab({
 
                 {!isLoadingPinories &&
                     Object.keys(groupedPinories).length === 0 && (
-                        <div className="text-center py-12 text-[#A0A0A0]">
-                            <MapPin className="h-12 w-12 mx-auto mb-3 text-neutral-700" />
+                        <div className="text-center py-12 text-muted-foreground">
+                            <MapPin className="h-12 w-12 mx-auto mb-3 text-foreground" />
                             <p className="text-base mb-1">
                                 Chưa có kỷ niệm nào
                             </p>
@@ -491,7 +491,7 @@ export function PinoriesTab({
                                 ([monthYear, items]) => (
                                     <div key={monthYear} className="space-y-4">
                                         {/* Month Header */}
-                                        <h2 className="text-2xl font-bold text-white sticky top-0 bg-[#0A0A0A]/80 backdrop-blur-sm py-2 z-10">
+                                        <h2 className="text-2xl font-bold text-foreground sticky top-0 bg-background/80 backdrop-blur-sm py-2 z-10">
                                             {monthYear.split(" ")[0]}
                                         </h2>
 
@@ -504,7 +504,7 @@ export function PinoriesTab({
                                                 return (
                                                     <Card
                                                         key={pinory.id}
-                                                        className="group bg-neutral-900/50 border-neutral-800/50 hover:border-neutral-700 transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden"
+                                                        className="group bg-secondary border-border/50 hover:border-border hover:bg-accent transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden shadow-sm"
                                                         onClick={() => {
                                                             setSelectedPinory(
                                                                 pinory
@@ -534,11 +534,11 @@ export function PinoriesTab({
 
                                                         {/* Content Section */}
                                                         <div className="p-4 space-y-2">
-                                                            <h3 className="text-lg font-semibold text-white group-hover:text-neutral-200 transition-colors line-clamp-2">
+                                                            <h3 className="text-lg font-semibold text-foreground group-hover:text-muted-foreground transition-colors line-clamp-2">
                                                                 {pinory.name}
                                                             </h3>
 
-                                                            <div className="flex items-center justify-between text-sm text-[#A0A0A0]">
+                                                            <div className="flex items-center justify-between text-sm text-muted-foreground">
                                                                 <span>
                                                                     {formatDate(
                                                                         pinory.createdAt
@@ -551,7 +551,7 @@ export function PinoriesTab({
                                                                         e.stopPropagation();
                                                                         // More options menu
                                                                     }}
-                                                                    className="p-1 hover:bg-neutral-800 rounded-lg transition-colors"
+                                                                    className="p-1 hover:bg-secondary rounded-lg transition-colors"
                                                                 >
                                                                     <svg
                                                                         className="w-5 h-5"
@@ -573,7 +573,7 @@ export function PinoriesTab({
 
                                                             {/* Location info */}
                                                             {pinory.address && (
-                                                                <div className="flex items-start gap-2 text-xs text-[#A0A0A0]">
+                                                                <div className="flex items-start gap-2 text-xs text-muted-foreground">
                                                                     <MapPin className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
                                                                     <span className="line-clamp-1">
                                                                         {
@@ -588,7 +588,7 @@ export function PinoriesTab({
                                                                 <Button
                                                                     size="sm"
                                                                     variant="ghost"
-                                                                    className="flex-1 h-8 text-xs bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg"
+                                                                    className="flex-1 h-8 text-xs bg-secondary hover:bg-accent text-foreground rounded-lg"
                                                                     onClick={(
                                                                         e
                                                                     ) => {
@@ -608,7 +608,7 @@ export function PinoriesTab({
                                                                 <Button
                                                                     size="sm"
                                                                     variant="ghost"
-                                                                    className="flex-1 h-8 text-xs bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg"
+                                                                    className="flex-1 h-8 text-xs bg-secondary hover:bg-accent text-foreground rounded-lg"
                                                                     onClick={(
                                                                         e
                                                                     ) => {

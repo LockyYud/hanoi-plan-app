@@ -20,13 +20,13 @@ export default function SignInPage() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-[#0C0C0C] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-3 border-[#FF6B6B]/30 border-t-[#FF6B6B] mx-auto mb-4"></div>
-            <div className="absolute inset-0 rounded-full bg-[#FF6B6B]/20 blur-xl animate-pulse"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-3 border-brand/30 border-t-brand mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full bg-brand/20 blur-xl animate-pulse"></div>
           </div>
-          <p className="text-[#EDEDED]/80 text-sm font-medium">Đang tải...</p>
+          <p className="text-foreground/80 text-sm font-medium">Đang tải...</p>
         </div>
       </div>
     );
@@ -37,13 +37,13 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a0f0f] to-[#0C0C0C] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-[#1a0f0f] to-[#0C0C0C] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Enhanced Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated gradient orbs */}
-        <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-gradient-to-br from-[#FF6B6B]/15 via-[#FFD6A5]/10 to-transparent rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-gradient-to-tl from-[#FF8E53]/15 via-[#FF6B6B]/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-r from-[#FFD6A5]/8 to-[#FF8E53]/8 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-gradient-to-br from-brand/15 via-brand-accent/10 to-transparent rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-gradient-to-tl from-brand-secondary/15 via-brand/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-r from-brand-accent/8 to-brand-secondary/8 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
         
         {/* Grid pattern overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
@@ -81,25 +81,25 @@ export default function SignInPage() {
                 onClick={() => router.push("/")}
               />
               {/* Glow behind logo */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#FF6B6B]/30 to-[#FF8E53]/30 blur-2xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-brand/30 to-brand-secondary/30 blur-2xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
           </div>
         </div>
 
         <Card className="relative bg-gradient-to-br from-neutral-900/95 via-neutral-800/95 to-neutral-900/95 border border-neutral-700/60 backdrop-blur-2xl shadow-2xl rounded-3xl overflow-hidden animate-slide-up">
           {/* Decorative top gradient bar */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF6B6B] via-[#FFD6A5] to-[#FF8E53]"></div>
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand via-brand-accent to-brand-secondary"></div>
           
           {/* Card glow effect */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#FF6B6B]/20 via-[#FFD6A5]/20 to-[#FF8E53]/20 rounded-3xl blur-xl opacity-50 -z-10"></div>
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-brand/20 via-brand-accent/20 to-brand-secondary/20 rounded-3xl blur-xl opacity-50 -z-10"></div>
           
           <div className="relative p-10">
             {/* Header with enhanced icon */}
             <div className="text-center mb-10">
               {/* Animated icon container */}
               <div className="relative w-28 h-28 mx-auto mb-7 flex items-center justify-center group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B6B]/30 to-[#FF8E53]/30 rounded-3xl rotate-6 group-hover:rotate-12 transition-transform duration-500"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#FFD6A5]/30 to-[#FF6B6B]/30 rounded-3xl -rotate-6 group-hover:-rotate-12 transition-transform duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-brand/30 to-brand-secondary/30 rounded-3xl rotate-6 group-hover:rotate-12 transition-transform duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-accent/30 to-brand/30 rounded-3xl -rotate-6 group-hover:-rotate-12 transition-transform duration-500"></div>
                 <div className="relative bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl p-5 border border-neutral-700/50">
                   <img 
                     src="/pinory-icon-simple.svg" 
@@ -108,52 +108,52 @@ export default function SignInPage() {
                   />
                 </div>
                 {/* Pulsing glow */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] blur-2xl opacity-40 animate-pulse -z-10"></div>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-brand to-brand-secondary blur-2xl opacity-40 animate-pulse -z-10"></div>
               </div>
 
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#EDEDED] via-[#FFD6A5] to-[#EDEDED] bg-clip-text text-transparent mb-3 animate-gradient">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#EDEDED] via-brand-accent to-[#EDEDED] bg-clip-text text-transparent mb-3 animate-gradient">
                 Chào mừng đến với Pinory
               </h1>
-              <p className="text-[#EDEDED]/90 text-base leading-relaxed mb-2 font-medium">
+              <p className="text-foreground/90 text-base leading-relaxed mb-2 font-medium">
                 Bắt đầu hành trình khám phá của bạn
               </p>
-              <p className="text-sm text-[#A0A0A0] italic max-w-sm mx-auto leading-relaxed">
+              <p className="text-sm text-muted-foreground italic max-w-sm mx-auto leading-relaxed">
                 Pin lại những nơi bạn đã đi qua, và câu chuyện bạn đã sống 🗺️✨
               </p>
             </div>
 
             {/* Enhanced benefits grid */}
             <div className="space-y-3 mb-10">
-              <div className="group flex items-start gap-4 text-sm bg-gradient-to-br from-[#FF6B6B]/10 via-[#FF6B6B]/5 to-transparent border border-[#FF6B6B]/30 rounded-2xl p-4 transition-all duration-500 hover:border-[#FF6B6B]/70 hover:shadow-lg hover:shadow-[#FF6B6B]/25 hover:translate-x-2 cursor-default relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#FF6B6B]/0 via-[#FF6B6B]/10 to-[#FF6B6B]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                <div className="relative flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B6B]/30 to-[#FF8E53]/30 flex items-center justify-center border border-[#FF6B6B]/40 group-hover:scale-110 transition-transform duration-300">
+              <div className="group flex items-start gap-4 text-sm bg-gradient-to-br from-brand/10 via-brand/5 to-transparent border border-brand/30 rounded-2xl p-4 transition-all duration-500 hover:border-brand/70 hover:shadow-lg hover:shadow-brand/25 hover:translate-x-2 cursor-default relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-brand/0 via-brand/10 to-brand/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                <div className="relative flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-brand/30 to-brand-secondary/30 flex items-center justify-center border border-brand/40 group-hover:scale-110 transition-transform duration-300">
                   <span className="text-xl">📝</span>
                 </div>
                 <div className="relative flex-1 pt-1">
-                  <p className="text-[#EDEDED] font-medium group-hover:text-[#FFD6A5] transition-colors">Lưu trữ ghi chú không giới hạn</p>
-                  <p className="text-xs text-[#A0A0A0] mt-1">Ghi lại mọi khoảnh khắc đáng nhớ</p>
+                  <p className="text-foreground font-medium group-hover:text-brand-accent transition-colors">Lưu trữ ghi chú không giới hạn</p>
+                  <p className="text-xs text-muted-foreground mt-1">Ghi lại mọi khoảnh khắc đáng nhớ</p>
                 </div>
               </div>
 
-              <div className="group flex items-start gap-4 text-sm bg-gradient-to-br from-[#FFD6A5]/10 via-[#FFD6A5]/5 to-transparent border border-[#FFD6A5]/30 rounded-2xl p-4 transition-all duration-500 hover:border-[#FFD6A5]/70 hover:shadow-lg hover:shadow-[#FFD6A5]/25 hover:translate-x-2 cursor-default relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#FFD6A5]/0 via-[#FFD6A5]/10 to-[#FFD6A5]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                <div className="relative flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD6A5]/30 to-[#FF8E53]/30 flex items-center justify-center border border-[#FFD6A5]/40 group-hover:scale-110 transition-transform duration-300">
+              <div className="group flex items-start gap-4 text-sm bg-gradient-to-br from-brand-accent/10 via-brand-accent/5 to-transparent border border-brand-accent/30 rounded-2xl p-4 transition-all duration-500 hover:border-brand-accent/70 hover:shadow-lg hover:shadow-brand-accent/25 hover:translate-x-2 cursor-default relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/0 via-brand-accent/10 to-brand-accent/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                <div className="relative flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-brand-accent/30 to-brand-secondary/30 flex items-center justify-center border border-brand-accent/40 group-hover:scale-110 transition-transform duration-300">
                   <span className="text-xl">👥</span>
                 </div>
                 <div className="relative flex-1 pt-1">
-                  <p className="text-[#EDEDED] font-medium group-hover:text-[#FFD6A5] transition-colors">Tạo nhóm và chia sẻ với bạn bè</p>
-                  <p className="text-xs text-[#A0A0A0] mt-1">Lên kế hoạch cùng nhau dễ dàng</p>
+                  <p className="text-foreground font-medium group-hover:text-brand-accent transition-colors">Tạo nhóm và chia sẻ với bạn bè</p>
+                  <p className="text-xs text-muted-foreground mt-1">Lên kế hoạch cùng nhau dễ dàng</p>
                 </div>
               </div>
 
-              <div className="group flex items-start gap-4 text-sm bg-gradient-to-br from-[#FF8E53]/10 via-[#FF8E53]/5 to-transparent border border-[#FF8E53]/30 rounded-2xl p-4 transition-all duration-500 hover:border-[#FF8E53]/70 hover:shadow-lg hover:shadow-[#FF8E53]/25 hover:translate-x-2 cursor-default relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#FF8E53]/0 via-[#FF8E53]/10 to-[#FF8E53]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                <div className="relative flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF8E53]/30 to-[#FF6B6B]/30 flex items-center justify-center border border-[#FF8E53]/40 group-hover:scale-110 transition-transform duration-300">
+              <div className="group flex items-start gap-4 text-sm bg-gradient-to-br from-brand-secondary/10 via-brand-secondary/5 to-transparent border border-brand-secondary/30 rounded-2xl p-4 transition-all duration-500 hover:border-brand-secondary/70 hover:shadow-lg hover:shadow-brand-secondary/25 hover:translate-x-2 cursor-default relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-secondary/0 via-brand-secondary/10 to-brand-secondary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                <div className="relative flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-brand-secondary/30 to-brand/30 flex items-center justify-center border border-brand-secondary/40 group-hover:scale-110 transition-transform duration-300">
                   <span className="text-xl">🔄</span>
                 </div>
                 <div className="relative flex-1 pt-1">
-                  <p className="text-[#EDEDED] font-medium group-hover:text-[#FFD6A5] transition-colors">Đồng bộ trên mọi thiết bị</p>
-                  <p className="text-xs text-[#A0A0A0] mt-1">Truy cập mọi lúc, mọi nơi</p>
+                  <p className="text-foreground font-medium group-hover:text-brand-accent transition-colors">Đồng bộ trên mọi thiết bị</p>
+                  <p className="text-xs text-muted-foreground mt-1">Truy cập mọi lúc, mọi nơi</p>
                 </div>
               </div>
             </div>
@@ -165,13 +165,13 @@ export default function SignInPage() {
                 "demo-google-client-id" ? (
                 <Button
                   onClick={() => signIn("google", { callbackUrl: "/" })}
-                  className="w-full h-16 bg-gradient-to-r from-[#FF6B6B] via-[#FF8E53] to-[#FF6B6B] bg-size-200 hover:bg-right-bottom text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:shadow-[#FF6B6B]/60 transition-all duration-500 transform hover:scale-[1.03] active:scale-[0.98] relative overflow-hidden group"
+                  className="w-full h-16 bg-gradient-to-r from-brand via-brand-secondary to-brand bg-size-200 hover:bg-right-bottom text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:shadow-brand/60 transition-all duration-500 transform hover:scale-[1.03] active:scale-[0.98] relative overflow-hidden group"
                 >
                   {/* Animated gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                   
                   {/* Glow effect */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 -z-10"></div>
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-brand to-brand-secondary blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 -z-10"></div>
                   
                   <div className="flex items-center justify-center gap-4 relative z-10">
                     <svg className="w-6 h-6 group-hover:rotate-[360deg] transition-transform duration-700" viewBox="0 0 24 24">
@@ -222,11 +222,11 @@ export default function SignInPage() {
 
             {/* Enhanced Sign up link */}
             <div className="mt-8 text-center">
-              <p className="text-sm text-[#A0A0A0]">
+              <p className="text-sm text-muted-foreground">
                 Chưa có tài khoản?{" "}
                 <button
                   onClick={() => signIn("google", { callbackUrl: "/" })}
-                  className="text-transparent bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] bg-clip-text hover:from-[#FF8E53] hover:to-[#FFD6A5] font-semibold transition-all hover:underline decoration-2 underline-offset-4"
+                  className="text-transparent bg-gradient-to-r from-brand to-brand-secondary bg-clip-text hover:from-brand-secondary hover:to-brand-accent font-semibold transition-all hover:underline decoration-2 underline-offset-4"
                 >
                   Bắt đầu hành trình ngay hôm nay →
                 </button>
@@ -235,18 +235,18 @@ export default function SignInPage() {
 
             {/* Enhanced Footer */}
             <div className="mt-8 pt-6 border-t border-neutral-700/50 text-center">
-              <p className="text-xs text-[#A0A0A0] leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 Bằng việc đăng nhập, bạn đồng ý với{" "}
                 <Link
                   href="/terms"
-                  className="text-[#FF8E53] hover:text-[#FFD6A5] transition-colors font-medium underline-offset-2 hover:underline"
+                  className="text-brand-secondary hover:text-brand-accent transition-colors font-medium underline-offset-2 hover:underline"
                 >
                   Điều khoản sử dụng
                 </Link>{" "}
                 và{" "}
                 <Link
                   href="/privacy"
-                  className="text-[#FF8E53] hover:text-[#FFD6A5] transition-colors font-medium underline-offset-2 hover:underline"
+                  className="text-brand-secondary hover:text-brand-accent transition-colors font-medium underline-offset-2 hover:underline"
                 >
                   Chính sách bảo mật
                 </Link>
@@ -257,7 +257,7 @@ export default function SignInPage() {
 
         {/* Tagline */}
         <div className="text-center mt-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <p className="text-[#A0A0A0] text-sm italic">
+          <p className="text-muted-foreground text-sm italic">
             ✨ Biến mọi chuyến đi thành kỷ niệm vĩnh cửu
           </p>
         </div>

@@ -22,9 +22,207 @@ import {
     PenTool,
     Trash2,
     NavigationOff,
+    Play,
 } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
+import { cn } from "@/lib/utils";
 import type { Pinory } from "@/lib/types";
+
+// Helper function to check if a URL is a video
+const isVideoUrl = (url: string): boolean => {
+    const videoExtensions = [".mp4", ".webm", ".mov", ".avi", ".mkv"];
+    const lowerUrl = url.toLowerCase();
+    return videoExtensions.some((ext) => lowerUrl.includes(ext));
+};
+
+// Media Item Component with video indicator
+interface MediaItemProps {
+    readonly src: string;
+    readonly className?: string;
+    readonly showOverlay?: boolean;
+    readonly overlayCount?: number;
+}
+
+function MediaItem({
+    src,
+    className,
+    showOverlay,
+    overlayCount,
+}: MediaItemProps) {
+    const isVideo = isVideoUrl(src);
+
+    return (
+        <div
+            className={cn("relative overflow-hidden bg-secondary", className)}
+        >
+            {isVideo ? (
+                <>
+                    <video
+                        src={src}
+                        className="w-full h-full object-cover"
+                        muted
+                        playsInline
+                    />
+                    {/* Video Play Indicator */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                            <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+                        </div>
+                    </div>
+                    {/* Video Duration Badge */}
+                    <div className="absolute bottom-1 right-1 px-1 py-0.5 rounded bg-black/70 backdrop-blur-sm">
+                        <span className="text-white text-[10px] font-medium">
+                            0:00
+                        </span>
+                    </div>
+                </>
+            ) : isValidImageUrl(src) ? (
+                <ImageDisplay
+                    src={src}
+                    alt=""
+                    className="w-full h-full object-cover"
+                />
+            ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-lg text-muted-foreground">📷</span>
+                </div>
+            )}
+            {showOverlay && overlayCount && overlayCount > 0 && (
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                    <span className="text-white text-lg font-bold">
+                        +{overlayCount}
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Smart Media Grid Component - Apple Journal style layout
+interface MediaGridProps {
+    readonly images: string[];
+}
+
+function MediaGrid({ images }: MediaGridProps) {
+    const count = images.length;
+
+    if (count === 0) return null;
+
+    // 1 image: Full width with 4:3 aspect ratio
+    if (count === 1) {
+        return (
+            <div className="p-1">
+                <MediaItem
+                    src={images[0]}
+                    className="aspect-[4/3] rounded-lg"
+                />
+            </div>
+        );
+    }
+
+    // 2 images: Two equal columns
+    if (count === 2) {
+        return (
+            <div className="grid grid-cols-2 gap-1 p-1">
+                {images.map((img) => (
+                    <MediaItem
+                        key={img}
+                        src={img}
+                        className="aspect-square rounded-lg"
+                    />
+                ))}
+            </div>
+        );
+    }
+
+    // 3 images: Hero left + 2 stacked right
+    if (count === 3) {
+        return (
+            <div className="grid grid-cols-2 gap-1 p-1">
+                {/* Hero image - spans 2 rows */}
+                <MediaItem
+                    src={images[0]}
+                    className="aspect-square rounded-lg row-span-2"
+                />
+                {/* Right column - 2 stacked images */}
+                <MediaItem
+                    src={images[1]}
+                    className="aspect-[2/1] rounded-lg"
+                />
+                <MediaItem
+                    src={images[2]}
+                    className="aspect-[2/1] rounded-lg"
+                />
+            </div>
+        );
+    }
+
+    // 4 images: Hero left + 3 right (1 top, 2 bottom)
+    if (count === 4) {
+        return (
+            <div className="grid grid-cols-2 gap-1 p-1">
+                {/* Hero image - spans 2 rows */}
+                <div className="row-span-2">
+                    <MediaItem
+                        src={images[0]}
+                        className="aspect-square rounded-lg h-full"
+                    />
+                </div>
+                {/* Right column */}
+                <MediaItem
+                    src={images[1]}
+                    className="aspect-[2/1] rounded-lg"
+                />
+                <div className="grid grid-cols-2 gap-1">
+                    <MediaItem
+                        src={images[2]}
+                        className="aspect-square rounded-lg"
+                    />
+                    <MediaItem
+                        src={images[3]}
+                        className="aspect-square rounded-lg"
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    // 5+ images: Hero left + 2x2 grid right with overlay
+    return (
+        <div className="grid grid-cols-2 gap-1 p-1">
+            {/* Hero image - spans 2 rows */}
+            <div className="row-span-2">
+                <MediaItem
+                    src={images[0]}
+                    className="aspect-square rounded-lg h-full"
+                />
+            </div>
+            {/* Right column - 2x2 grid */}
+            <div className="grid grid-cols-2 gap-1">
+                <MediaItem
+                    src={images[1]}
+                    className="aspect-square rounded-lg"
+                />
+                <MediaItem
+                    src={images[2]}
+                    className="aspect-square rounded-lg"
+                />
+            </div>
+            <div className="grid grid-cols-2 gap-1">
+                <MediaItem
+                    src={images[3]}
+                    className="aspect-square rounded-lg"
+                />
+                <MediaItem
+                    src={images[4]}
+                    className="aspect-square rounded-lg"
+                    showOverlay={count > 5}
+                    overlayCount={count - 5}
+                />
+            </div>
+        </div>
+    );
+}
 
 interface LocationPreview {
     lng: number;
@@ -424,22 +622,22 @@ export function PinoryPopup({
                 </div>
             )}
 
-            <Card className="shadow-2xl border border-neutral-700/50 rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-900/95 to-neutral-800/95 backdrop-blur-md pointer-events-auto">
+            <Card className="shadow-2xl border border-border/50 rounded-2xl overflow-hidden bg-card/95 backdrop-blur-md pointer-events-auto">
                 <div className="p-4 space-y-3">
                     {isNote ? (
                         /* Note Content */
                         <>
                             {/* Header with note info */}
-                            <div className="flex items-center gap-2 pb-3 border-b border-neutral-700/30">
+                            <div className="flex items-center gap-2 pb-3 border-b border-border/30">
                                 <span className="text-2xl flex-shrink-0">
                                     {pinory?.mood || "📍"}
                                 </span>
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium text-white">
+                                    <div className="text-sm font-medium text-foreground">
                                         {pinory?.name}
                                     </div>
                                     {pinory && (
-                                        <div className="text-xs text-neutral-300">
+                                        <div className="text-xs text-muted-foreground">
                                             {formatTime(pinory.timestamp)}
                                         </div>
                                     )}
@@ -448,7 +646,7 @@ export function PinoryPopup({
                                     variant="ghost"
                                     size="sm"
                                     onClick={onClose}
-                                    className="text-white bg-gradient-to-br from-red-600/90 to-red-700/90 hover:from-red-700 hover:to-red-800 rounded-xl w-9 h-9 p-0 backdrop-blur-sm border-2 border-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 flex-shrink-0"
+                                    className="text-white bg-red-600/90 hover:bg-red-700 rounded-xl w-9 h-9 p-0 backdrop-blur-sm border-2 border-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 flex-shrink-0"
                                 >
                                     <X className="h-4 w-4" strokeWidth={2} />
                                 </Button>
@@ -464,87 +662,30 @@ export function PinoryPopup({
 
                             {/* Note content - main focus */}
                             {pinory && pinory.content && (
-                                <div className="text-sm text-[#EDEDED] leading-relaxed">
+                                <div className="text-sm text-foreground leading-relaxed">
                                     {pinory.content}
                                 </div>
                             )}
 
-                            {/* Images - larger display */}
+                            {/* Images - Smart Media Grid */}
                             {pinory?.images && pinory.images.length > 0 && (
-                                <div>
-                                    {pinory.images.length === 1 ? (
-                                        <div className="w-full h-40 bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden">
-                                            {isValidImageUrl(
-                                                pinory.images[0]
-                                            ) ? (
-                                                <ImageDisplay
-                                                    src={pinory.images[0]}
-                                                    alt="Ảnh ghi chú"
-                                                    className="w-full h-full object-contain bg-neutral-950"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <span className="text-lg text-[#A0A0A0]">
-                                                        📷
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {pinory.images
-                                                .slice(0, 2)
-                                                .map((image, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="aspect-square bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden"
-                                                    >
-                                                        {isValidImageUrl(
-                                                            image
-                                                        ) ? (
-                                                            <ImageDisplay
-                                                                src={image}
-                                                                alt={`Ảnh ${index + 1}`}
-                                                                className="w-full h-full object-contain bg-neutral-950"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center">
-                                                                <span className="text-lg text-[#A0A0A0]">
-                                                                    📷
-                                                                </span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            {pinory.images.length > 4 && (
-                                                <div className="aspect-square bg-neutral-800 rounded-lg border border-neutral-700 flex items-center justify-center">
-                                                    <span className="text-sm text-[#A0A0A0]">
-                                                        +
-                                                        {pinory.images.length -
-                                                            4}{" "}
-                                                        ảnh
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+                                <MediaGrid images={pinory.images} />
                             )}
 
                             {/* Route info display */}
                             {routeInfo && (
-                                <div className="text-xs text-[#FFD6A5] text-center p-3 bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 rounded-xl border border-[#FF6B6B]/30 shadow-lg font-semibold">
+                                <div className="text-xs text-brand-accent text-center p-3 bg-brand/20 rounded-xl border border-brand/30 shadow-lg font-semibold">
                                     📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
                                     {formatDuration(routeInfo.duration)}
                                 </div>
                             )}
 
                             {/* Action buttons for notes - all in one row */}
-                            <div className="flex gap-2 pt-2 border-t border-neutral-700/30">
+                            <div className="flex gap-2 pt-2 border-t border-border/30">
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600"
+                                    className="flex-1 bg-secondary hover:bg-accent text-foreground border-border"
                                     onClick={onViewDetails}
                                 >
                                     <Eye
@@ -571,7 +712,7 @@ export function PinoryPopup({
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white border-0 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+                                        className="flex-1 bg-brand hover:bg-brand-hover text-white border-0 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
                                         onClick={() =>
                                             pinory &&
                                             handleGetDirections(
@@ -643,7 +784,7 @@ export function PinoryPopup({
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="px-3 bg-neutral-800 hover:bg-red-900/30 text-red-400 border-neutral-600 hover:border-red-800"
+                                        className="px-3 bg-secondary hover:bg-red-900/30 text-red-400 border-border hover:border-red-800"
                                         onClick={onDelete}
                                         title="Xóa ghi chú"
                                     >
@@ -659,12 +800,12 @@ export function PinoryPopup({
                         /* Location Content */
                         <>
                             {/* Header with location info */}
-                            <div className="flex items-center gap-2 pb-3 border-b border-neutral-700/30">
+                            <div className="flex items-center gap-2 pb-3 border-b border-border/30">
                                 <span className="text-2xl flex-shrink-0">
                                     📍
                                 </span>
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium text-white truncate">
+                                    <div className="text-sm font-medium text-foreground truncate">
                                         {location?.address}
                                     </div>
                                 </div>
@@ -672,7 +813,7 @@ export function PinoryPopup({
                                     variant="ghost"
                                     size="sm"
                                     onClick={onClose}
-                                    className="text-white bg-gradient-to-br from-red-600/90 to-red-700/90 hover:from-red-700 hover:to-red-800 rounded-xl w-9 h-9 p-0 backdrop-blur-sm border-2 border-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 flex-shrink-0"
+                                    className="text-white bg-red-600/90 hover:bg-red-700 rounded-xl w-9 h-9 p-0 backdrop-blur-sm border-2 border-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 flex-shrink-0"
                                 >
                                     <X className="h-4 w-4" strokeWidth={2} />
                                 </Button>
@@ -681,10 +822,10 @@ export function PinoryPopup({
                             {/* Location Type Label */}
                             <div className="flex items-center gap-2">
                                 <MapPin
-                                    className="h-4 w-4 text-[#A0A0A0]"
+                                    className="h-4 w-4 text-muted-foreground"
                                     strokeWidth={1.5}
                                 />
-                                <span className="text-sm text-[#A0A0A0]">
+                                <span className="text-sm text-muted-foreground">
                                     Địa điểm mới
                                 </span>
                             </div>
@@ -692,34 +833,34 @@ export function PinoryPopup({
                             {/* Location address */}
                             <div className="flex items-start gap-2">
                                 <MapPin
-                                    className="h-4 w-4 text-[#A0A0A0] mt-0.5 flex-shrink-0"
+                                    className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0"
                                     strokeWidth={1.5}
                                 />
-                                <span className="text-sm text-[#EDEDED] break-words leading-relaxed">
+                                <span className="text-sm text-foreground break-words leading-relaxed">
                                     {location?.address}
                                 </span>
                             </div>
 
                             {/* Coordinates */}
-                            <div className="text-xs text-[#A0A0A0]">
+                            <div className="text-xs text-muted-foreground">
                                 {location?.lat.toFixed(6)},{" "}
                                 {location?.lng.toFixed(6)}
                             </div>
 
                             {/* Route info display */}
                             {routeInfo && (
-                                <div className="text-xs text-[#FFD6A5] text-center p-3 bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 rounded-xl border border-[#FF6B6B]/30 shadow-lg font-semibold">
+                                <div className="text-xs text-brand-accent text-center p-3 bg-brand/20 rounded-xl border border-brand/30 shadow-lg font-semibold">
                                     📍 {formatDistance(routeInfo.distance)} • ⏱️{" "}
                                     {formatDuration(routeInfo.duration)}
                                 </div>
                             )}
 
                             {/* Action buttons for locations */}
-                            <div className="flex gap-2 pt-2 border-t border-neutral-700/30">
+                            <div className="flex gap-2 pt-2 border-t border-border/30">
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[#EDEDED] border-neutral-600"
+                                    className="flex-1 bg-secondary hover:bg-accent text-foreground border-border"
                                     onClick={onAddPinory}
                                 >
                                     <PenTool
@@ -746,7 +887,7 @@ export function PinoryPopup({
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white border-0 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+                                        className="flex-1 bg-brand hover:bg-brand-hover text-white border-0 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
                                         onClick={() =>
                                             location &&
                                             handleGetDirections(

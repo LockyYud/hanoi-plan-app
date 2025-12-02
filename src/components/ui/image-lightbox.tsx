@@ -239,7 +239,7 @@ export function ImageLightbox({
                 >
                     {/* Loading skeleton */}
                     {!imageLoaded && (
-                        <div className="absolute inset-6 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 animate-pulse rounded" />
+                        <div className="absolute inset-6 bg-gray-200 animate-pulse rounded" />
                     )}
 
                     <div

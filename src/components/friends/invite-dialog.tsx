@@ -155,15 +155,15 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
             />
 
             {/* Dialog */}
-            <div className="relative w-full max-w-md bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 rounded-2xl border border-neutral-700/50 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="relative w-full max-w-md bg-card rounded-2xl border border-border/50 shadow-2xl max-h-[85vh] overflow-y-auto">
                 {/* Header */}
-                <div className="sticky top-0 flex items-center justify-between p-5 border-b border-neutral-700/50 bg-neutral-900/90 backdrop-blur-sm rounded-t-2xl z-10">
+                <div className="sticky top-0 flex items-center justify-between p-5 border-b border-border/50 bg-card/90 backdrop-blur-sm rounded-t-2xl z-10">
                     <div>
-                        <h2 className="text-lg font-bold text-[#EDEDED] flex items-center gap-2">
+                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                             <Users className="w-5 h-5 text-purple-400" />
                             Mời bạn bè
                         </h2>
-                        <p className="text-xs text-[#A0A0A0] mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                             Chia sẻ link để kết bạn
                         </p>
                     </div>
@@ -171,7 +171,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                         variant="ghost"
                         size="sm"
                         onClick={onClose}
-                        className="h-8 w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-700 rounded-lg"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg"
                     >
                         <X className="h-4 w-4" />
                     </Button>
@@ -182,7 +182,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                     {isLoading ? (
                         <div className="text-center py-8">
                             <div className="animate-spin h-8 w-8 border-3 border-purple-500/30 border-t-purple-500 rounded-full mx-auto mb-3" />
-                            <p className="text-sm text-[#A0A0A0]">
+                            <p className="text-sm text-muted-foreground">
                                 Đang tạo link...
                             </p>
                         </div>
@@ -190,14 +190,14 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                         <>
                             {/* Invite Link */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-[#EDEDED]">
+                                <label className="text-sm font-medium text-foreground">
                                     Link mời của bạn
                                 </label>
                                 <div className="flex gap-2">
                                     <Input
                                         value={inviteData.inviteUrl}
                                         readOnly
-                                        className="flex-1 bg-neutral-800/60 border-neutral-700 text-[#EDEDED] font-mono text-sm"
+                                        className="flex-1 bg-secondary/60 border-border text-foreground font-mono text-sm"
                                         onClick={(e) =>
                                             (
                                                 e.target as HTMLInputElement
@@ -216,7 +216,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                         )}
                                     </Button>
                                 </div>
-                                <p className="text-xs text-[#A0A0A0]">
+                                <p className="text-xs text-muted-foreground">
                                     Người nhận click vào link sẽ tự động kết bạn
                                     với bạn
                                 </p>
@@ -224,14 +224,14 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
 
                             {/* Share Buttons */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-[#EDEDED]">
+                                <label className="text-sm font-medium text-foreground">
                                     Hoặc chia sẻ qua
                                 </label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <Button
                                         variant="outline"
                                         onClick={shareViaWebAPI}
-                                        className="h-12 bg-neutral-800/60 border-neutral-700 hover:bg-neutral-700 hover:border-purple-500/50 text-[#EDEDED]"
+                                        className="h-12 bg-secondary/60 border-border hover:bg-accent hover:border-purple-500/50 text-foreground"
                                     >
                                         <Share2 className="h-4 w-4 mr-2" />
                                         Share
@@ -239,7 +239,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                     <Button
                                         variant="outline"
                                         onClick={shareViaSMS}
-                                        className="h-12 bg-neutral-800/60 border-neutral-700 hover:bg-neutral-700 hover:border-green-500/50 text-[#EDEDED]"
+                                        className="h-12 bg-secondary/60 border-border hover:bg-accent hover:border-green-500/50 text-foreground"
                                     >
                                         <MessageCircle className="h-4 w-4 mr-2" />
                                         SMS
@@ -247,7 +247,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                     <Button
                                         variant="outline"
                                         onClick={shareViaMessenger}
-                                        className="h-12 bg-neutral-800/60 border-neutral-700 hover:bg-neutral-700 hover:border-blue-500/50 text-[#EDEDED]"
+                                        className="h-12 bg-secondary/60 border-border hover:bg-accent hover:border-blue-500/50 text-foreground"
                                     >
                                         <Facebook className="h-4 w-4 mr-2" />
                                         Messenger
@@ -255,7 +255,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                     <Button
                                         variant="outline"
                                         onClick={shareViaTelegram}
-                                        className="h-12 bg-neutral-800/60 border-neutral-700 hover:bg-neutral-700 hover:border-cyan-500/50 text-[#EDEDED]"
+                                        className="h-12 bg-secondary/60 border-border hover:bg-accent hover:border-cyan-500/50 text-foreground"
                                     >
                                         <Send className="h-4 w-4 mr-2" />
                                         Telegram
@@ -264,7 +264,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                 <Button
                                     variant="outline"
                                     onClick={shareViaEmail}
-                                    className="w-full h-12 bg-neutral-800/60 border-neutral-700 hover:bg-neutral-700 hover:border-orange-500/50 text-[#EDEDED]"
+                                    className="w-full h-12 bg-secondary/60 border-border hover:bg-accent hover:border-orange-500/50 text-foreground"
                                 >
                                     <Mail className="h-4 w-4 mr-2" />
                                     Email
@@ -272,7 +272,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                             </div>
 
                             {/* Stats */}
-                            <div className="bg-gradient-to-br from-purple-900/20 to-purple-800/20 border border-purple-600/30 rounded-xl p-4">
+                            <div className="bg-purple-900/20 border border-purple-600/30 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <Users className="w-4 h-4 text-purple-400" />
                                     <span className="text-sm font-semibold text-purple-300">
@@ -284,7 +284,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                         <div className="text-2xl font-black text-purple-400">
                                             {inviteData.acceptedCount}
                                         </div>
-                                        <div className="text-xs text-[#A0A0A0] mt-1">
+                                        <div className="text-xs text-muted-foreground mt-1">
                                             Đã tham gia
                                         </div>
                                     </div>
@@ -292,7 +292,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                         <div className="text-2xl font-black text-purple-400">
                                             {inviteData.usageCount}
                                         </div>
-                                        <div className="text-xs text-[#A0A0A0] mt-1">
+                                        <div className="text-xs text-muted-foreground mt-1">
                                             Lần dùng
                                         </div>
                                     </div>
@@ -301,10 +301,10 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
 
                             {/* Invite Code Display */}
                             <div className="text-center">
-                                <div className="text-xs text-[#A0A0A0] mb-2">
+                                <div className="text-xs text-muted-foreground mb-2">
                                     Mã mời của bạn
                                 </div>
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-800/60 border border-neutral-700 rounded-lg">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/60 border border-border rounded-lg">
                                     <span className="font-mono text-lg font-bold text-purple-400 tracking-wider">
                                         {inviteData.inviteCode}
                                     </span>
@@ -313,7 +313,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                         </>
                     ) : (
                         <div className="text-center py-8 space-y-4">
-                            <div className="text-[#A0A0A0]">
+                            <div className="text-muted-foreground">
                                 <p className="text-sm">
                                     Không thể tải link mời
                                 </p>
@@ -325,7 +325,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                             <Button
                                 onClick={() => window.location.reload()}
                                 variant="outline"
-                                className="bg-neutral-800 border-neutral-700 text-[#EDEDED] hover:bg-neutral-700"
+                                className="bg-secondary border-border text-foreground hover:bg-accent"
                             >
                                 Thử lại
                             </Button>

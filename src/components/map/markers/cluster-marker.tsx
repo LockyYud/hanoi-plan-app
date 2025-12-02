@@ -115,7 +115,7 @@ export const ClusterMarker = memo(
                     "hover:scale-110 hover:z-20",
                     "transform-gpu",
                     "border-0 p-0 bg-transparent",
-                    "focus:outline-none focus:ring-2 focus:ring-[#FF6B6B] focus:ring-offset-2",
+                    "focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2",
                     randomRotation,
                     config.container
                 )}
@@ -128,7 +128,7 @@ export const ClusterMarker = memo(
                     className={cn(
                         "relative bg-white rounded-sm overflow-hidden",
                         "transition-all duration-300 group-hover:shadow-2xl",
-                        "border border-neutral-200",
+                        "border border-border",
                         config.border,
                         config.image
                     )}
@@ -145,10 +145,9 @@ export const ClusterMarker = memo(
                     ) : (
                         // Fallback gradient background if no images
                         <div
-                            className="w-full h-full bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400"
+                            className="w-full h-full bg-purple-400"
                             style={{
                                 backgroundSize: "200% 200%",
-                                animation: "gradientShift 3s ease infinite",
                             }}
                         />
                     )}
@@ -160,7 +159,7 @@ export const ClusterMarker = memo(
                             "rounded-full border-2 border-white",
                             "flex items-center justify-center",
                             "shadow-xl group-hover:scale-110 transition-transform duration-300",
-                            "bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] text-white font-bold",
+                            "bg-brand text-white font-bold",
                             config.badge
                         )}
                     >
@@ -190,11 +189,11 @@ export const ClusterMarker = memo(
                     )}
 
                     {/* Subtle gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                     {/* Pulse ring animation */}
                     <div
-                        className="absolute -inset-2 rounded-sm bg-[#FF6B6B]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                        className="absolute -inset-2 rounded-sm bg-brand/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                         style={{
                             animation: "clusterPulse 2s ease-in-out infinite",
                         }}
@@ -214,17 +213,6 @@ export const ClusterMarker = memo(
                     100% {
                         transform: scale(1);
                         opacity: 0.4;
-                    }
-                }
-                @keyframes gradientShift {
-                    0% {
-                        background-position: 0% 50%;
-                    }
-                    50% {
-                        background-position: 100% 50%;
-                    }
-                    100% {
-                        background-position: 0% 50%;
                     }
                 }
             `}</style>

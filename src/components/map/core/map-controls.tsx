@@ -89,7 +89,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
                     <Button
                         size="sm"
                         onClick={handleToggleSidebar}
-                        className="h-10 w-10 p-0 rounded-xl shadow-lg bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white transition-all duration-300"
+                        className="h-10 w-10 p-0 rounded-xl shadow-lg bg-brand hover:bg-brand-hover text-white transition-all duration-300"
                         title="Mở sidebar"
                     >
                         <Menu className="h-5 w-5" />
@@ -100,24 +100,24 @@ export function MapControls({ mapRef }: MapControlsProps) {
             {/* Map Controls - Right Side */}
             <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
                 {/* Zoom Controls */}
-                <div className="flex flex-col gap-1 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden">
+                <div className="flex flex-col gap-1 bg-background/95 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border border-border">
                     <Button
                         size="sm"
                         variant="ghost"
                         onClick={handleZoomIn}
-                        className="h-10 w-10 p-0 hover:bg-neutral-100 rounded-none border-b border-neutral-200"
+                        className="h-10 w-10 p-0 hover:bg-accent rounded-none border-b border-border"
                         title="Phóng to"
                     >
-                        <ZoomIn className="h-5 w-5 text-neutral-700" />
+                        <ZoomIn className="h-5 w-5 text-foreground" />
                     </Button>
                     <Button
                         size="sm"
                         variant="ghost"
                         onClick={handleZoomOut}
-                        className="h-10 w-10 p-0 hover:bg-neutral-100 rounded-none"
+                        className="h-10 w-10 p-0 hover:bg-accent rounded-none"
                         title="Thu nhỏ"
                     >
-                        <ZoomOut className="h-5 w-5 text-neutral-700" />
+                        <ZoomOut className="h-5 w-5 text-foreground" />
                     </Button>
                 </div>
 
@@ -126,12 +126,12 @@ export function MapControls({ mapRef }: MapControlsProps) {
                     size="sm"
                     onClick={handleLocateMe}
                     disabled={isLocating}
-                    className="h-10 w-10 p-0 rounded-xl shadow-lg bg-white/95 hover:bg-neutral-100 backdrop-blur-sm"
+                    className="h-10 w-10 p-0 rounded-xl shadow-lg bg-background/95 hover:bg-accent backdrop-blur-sm border border-border"
                     title="Vị trí của tôi"
                 >
                     <Navigation
                         className={cn(
-                            "h-5 w-5 text-blue-600",
+                            "h-5 w-5 text-blue-600 dark:text-blue-400",
                             isLocating && "animate-spin"
                         )}
                     />
@@ -141,14 +141,14 @@ export function MapControls({ mapRef }: MapControlsProps) {
                 <Button
                     size="sm"
                     onClick={handleToggleStyle}
-                    className="h-10 w-10 p-0 rounded-xl shadow-lg bg-white/95 hover:bg-neutral-100 backdrop-blur-sm"
+                    className="h-10 w-10 p-0 rounded-xl shadow-lg bg-background/95 hover:bg-accent backdrop-blur-sm border border-border"
                     title={
                         mapStyle === "streets"
                             ? "Chế độ vệ tinh"
                             : "Chế độ đường phố"
                     }
                 >
-                    <Layers className="h-5 w-5 text-neutral-700" />
+                    <Layers className="h-5 w-5 text-foreground" />
                 </Button>
             </div>
         </>

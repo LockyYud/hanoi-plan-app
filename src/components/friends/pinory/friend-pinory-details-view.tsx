@@ -266,7 +266,7 @@ export function FriendPinoryDetailsView({
                 {/* Bottom Sheet */}
                 <div
                     className={cn(
-                        "fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] rounded-t-[32px] shadow-2xl overflow-hidden flex flex-col",
+                        "fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-[32px] shadow-2xl overflow-hidden flex flex-col",
                         isExpanded ? "h-[90vh]" : "h-[50vh]"
                     )}
                     style={{
@@ -296,7 +296,7 @@ export function FriendPinoryDetailsView({
                         onClick={() => setIsExpanded(!isExpanded)}
                         aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
                     >
-                        <div className="w-10 h-1 bg-neutral-600 rounded-full"></div>
+                        <div className="w-10 h-1 bg-muted rounded-full"></div>
                     </button>
 
                     {/* Friend Info Header with Purple Theme */}
@@ -345,7 +345,7 @@ export function FriendPinoryDetailsView({
                     {/* Cover Image */}
                     {images.length > 0 && (
                         <div
-                            className="mx-4 mb-3 h-44 bg-gradient-to-r from-purple-900/50 to-purple-800/50 relative overflow-hidden flex-shrink-0 rounded-2xl shadow-lg border border-purple-500/20"
+                            className="mx-4 mb-3 h-44 bg-purple-900/50 relative overflow-hidden flex-shrink-0 rounded-2xl shadow-lg border border-purple-500/20"
                             onTouchStart={handleDragStart}
                             onTouchMove={handleDragMove}
                             onTouchEnd={handleDragEnd}
@@ -363,7 +363,7 @@ export function FriendPinoryDetailsView({
                                     </span>
                                 </div>
                             )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-purple-900/30 to-transparent pointer-events-none"></div>
+                            <div className="absolute inset-0 bg-purple-900/30 pointer-events-none"></div>
                         </div>
                     )}
 
@@ -374,10 +374,10 @@ export function FriendPinoryDetailsView({
                         onTouchMove={handleDragMove}
                         onTouchEnd={handleDragEnd}
                     >
-                        <h2 className="text-lg font-bold text-[#EDEDED] mb-2">
+                        <h2 className="text-lg font-bold text-foreground mb-2">
                             {place.name}
                         </h2>
-                        <p className="text-sm text-[#A0A0A0] flex items-start gap-1.5 mb-2">
+                        <p className="text-sm text-muted-foreground flex items-start gap-1.5 mb-2">
                             <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-purple-400" />
                             <span className="line-clamp-2">
                                 {place.address}
@@ -386,7 +386,7 @@ export function FriendPinoryDetailsView({
                         {rating && (
                             <div className="flex items-center gap-1">
                                 <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                <span className="font-medium text-[#EDEDED]">
+                                <span className="font-medium text-foreground">
                                     {rating}/5
                                 </span>
                             </div>
@@ -401,7 +401,7 @@ export function FriendPinoryDetailsView({
                         {/* Note */}
                         {note && (
                             <div className="bg-purple-900/10 p-3 rounded-lg border border-purple-500/20">
-                                <p className="text-sm text-[#EDEDED] italic">
+                                <p className="text-sm text-foreground italic">
                                     "{note}"
                                 </p>
                             </div>
@@ -409,7 +409,7 @@ export function FriendPinoryDetailsView({
 
                         {/* Visit Date */}
                         {visitDate && (
-                            <div className="flex items-center gap-2 text-sm text-[#A0A0A0]">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4 text-purple-400" />
                                 <span>
                                     Visited on {formatVisitDate(visitDate)}
@@ -429,7 +429,7 @@ export function FriendPinoryDetailsView({
                                         (imageUrl: string, index: number) => (
                                             <button
                                                 key={index}
-                                                className="aspect-square bg-neutral-800 rounded-xl border border-purple-500/30 overflow-hidden hover:border-purple-500/60 transition-colors"
+                                                className="aspect-square bg-secondary rounded-xl border border-purple-500/30 overflow-hidden hover:border-purple-500/60 transition-colors"
                                                 onClick={() => {
                                                     setCurrentImageIndex(index);
                                                     setShowLightbox(true);
@@ -457,13 +457,13 @@ export function FriendPinoryDetailsView({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="sticky bottom-0 bg-gradient-to-t from-[#0a0a0a] via-[#0C0C0C]/95 to-transparent backdrop-blur-xl border-t border-purple-900/30 px-5 py-3 flex-shrink-0">
+                    <div className="sticky bottom-0 bg-card/95 backdrop-blur-xl border-t border-purple-900/30 px-5 py-3 flex-shrink-0">
                         <div className="flex gap-2">
                             <Button
                                 variant="outline"
                                 onClick={handleGetDirections}
                                 disabled={isGettingDirections}
-                                className="flex-1 h-11 bg-gradient-to-br from-blue-900/40 to-cyan-900/40 hover:from-blue-800/50 hover:to-cyan-800/50 border-blue-700/50 text-blue-300 font-semibold text-sm rounded-xl"
+                                className="flex-1 h-11 bg-blue-900/50 hover:bg-blue-800/60 border-blue-700/50 text-blue-300 font-semibold text-sm rounded-xl"
                             >
                                 <Navigation
                                     className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
@@ -473,7 +473,7 @@ export function FriendPinoryDetailsView({
                             <Button
                                 variant="outline"
                                 onClick={onAddToFavorites}
-                                className="flex-1 h-11 bg-gradient-to-br from-purple-900/40 to-purple-800/40 hover:from-purple-800/50 hover:to-purple-700/50 border-purple-700/50 text-purple-300 font-semibold text-sm rounded-xl"
+                                className="flex-1 h-11 bg-purple-900/50 hover:bg-purple-800/60 border-purple-700/50 text-purple-300 font-semibold text-sm rounded-xl"
                             >
                                 <Heart className="h-4 w-4 mr-1.5" />
                                 Add to Favorites
@@ -509,13 +509,13 @@ export function FriendPinoryDetailsView({
     // DESKTOP: Dialog
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-[#0C0C0C] border border-purple-800/50 shadow-2xl flex flex-col rounded-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-background border border-purple-800/50 shadow-2xl flex flex-col rounded-2xl">
                 <DialogTitle className="sr-only">
                     Friend's location: {place.name}
                 </DialogTitle>
 
                 {/* Header with purple theme */}
-                <div className="relative bg-gradient-to-r from-purple-900/80 to-purple-800/80 border-b border-purple-700/50 px-6 py-4 flex-shrink-0">
+                <div className="relative bg-purple-900/80 border-b border-purple-700/50 px-6 py-4 flex-shrink-0">
                     <div className="flex items-center gap-3">
                         {user?.avatarUrl ? (
                             <Image
@@ -542,11 +542,11 @@ export function FriendPinoryDetailsView({
                 </div>
 
                 {/* Scrollable content */}
-                <div className="flex-1 overflow-y-auto bg-[#0C0C0C] custom-scrollbar">
+                <div className="flex-1 overflow-y-auto bg-background custom-scrollbar">
                     <div className="space-y-4 p-6">
                         {/* Cover Image */}
                         {images.length > 0 && (
-                            <div className="relative h-48 bg-gradient-to-r from-purple-900/30 to-purple-800/30 rounded-xl overflow-hidden border border-purple-500/20">
+                            <div className="relative h-48 bg-purple-900/30 rounded-xl overflow-hidden border border-purple-500/20">
                                 {isValidImageUrl(images[0]) ? (
                                     <ImageDisplay
                                         src={images[0]}
@@ -560,23 +560,23 @@ export function FriendPinoryDetailsView({
                                         </span>
                                     </div>
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-purple-900/50 to-transparent"></div>
+                                <div className="absolute inset-0 bg-purple-900/50"></div>
                             </div>
                         )}
 
                         {/* Place Info */}
                         <div className="space-y-3">
-                            <h2 className="text-xl font-bold text-[#EDEDED]">
+                            <h2 className="text-xl font-bold text-foreground">
                                 {place.name}
                             </h2>
-                            <p className="text-sm text-[#A0A0A0] flex items-start gap-2">
+                            <p className="text-sm text-muted-foreground flex items-start gap-2">
                                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-purple-400" />
                                 <span>{place.address}</span>
                             </p>
                             {rating && (
                                 <div className="flex items-center gap-1">
                                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                    <span className="font-medium text-[#EDEDED]">
+                                    <span className="font-medium text-foreground">
                                         {rating}/5
                                     </span>
                                 </div>
@@ -586,7 +586,7 @@ export function FriendPinoryDetailsView({
                         {/* Note */}
                         {note && (
                             <div className="bg-purple-900/10 p-4 rounded-lg border border-purple-500/20">
-                                <p className="text-sm text-[#EDEDED] italic">
+                                <p className="text-sm text-foreground italic">
                                     "{note}"
                                 </p>
                             </div>
@@ -594,7 +594,7 @@ export function FriendPinoryDetailsView({
 
                         {/* Visit Date */}
                         {visitDate && (
-                            <div className="flex items-center gap-2 text-sm text-[#A0A0A0] bg-neutral-900/50 p-3 rounded-lg">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card/50 p-3 rounded-lg">
                                 <Calendar className="w-4 h-4 text-purple-400" />
                                 <span>
                                     Visited on {formatVisitDate(visitDate)}
@@ -614,7 +614,7 @@ export function FriendPinoryDetailsView({
                                         (imageUrl: string, index: number) => (
                                             <button
                                                 key={index}
-                                                className="aspect-square bg-neutral-800 rounded-lg border border-purple-500/30 overflow-hidden hover:border-purple-500/60 transition-colors"
+                                                className="aspect-square bg-secondary rounded-lg border border-purple-500/30 overflow-hidden hover:border-purple-500/60 transition-colors"
                                                 onClick={() => {
                                                     setCurrentImageIndex(index);
                                                     setShowLightbox(true);
@@ -643,7 +643,7 @@ export function FriendPinoryDetailsView({
                 </div>
 
                 {/* Action Buttons */}
-                <div className="sticky bottom-0 bg-gradient-to-r from-purple-900/80 to-purple-800/80 backdrop-blur-xl border-t border-purple-700/50 p-4 flex-shrink-0">
+                <div className="sticky bottom-0 bg-purple-900/80 backdrop-blur-xl border-t border-purple-700/50 p-4 flex-shrink-0">
                     <div className="flex gap-3">
                         <Button
                             variant="outline"

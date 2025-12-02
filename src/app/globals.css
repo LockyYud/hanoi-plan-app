@@ -1,8 +1,57 @@
 @import "tailwindcss";
 
 :root {
+  /* Core theme colors */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
+  
+  /* Card */
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  
+  /* Popover */
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  
+  /* Primary */
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  
+  /* Secondary */
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
+  
+  /* Muted */
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  
+  /* Accent */
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  
+  /* Destructive */
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  
+  /* Border, Input, Ring */
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #0a0a0a;
+  
+  /* Brand Colors - Pinory coral gradient (không đổi theo theme) */
+  --brand: #FF6B6B;
+  --brand-hover: #FF5555;
+  --brand-secondary: #FF8E53;
+  --brand-secondary-hover: #FF7A3D;
+  --brand-accent: #FFD6A5;
+  
+  /* Surface Colors - for elevated elements (dialogs, cards, dropdowns) */
+  --surface: #ffffff;
+  --surface-elevated: #f9fafb;
+  --surface-overlay: #f3f4f6;
+  
+  /* Radius */
+  --radius: 0.5rem;
 
   /* Design Tokens - Typography Scale */
   --text-xs: 0.75rem;
@@ -50,14 +99,18 @@
   --color-primary-600: #2563eb;
   --color-primary-700: #1d4ed8;
 
-  /* Design Tokens - Colors - Neutral */
+  /* Design Tokens - Colors - Neutral (light mode: gray scale from light to dark) */
   --color-neutral-50: #f9fafb;
   --color-neutral-100: #f3f4f6;
   --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
   --color-neutral-500: #6b7280;
   --color-neutral-600: #4b5563;
   --color-neutral-700: #374151;
+  --color-neutral-800: #1f2937;
   --color-neutral-900: #111827;
+  --color-neutral-950: #030712;
 
   /* Design Tokens - Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -65,17 +118,115 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
+.dark {
+  /* Core theme colors - Dark mode */
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  
+  /* Card */
+  --card: #0a0a0a;
+  --card-foreground: #fafafa;
+  
+  /* Popover */
+  --popover: #0a0a0a;
+  --popover-foreground: #fafafa;
+  
+  /* Primary */
+  --primary: #fafafa;
+  --primary-foreground: #171717;
+  
+  /* Secondary */
+  --secondary: #262626;
+  --secondary-foreground: #fafafa;
+  
+  /* Muted */
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  
+  /* Accent */
+  --accent: #262626;
+  --accent-foreground: #fafafa;
+  
+  /* Destructive */
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fafafa;
+  
+  /* Border, Input, Ring */
+  --border: #262626;
+  --input: #262626;
+  --ring: #d4d4d4;
+
+  /* Surface Colors - for elevated elements (dialogs, cards, dropdowns) */
+  --surface: #171717;
+  --surface-elevated: #1f1f1f;
+  --surface-overlay: #262626;
+
+  /* Design Tokens - Colors - Neutral (dark mode: inverted scale) */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  /* Brand Colors */
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-secondary-hover: var(--brand-secondary-hover);
+  --color-brand-accent: var(--brand-accent);
+  --radius: var(--radius);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #fafafa;
+    --card: #0a0a0a;
+    --card-foreground: #fafafa;
+    --popover: #0a0a0a;
+    --popover-foreground: #fafafa;
+    --primary: #fafafa;
+    --primary-foreground: #171717;
+    --secondary: #262626;
+    --secondary-foreground: #fafafa;
+    --muted: #262626;
+    --muted-foreground: #a3a3a3;
+    --accent: #262626;
+    --accent-foreground: #fafafa;
+    --destructive: #7f1d1d;
+    --destructive-foreground: #fafafa;
+    --border: #262626;
+    --input: #262626;
+    --ring: #d4d4d4;
   }
 }
 
@@ -85,6 +236,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   font-size: var(--text-base);
   line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Mapbox controls styling */

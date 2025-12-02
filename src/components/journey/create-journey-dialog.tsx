@@ -308,20 +308,20 @@ export function CreateJourneyDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col bg-gradient-to-br from-[#0C0C0C] to-neutral-900 border-neutral-800 w-[95vw] sm:w-full rounded-2xl shadow-2xl">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col bg-card border-border w-[95vw] sm:w-full rounded-2xl shadow-2xl">
                 {/* Modern Header with Icon */}
-                <DialogHeader className="border-b border-neutral-800/50 pb-4 sm:pb-5 px-1">
+                <DialogHeader className="border-b border-border/50 pb-4 sm:pb-5 px-1">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] shadow-lg">
+                        <div className="p-2.5 sm:p-3 rounded-xl bg-brand shadow-lg">
                             <Route className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                         </div>
                         <div className="flex-1">
-                            <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#EDEDED] mb-0.5">
+                            <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-0.5">
                                 {editingJourney
                                     ? "Chỉnh sửa hành trình"
                                     : "Tạo hành trình mới"}
                             </DialogTitle>
-                            <p className="text-xs sm:text-sm text-neutral-400">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                                 {editingJourney
                                     ? "Cập nhật thông tin và địa điểm"
                                     : "Tạo hành trình từ các địa điểm đã lưu"}
@@ -335,10 +335,10 @@ export function CreateJourneyDialog({
                     className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 custom-scrollbar"
                 >
                     {/* Basic Info Section */}
-                    <div className="space-y-4 p-4 sm:p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                    <div className="space-y-4 p-4 sm:p-5 bg-card/50 rounded-xl border border-border/50">
                         <div className="flex items-center gap-2 mb-1">
-                            <div className="h-1 w-1 rounded-full bg-[#FF6B6B]"></div>
-                            <h3 className="text-sm sm:text-base font-semibold text-[#EDEDED]">
+                            <div className="h-1 w-1 rounded-full bg-brand"></div>
+                            <h3 className="text-sm sm:text-base font-semibold text-foreground">
                                 Thông tin cơ bản
                             </h3>
                         </div>
@@ -347,17 +347,17 @@ export function CreateJourneyDialog({
                         <div className="space-y-2">
                             <Label
                                 htmlFor="title"
-                                className="text-xs sm:text-sm text-neutral-300 font-medium flex items-center gap-1.5"
+                                className="text-xs sm:text-sm text-muted-foreground font-medium flex items-center gap-1.5"
                             >
                                 <span>Tên hành trình</span>
-                                <span className="text-[#FF6B6B]">*</span>
+                                <span className="text-brand">*</span>
                             </Label>
                             <Input
                                 id="title"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Ví dụ: Khám phá Hà Nội - Tuần 1"
-                                className="bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] h-10 sm:h-11 text-sm transition-colors rounded-lg"
+                                className="bg-secondary/80 border-border hover:border-border focus:border-brand/50 text-foreground h-10 sm:h-11 text-sm transition-colors rounded-lg"
                                 required
                             />
                         </div>
@@ -366,7 +366,7 @@ export function CreateJourneyDialog({
                         <div className="space-y-2">
                             <Label
                                 htmlFor="description"
-                                className="text-xs sm:text-sm text-neutral-300 font-medium"
+                                className="text-xs sm:text-sm text-muted-foreground font-medium"
                             >
                                 Mô tả
                             </Label>
@@ -376,17 +376,17 @@ export function CreateJourneyDialog({
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Mô tả ngắn về hành trình của bạn..."
                                 rows={2}
-                                className="bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] text-sm resize-none transition-colors rounded-lg"
+                                className="bg-secondary/80 border-border hover:border-border focus:border-brand/50 text-foreground text-sm resize-none transition-colors rounded-lg"
                             />
                         </div>
                     </div>
 
                     {/* Date Range Section */}
-                    <div className="space-y-3 p-4 sm:p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                    <div className="space-y-3 p-4 sm:p-5 bg-card/50 rounded-xl border border-border/50">
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                                <div className="h-1 w-1 rounded-full bg-[#FF6B6B]"></div>
-                                <h3 className="text-sm sm:text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                <div className="h-1 w-1 rounded-full bg-brand"></div>
+                                <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
                                     <Clock className="h-4 w-4" />
                                     Thời gian hành trình
                                 </h3>
@@ -413,7 +413,7 @@ export function CreateJourneyDialog({
                                 <div className="flex items-center justify-between gap-2">
                                     <Label
                                         htmlFor="start-date"
-                                        className="text-xs sm:text-sm text-neutral-300 font-medium"
+                                        className="text-xs sm:text-sm text-muted-foreground font-medium"
                                     >
                                         Ngày bắt đầu
                                     </Label>
@@ -435,14 +435,14 @@ export function CreateJourneyDialog({
                                     onChange={(e) =>
                                         setStartDate(e.target.value)
                                     }
-                                    className="bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] h-10 sm:h-11 text-sm transition-colors rounded-lg"
+                                    className="bg-secondary/80 border-border hover:border-border focus:border-brand/50 text-foreground h-10 sm:h-11 text-sm transition-colors rounded-lg"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between gap-2">
                                     <Label
                                         htmlFor="end-date"
-                                        className="text-xs sm:text-sm text-neutral-300 font-medium"
+                                        className="text-xs sm:text-sm text-muted-foreground font-medium"
                                     >
                                         Ngày kết thúc
                                     </Label>
@@ -462,7 +462,7 @@ export function CreateJourneyDialog({
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] h-10 sm:h-11 text-sm transition-colors rounded-lg"
+                                    className="bg-secondary/80 border-border hover:border-border focus:border-brand/50 text-foreground h-10 sm:h-11 text-sm transition-colors rounded-lg"
                                 />
                             </div>
                         </div>
@@ -470,7 +470,7 @@ export function CreateJourneyDialog({
                         {(startDate || endDate) &&
                             filteredAvailableNotes.length <
                                 availableNotes.length && (
-                                <div className="flex items-start gap-2 p-3 bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-lg">
+                                <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                                     <Calendar className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
                                     <p className="text-xs text-blue-300">
                                         Đang hiển thị{" "}
@@ -486,16 +486,16 @@ export function CreateJourneyDialog({
 
                     {/* Selected Places (with ordering) */}
                     {selectedNotes.length > 0 && (
-                        <div className="space-y-3 p-4 sm:p-5 bg-gradient-to-br from-[#FF6B6B]/10 to-[#FF8E53]/10 rounded-xl border border-[#FF6B6B]/30">
+                        <div className="space-y-3 p-4 sm:p-5 bg-brand/10 rounded-xl border border-brand/30">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-1 w-1 rounded-full bg-[#FF6B6B]"></div>
-                                    <h3 className="text-sm sm:text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                    <div className="h-1 w-1 rounded-full bg-brand"></div>
+                                    <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
                                         <Route className="h-4 w-4" />
                                         Lộ trình đã chọn
                                     </h3>
                                 </div>
-                                <Badge className="bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] text-white border-0 text-xs px-2.5 py-0.5">
+                                <Badge className="bg-brand text-white border-0 text-xs px-2.5 py-0.5">
                                     {selectedNotes.length} điểm
                                 </Badge>
                             </div>
@@ -524,14 +524,14 @@ export function CreateJourneyDialog({
                                                     "opacity-50 scale-95 rotate-2",
                                                 isDragOver &&
                                                     !isDragging &&
-                                                    "border-[#FF6B6B] bg-[#FF6B6B]/20 scale-105",
+                                                    "border-brand bg-brand/20 scale-105",
                                                 !isDragging &&
                                                     !isDragOver &&
-                                                    "bg-neutral-900/80 hover:bg-neutral-800/80 border-neutral-700/50 hover:border-[#FF6B6B]/30"
+                                                    "bg-card/80 hover:bg-secondary/80 border-border/50 hover:border-brand/30"
                                             )}
                                         >
                                             {/* Drag handle icon */}
-                                            <div className="flex-shrink-0 text-neutral-500 group-hover:text-[#FF6B6B] transition-colors touch-none">
+                                            <div className="flex-shrink-0 text-neutral-500 group-hover:text-brand transition-colors touch-none">
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     width="16"
@@ -578,17 +578,17 @@ export function CreateJourneyDialog({
                                             </div>
 
                                             {/* Order number */}
-                                            <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-lg">
+                                            <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-lg">
                                                 {index + 1}
                                             </div>
 
                                             {/* Place info */}
                                             <div className="flex-1 min-w-0">
-                                                <div className="text-xs sm:text-sm font-medium text-[#EDEDED] truncate">
+                                                <div className="text-xs sm:text-sm font-medium text-foreground truncate">
                                                     {note.content ||
                                                         "Không có tiêu đề"}
                                                 </div>
-                                                <div className="text-[10px] sm:text-xs text-neutral-400 truncate flex items-center gap-1 mt-0.5">
+                                                <div className="text-[10px] sm:text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
                                                     <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                                                     <span>{note.address}</span>
                                                 </div>
@@ -615,18 +615,18 @@ export function CreateJourneyDialog({
                     )}
 
                     {/* Available Places Section */}
-                    <div className="space-y-3 p-4 sm:p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                    <div className="space-y-3 p-4 sm:p-5 bg-card/50 rounded-xl border border-border/50">
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                                <div className="h-1 w-1 rounded-full bg-[#FF6B6B]"></div>
-                                <h3 className="text-sm sm:text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                <div className="h-1 w-1 rounded-full bg-brand"></div>
+                                <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
                                     <MapPin className="h-4 w-4" />
                                     Chọn địa điểm
                                 </h3>
                             </div>
                             <Badge
                                 variant="outline"
-                                className="bg-neutral-800 border-neutral-700 text-neutral-300 text-xs px-2.5 py-0.5"
+                                className="bg-secondary border-border text-muted-foreground text-xs px-2.5 py-0.5"
                             >
                                 {filteredAvailableNotes.length}
                                 {(startDate || endDate || searchQuery) &&
@@ -640,12 +640,12 @@ export function CreateJourneyDialog({
 
                         {/* Search Bar */}
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Tìm theo tên hoặc địa chỉ..."
-                                className="pl-9 bg-neutral-800/80 border-neutral-700 hover:border-neutral-600 focus:border-[#FF6B6B]/50 text-[#EDEDED] h-10 text-sm transition-colors rounded-lg"
+                                className="pl-9 bg-secondary/80 border-border hover:border-border focus:border-brand/50 text-foreground h-10 text-sm transition-colors rounded-lg"
                             />
                             {searchQuery && (
                                 <Button
@@ -653,7 +653,7 @@ export function CreateJourneyDialog({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setSearchQuery("")}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-neutral-400 hover:text-[#EDEDED]"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                                 >
                                     <X className="h-3.5 w-3.5" />
                                 </Button>
@@ -662,17 +662,17 @@ export function CreateJourneyDialog({
 
                         {/* Places List */}
                         {loadingNotes && (
-                            <div className="text-center py-8 text-neutral-400 text-sm">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF6B6B] mx-auto mb-2"></div>
+                            <div className="text-center py-8 text-muted-foreground text-sm">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand mx-auto mb-2"></div>
                                 Đang tải địa điểm...
                             </div>
                         )}
 
                         {!loadingNotes &&
                             filteredAvailableNotes.length === 0 && (
-                                <div className="text-center py-8 sm:py-10 bg-neutral-800/50 rounded-xl">
-                                    <MapPin className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-neutral-600" />
-                                    <p className="text-sm sm:text-base text-neutral-400 font-medium">
+                                <div className="text-center py-8 sm:py-10 bg-secondary/50 rounded-xl">
+                                    <MapPin className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-muted-foreground" />
+                                    <p className="text-sm sm:text-base text-muted-foreground font-medium">
                                         Không có địa điểm nào
                                     </p>
                                     {(startDate || endDate || searchQuery) && (
@@ -708,19 +708,19 @@ export function CreateJourneyDialog({
                                             className={cn(
                                                 "group flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all border",
                                                 isSelected
-                                                    ? "bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 border-[#FF6B6B]/50 shadow-sm"
-                                                    : "bg-neutral-800/80 hover:bg-neutral-700/80 border-neutral-700/50 hover:border-neutral-600"
+                                                    ? "bg-brand/20 border-brand/50 shadow-sm"
+                                                    : "bg-secondary/80 hover:bg-accent/80 border-border/50 hover:border-border"
                                             )}
                                         >
-                                            <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-700/80 group-hover:bg-neutral-600/80 flex items-center justify-center text-xl sm:text-2xl transition-colors">
+                                            <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-700/80 group-hover:bg-muted/80 flex items-center justify-center text-xl sm:text-2xl transition-colors">
                                                 {note.mood || "📍"}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="text-xs sm:text-sm font-medium text-[#EDEDED] truncate">
+                                                <div className="text-xs sm:text-sm font-medium text-foreground truncate">
                                                     {note.content ||
                                                         "Không có tiêu đề"}
                                                 </div>
-                                                <div className="text-[10px] sm:text-xs text-neutral-400 truncate flex items-center gap-1 mt-0.5">
+                                                <div className="text-[10px] sm:text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
                                                     <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                                                     <span className="truncate">
                                                         {note.address}
@@ -736,7 +736,7 @@ export function CreateJourneyDialog({
                                                 </div>
                                             </div>
                                             {isSelected && (
-                                                <Badge className="bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] text-white border-0 text-xs px-2 py-0.5 flex-shrink-0 shadow-sm">
+                                                <Badge className="bg-brand text-white border-0 text-xs px-2 py-0.5 flex-shrink-0 shadow-sm">
                                                     ✓
                                                 </Badge>
                                             )}
@@ -748,19 +748,19 @@ export function CreateJourneyDialog({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-2.5 sm:gap-3 pt-4 sm:pt-5 border-t border-neutral-800/50">
+                    <div className="flex gap-2.5 sm:gap-3 pt-4 sm:pt-5 border-t border-border/50">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={onClose}
-                            className="flex-1 bg-neutral-800/80 hover:bg-neutral-700 text-[#EDEDED] border-neutral-700 hover:border-neutral-600 h-10 sm:h-11 text-sm font-medium rounded-lg transition-all"
+                            className="flex-1 bg-secondary/80 hover:bg-accent text-foreground border-border hover:border-border h-10 sm:h-11 text-sm font-medium rounded-lg transition-all"
                         >
                             Hủy
                         </Button>
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white border-0 h-10 sm:h-11 text-sm font-semibold shadow-lg hover:shadow-xl transition-all rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 bg-brand hover:from-brand-hover hover:to-brand-secondary-hover text-white border-0 h-10 sm:h-11 text-sm font-semibold shadow-lg hover:shadow-xl transition-all rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <span className="flex items-center gap-2">

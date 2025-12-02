@@ -81,17 +81,17 @@ export function JourneysTab({
   return (
     <div className="p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4 md:space-y-5">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-[10px] sm:text-xs font-bold text-[#EDEDED] uppercase tracking-wider flex-1 min-w-0">
+        <h3 className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-wider flex-1 min-w-0">
           <span className="hidden sm:inline">Hành trình của tôi</span>
           <span className="sm:hidden">Hành trình</span>
-          <span className="ml-1.5 sm:ml-2 inline-flex items-center justify-center px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-semibold rounded-full bg-[#FF6B6B]/20 text-[#FF6B6B] border border-[#FF6B6B]/30">
+          <span className="ml-1.5 sm:ml-2 inline-flex items-center justify-center px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-semibold rounded-full bg-brand/20 text-brand border border-brand/30">
             {journeys.length}
           </span>
         </h3>
         <Button
           size="sm"
           onClick={() => setShowCreateJourney(true)}
-          className="h-7 sm:h-8 px-2 sm:px-3 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white text-[10px] sm:text-xs flex-shrink-0"
+          className="h-7 sm:h-8 px-2 sm:px-3 bg-brand hover:bg-brand-hover text-white text-[10px] sm:text-xs flex-shrink-0"
         >
           <Plus className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
           <span className="hidden sm:inline">Tạo mới</span>
@@ -100,24 +100,24 @@ export function JourneysTab({
 
       <div className="space-y-2 sm:space-y-3">
         {loadingJourneys ? (
-          <div className="text-center py-6 sm:py-8 text-[#A0A0A0]">
-            <div className="animate-spin h-5 w-5 sm:h-6 sm:w-6 mx-auto mb-2 border-2 border-[#FF6B6B] border-t-transparent rounded-full" />
+          <div className="text-center py-6 sm:py-8 text-muted-foreground">
+            <div className="animate-spin h-5 w-5 sm:h-6 sm:w-6 mx-auto mb-2 border-2 border-brand border-t-transparent rounded-full" />
             <p className="text-xs sm:text-sm">Đang tải hành trình...</p>
           </div>
         ) : journeys.length === 0 ? (
-          <div className="text-center py-8 sm:py-10 md:py-12 text-[#A0A0A0] px-2">
-            <MapIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 text-neutral-600" />
+          <div className="text-center py-8 sm:py-10 md:py-12 text-muted-foreground px-2">
+            <MapIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 text-muted-foreground" />
             <p className="text-xs sm:text-sm mb-1.5 sm:mb-2">
               Chưa có hành trình nào
             </p>
-            <p className="text-[10px] sm:text-xs text-[#A0A0A0] mb-3 sm:mb-4">
+            <p className="text-[10px] sm:text-xs text-muted-foreground mb-3 sm:mb-4">
               Tạo hành trình từ các địa điểm đã note
             </p>
             <Button
               size="sm"
               variant="outline"
               onClick={() => setShowCreateJourney(true)}
-              className="bg-neutral-800 border-neutral-700 text-[#EDEDED] hover:bg-neutral-700 h-8 sm:h-9 text-xs"
+              className="bg-secondary border-border text-foreground hover:bg-accent h-8 sm:h-9 text-xs"
             >
               <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               <span className="hidden xs:inline">Tạo hành trình đầu tiên</span>

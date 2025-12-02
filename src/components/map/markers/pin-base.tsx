@@ -17,27 +17,27 @@ export const categoryConfig: Record<
 > = {
     cafe: {
         emoji: "☕",
-        color: "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg",
+        color: "bg-amber-500 text-white shadow-lg",
     },
     food: {
         emoji: "🍜",
-        color: "bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] text-white shadow-lg",
+        color: "bg-brand text-white shadow-lg",
     },
     bar: {
         emoji: "🍻",
-        color: "bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-lg",
+        color: "bg-purple-600 text-white shadow-lg",
     },
     rooftop: {
         emoji: "🏙️",
-        color: "bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg",
+        color: "bg-blue-500 text-white shadow-lg",
     },
     activity: {
         emoji: "🎯",
-        color: "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg",
+        color: "bg-green-500 text-white shadow-lg",
     },
     landmark: {
         emoji: "🏛️",
-        color: "bg-gradient-to-br from-neutral-600 to-neutral-800 text-white shadow-lg",
+        color: "bg-neutral-500 text-white shadow-lg",
     },
 };
 
@@ -74,8 +74,8 @@ export const sizeConfig = {
 // Theme colors for different pin variants
 export const themeConfig = {
     default: {
-        ring: "ring-white group-hover:ring-[#FF6B6B]",
-        focusRing: "focus:ring-[#FF6B6B]",
+        ring: "ring-white group-hover:ring-brand",
+        focusRing: "focus:ring-brand",
         shadow: "rgba(0, 0, 0, 0.25)",
         hoverOverlay: "from-black/20",
     },
@@ -279,7 +279,7 @@ export function PinBase({
                 className={cn(
                     "relative bg-white rounded-sm overflow-hidden",
                     "transition-all duration-300 group-hover:shadow-2xl",
-                    "border border-neutral-200",
+                    "border border-border",
                     config.border,
                     config.image
                 )}
@@ -305,7 +305,7 @@ export function PinBase({
                 {/* Subtle gradient overlay on hover */}
                 <div
                     className={cn(
-                        "absolute inset-0 bg-gradient-to-t via-transparent to-transparent",
+                        "absolute inset-0 bg-transparent",
                         "opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none",
                         themeStyles.hoverOverlay
                     )}

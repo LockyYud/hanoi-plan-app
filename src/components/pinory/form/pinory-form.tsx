@@ -613,21 +613,21 @@ export function PinoryForm({
     return (
         <>
             <Dialog open={isOpen} onOpenChange={handleClose}>
-                <DialogContent className="max-w-[720px] h-[80vh] overflow-hidden p-0 bg-[var(--background)] border-[var(--color-neutral-700)] rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] flex flex-col [&>button]:hidden">
+                <DialogContent className="max-w-[720px] h-[80vh] overflow-hidden p-0 bg-[var(--background)] border-border rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] flex flex-col [&>button]:hidden">
                     {/* Enhanced Header */}
-                    <div className="bg-[var(--color-neutral-900)] border-b border-[var(--color-neutral-700)] px-7 py-6 flex-shrink-0">
+                    <div className="bg-card border-b border-border px-7 py-6 flex-shrink-0">
                         <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
                                 <DialogTitle asChild>
                                     <Input
                                         {...register("placeName")}
                                         placeholder="Tên địa điểm"
-                                        className="text-xl font-semibold text-[var(--foreground)] mb-2 h-auto py-2 px-3 bg-transparent border-transparent hover:border-[var(--color-neutral-700)] focus:border-[var(--color-primary-500)] focus:bg-[var(--color-neutral-800)] rounded-lg transition-all"
+                                        className="text-xl font-semibold text-[var(--foreground)] mb-2 h-auto py-2 px-3 bg-transparent border-transparent hover:border-border focus:border-[var(--color-primary-500)] focus:bg-secondary rounded-lg transition-all"
                                     />
                                 </DialogTitle>
                                 <div className="flex items-center gap-2">
-                                    <MapPin className="h-4 w-4 text-[var(--color-neutral-500)] flex-shrink-0" />
-                                    <span className="text-sm text-[var(--color-neutral-500)] truncate">
+                                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <span className="text-sm text-muted-foreground truncate">
                                         {location.address ||
                                             "Không xác định được địa chỉ"}
                                     </span>
@@ -638,7 +638,7 @@ export function PinoryForm({
                                 variant="ghost"
                                 size="sm"
                                 onClick={handleClose}
-                                className="text-[var(--color-neutral-500)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] p-2 h-10 w-10"
+                                className="text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent p-2 h-10 w-10"
                             >
                                 <X className="h-4 w-4" />
                                 <span className="sr-only">Đóng</span>
@@ -672,9 +672,9 @@ export function PinoryForm({
                                             target.style.height =
                                                 target.scrollHeight + "px";
                                         }}
-                                        className="resize-none bg-transparent border-0 border-none text-[var(--foreground)] placeholder-[var(--color-neutral-500)] text-lg leading-relaxed transition-colors focus:outline-none focus:ring-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[60px] pr-16 w-full overflow-hidden"
+                                        className="resize-none bg-transparent border-0 border-none text-[var(--foreground)] placeholder-muted-foreground text-lg leading-relaxed transition-colors focus:outline-none focus:ring-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[60px] pr-16 w-full overflow-hidden"
                                     />
-                                    <div className="absolute bottom-2 right-2 text-xs text-[var(--color-neutral-500)] pointer-events-none">
+                                    <div className="absolute bottom-2 right-2 text-xs text-muted-foreground pointer-events-none">
                                         {contentValue.length}/280
                                     </div>
                                 </div>
@@ -714,7 +714,7 @@ export function PinoryForm({
                                                 (url, index) => (
                                                     <div
                                                         key={`existing-image-${existingPinory?.id || "new"}-${index}`}
-                                                        className={`group relative bg-[var(--color-neutral-900)] overflow-hidden ${
+                                                        className={`group relative bg-card overflow-hidden ${
                                                             totalImages === 1
                                                                 ? "aspect-[4/3]"
                                                                 : totalImages ===
@@ -730,7 +730,7 @@ export function PinoryForm({
                                                             <>
                                                                 <button
                                                                     type="button"
-                                                                    className="w-full h-full cursor-pointer bg-[var(--color-neutral-950)]"
+                                                                    className="w-full h-full cursor-pointer bg-muted"
                                                                     onClick={() =>
                                                                         openLightbox(
                                                                             allImages,
@@ -788,7 +788,7 @@ export function PinoryForm({
                                                                 </div>
                                                             </>
                                                         ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-[var(--color-neutral-500)]">
+                                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                                                                 <div className="text-center">
                                                                     <div className="text-xl mb-1">
                                                                         📷
@@ -807,7 +807,7 @@ export function PinoryForm({
                                             {previewUrls.map((url, index) => (
                                                 <div
                                                     key={`new-image-${url.slice(-10)}-${index}`}
-                                                    className={`group relative bg-[var(--color-neutral-900)] overflow-hidden ${
+                                                    className={`group relative bg-card overflow-hidden ${
                                                         totalImages === 1
                                                             ? "aspect-[4/3]"
                                                             : totalImages ===
@@ -821,7 +821,7 @@ export function PinoryForm({
                                                 >
                                                     <button
                                                         type="button"
-                                                        className="w-full h-full cursor-pointer bg-[var(--color-neutral-950)]"
+                                                        className="w-full h-full cursor-pointer bg-muted"
                                                         onClick={() =>
                                                             openLightbox(
                                                                 allImages,
@@ -884,7 +884,7 @@ export function PinoryForm({
                                         </div>
 
                                         {/* Add more button - Facebook style */}
-                                        <div className="flex items-center justify-center border-t border-[var(--color-neutral-800)] pt-3 mt-3">
+                                        <div className="flex items-center justify-center border-t border-border pt-3 mt-3">
                                             <Button
                                                 type="button"
                                                 variant="ghost"
@@ -896,7 +896,7 @@ export function PinoryForm({
                                                         )
                                                         ?.click()
                                                 }
-                                                className="text-[var(--color-neutral-400)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-800)] h-10"
+                                                className="text-muted-foreground hover:text-[var(--foreground)] hover:bg-secondary h-10"
                                             >
                                                 <Plus className="h-4 w-4 mr-2" />
                                                 Thêm ảnh
@@ -909,7 +909,7 @@ export function PinoryForm({
                     </div>
 
                     {/* Add to post - Facebook style actions bar */}
-                    <div className="flex items-center justify-between px-7 py-3 border-t border-[var(--color-neutral-800)] bg-[var(--background)] flex-shrink-0">
+                    <div className="flex items-center justify-between px-7 py-3 border-t border-border bg-[var(--background)] flex-shrink-0">
                         <span className="text-sm font-medium text-[var(--foreground)]">
                             Thêm vào bài viết
                         </span>
@@ -922,7 +922,7 @@ export function PinoryForm({
                                 onClick={() =>
                                     document.getElementById("images")?.click()
                                 }
-                                className="h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] text-green-500"
+                                className="h-9 w-9 rounded-full hover:bg-secondary text-green-500"
                                 title="Thêm ảnh"
                             >
                                 <ImageIcon className="h-5 w-5" />
@@ -939,7 +939,7 @@ export function PinoryForm({
                                         setShowVisibilityMenu(false);
                                         setShowTimeMenu(false);
                                     }}
-                                    className={`h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] ${selectedCategory ? "text-purple-500" : "text-[var(--color-neutral-500)]"}`}
+                                    className={`h-9 w-9 rounded-full hover:bg-secondary ${selectedCategory ? "text-purple-500" : "text-muted-foreground"}`}
                                     title="Chọn danh mục"
                                 >
                                     <Tag className="h-5 w-5" />
@@ -947,7 +947,7 @@ export function PinoryForm({
 
                                 {/* Category Dropdown Menu */}
                                 {showCategoryMenu && (
-                                    <div className="absolute bottom-full right-0 mb-2 w-72 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-lg shadow-xl z-50 p-3">
+                                    <div className="absolute bottom-full right-0 mb-2 w-72 bg-card border border-border rounded-lg shadow-xl z-50 p-3">
                                         <div className="space-y-3">
                                             <div className="text-sm font-medium text-[var(--foreground)]">
                                                 Danh mục
@@ -956,7 +956,7 @@ export function PinoryForm({
                                             {isLoadingCategories ? (
                                                 <div className="flex items-center py-2">
                                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary-500)]"></div>
-                                                    <span className="ml-2 text-sm text-[var(--color-neutral-500)]">
+                                                    <span className="ml-2 text-sm text-muted-foreground">
                                                         Đang tải...
                                                     </span>
                                                 </div>
@@ -970,7 +970,7 @@ export function PinoryForm({
                                                                 e.target.value
                                                             );
                                                         }}
-                                                        className="w-full h-10 px-3 bg-[var(--color-neutral-800)] border border-[var(--color-neutral-700)] text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-colors appearance-none cursor-pointer text-sm"
+                                                        className="w-full h-10 px-3 bg-secondary border border-border text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-colors appearance-none cursor-pointer text-sm"
                                                         style={{
                                                             backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                                                             backgroundPosition:
@@ -1006,7 +1006,7 @@ export function PinoryForm({
                                                     </select>
 
                                                     {/* Create new category */}
-                                                    <div className="flex gap-2 pt-2 border-t border-[var(--color-neutral-700)]">
+                                                    <div className="flex gap-2 pt-2 border-t border-border">
                                                         <Input
                                                             value={
                                                                 customCategoryName
@@ -1018,7 +1018,7 @@ export function PinoryForm({
                                                                 )
                                                             }
                                                             placeholder="Tạo mới..."
-                                                            className="flex-1 h-9 text-sm bg-[var(--color-neutral-800)] border-[var(--color-neutral-700)] text-[var(--foreground)] placeholder-[var(--color-neutral-500)] rounded-lg"
+                                                            className="flex-1 h-9 text-sm bg-secondary border-border text-[var(--foreground)] placeholder-muted-foreground rounded-lg"
                                                             onKeyDown={(e) => {
                                                                 if (
                                                                     e.key ===
@@ -1039,7 +1039,7 @@ export function PinoryForm({
                                                             disabled={
                                                                 !customCategoryName.trim()
                                                             }
-                                                            className="h-9 px-2 border-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-700)]"
+                                                            className="h-9 px-2 border-border hover:bg-accent"
                                                         >
                                                             <Plus className="h-4 w-4" />
                                                         </Button>
@@ -1062,7 +1062,7 @@ export function PinoryForm({
                                         setShowVisibilityMenu(false);
                                         setShowCategoryMenu(false);
                                     }}
-                                    className="h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] text-orange-500"
+                                    className="h-9 w-9 rounded-full hover:bg-secondary text-orange-500"
                                     title="Thời gian ghé thăm"
                                 >
                                     <Clock className="h-5 w-5" />
@@ -1070,7 +1070,7 @@ export function PinoryForm({
 
                                 {/* Time Dropdown Menu */}
                                 {showTimeMenu && (
-                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-lg shadow-xl z-50 p-3">
+                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-card border border-border rounded-lg shadow-xl z-50 p-3">
                                         <div className="space-y-2">
                                             <div className="text-sm font-medium text-[var(--foreground)]">
                                                 Thời gian ghé thăm
@@ -1078,7 +1078,7 @@ export function PinoryForm({
                                             <Input
                                                 type="datetime-local"
                                                 {...register("visitTime")}
-                                                className="h-10 bg-[var(--color-neutral-800)] border-[var(--color-neutral-700)] text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 text-sm"
+                                                className="h-10 bg-secondary border-border text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 text-sm"
                                             />
                                         </div>
                                     </div>
@@ -1098,7 +1098,7 @@ export function PinoryForm({
                                         setShowCategoryMenu(false);
                                         setShowTimeMenu(false);
                                     }}
-                                    className="h-9 w-9 rounded-full hover:bg-[var(--color-neutral-800)] text-blue-500"
+                                    className="h-9 w-9 rounded-full hover:bg-secondary text-blue-500"
                                     title="Ai có thể xem?"
                                 >
                                     {watch("visibility") === "private" && (
@@ -1114,7 +1114,7 @@ export function PinoryForm({
 
                                 {/* Visibility Dropdown Menu */}
                                 {showVisibilityMenu && (
-                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] rounded-lg shadow-xl z-50 p-2">
+                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-card border border-border rounded-lg shadow-xl z-50 p-2">
                                         <div className="space-y-1">
                                             <button
                                                 type="button"
@@ -1131,7 +1131,7 @@ export function PinoryForm({
                                                     watch("visibility") ===
                                                     "private"
                                                         ? "bg-blue-500/20 border border-blue-500"
-                                                        : "hover:bg-[var(--color-neutral-800)]"
+                                                        : "hover:bg-secondary"
                                                 }`}
                                             >
                                                 <Lock className="h-5 w-5 flex-shrink-0" />
@@ -1139,7 +1139,7 @@ export function PinoryForm({
                                                     <div className="font-medium text-sm">
                                                         Riêng tư
                                                     </div>
-                                                    <div className="text-xs text-[var(--color-neutral-500)]">
+                                                    <div className="text-xs text-muted-foreground">
                                                         Chỉ bạn có thể xem
                                                     </div>
                                                 </div>
@@ -1160,7 +1160,7 @@ export function PinoryForm({
                                                     watch("visibility") ===
                                                     "friends"
                                                         ? "bg-blue-500/20 border border-blue-500"
-                                                        : "hover:bg-[var(--color-neutral-800)]"
+                                                        : "hover:bg-secondary"
                                                 }`}
                                             >
                                                 <Users className="h-5 w-5 flex-shrink-0" />
@@ -1168,7 +1168,7 @@ export function PinoryForm({
                                                     <div className="font-medium text-sm">
                                                         Bạn bè
                                                     </div>
-                                                    <div className="text-xs text-[var(--color-neutral-500)]">
+                                                    <div className="text-xs text-muted-foreground">
                                                         Bạn bè của bạn có thể
                                                         xem
                                                     </div>
@@ -1190,7 +1190,7 @@ export function PinoryForm({
                                                     watch("visibility") ===
                                                     "public"
                                                         ? "bg-blue-500/20 border border-blue-500"
-                                                        : "hover:bg-[var(--color-neutral-800)]"
+                                                        : "hover:bg-secondary"
                                                 }`}
                                             >
                                                 <Globe className="h-5 w-5 flex-shrink-0" />
@@ -1198,7 +1198,7 @@ export function PinoryForm({
                                                     <div className="font-medium text-sm">
                                                         Công khai
                                                     </div>
-                                                    <div className="text-xs text-[var(--color-neutral-500)]">
+                                                    <div className="text-xs text-muted-foreground">
                                                         Mọi người có thể xem
                                                     </div>
                                                 </div>
@@ -1213,14 +1213,14 @@ export function PinoryForm({
                     {/* FIXED FOOTER */}
                     <form
                         onSubmit={handleSubmit(onFormSubmit)}
-                        className="border-t border-[var(--color-neutral-800)]/50 bg-[var(--background)] px-7 py-4 flex-shrink-0"
+                        className="border-t border-border/50 bg-[var(--background)] px-7 py-4 flex-shrink-0"
                     >
                         <div className="flex justify-end gap-2.5 sm:gap-3">
                             <Button
                                 type="button"
                                 variant="ghost"
                                 onClick={handleClose}
-                                className="min-h-[44px] px-6 text-[var(--color-neutral-500)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)]/50 rounded-lg transition-all"
+                                className="min-h-[44px] px-6 text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent/50 rounded-lg transition-all"
                             >
                                 Hủy
                             </Button>
@@ -1262,7 +1262,7 @@ export function PinoryForm({
 
             {/* Undo Toast */}
             {showUndoToast && (
-                <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-[var(--color-neutral-900)] border border-[var(--color-neutral-700)] text-[var(--foreground)] px-6 py-3 rounded-xl shadow-[var(--shadow-lg)] flex items-center gap-4 z-50 backdrop-blur-sm">
+                <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-card border border-border text-[var(--foreground)] px-6 py-3 rounded-xl shadow-[var(--shadow-lg)] flex items-center gap-4 z-50 backdrop-blur-sm">
                     <span className="flex items-center gap-2">
                         <span className="text-green-400">✅</span>
                         <span>Đã lưu ghi chú</span>
@@ -1270,7 +1270,7 @@ export function PinoryForm({
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="text-[var(--color-neutral-500)] hover:text-[var(--foreground)] hover:bg-[var(--color-neutral-700)] px-3 py-1 h-auto text-sm"
+                        className="text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent px-3 py-1 h-auto text-sm"
                         onClick={() => {
                             // Could implement undo logic here
                             setShowUndoToast(false);

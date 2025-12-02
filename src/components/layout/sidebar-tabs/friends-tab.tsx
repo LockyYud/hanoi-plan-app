@@ -42,7 +42,7 @@ export function FriendsTab({
   return (
     <div className="p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-[10px] sm:text-xs font-bold text-[#EDEDED] uppercase tracking-wider flex-1 min-w-0">
+        <h3 className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-wider flex-1 min-w-0">
           Bạn bè
           <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
             {friends.length}
@@ -51,7 +51,7 @@ export function FriendsTab({
         <Button
           size="sm"
           onClick={() => setShowInviteDialog(true)}
-          className="h-7 sm:h-8 px-2 sm:px-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white text-[10px] sm:text-xs flex-shrink-0"
+          className="h-7 sm:h-8 px-2 sm:px-3 bg-purple-600 hover:bg-purple-500 text-white text-[10px] sm:text-xs flex-shrink-0"
           title="Mời bạn bè"
         >
           <Plus className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
@@ -84,7 +84,7 @@ export function FriendsTab({
                   <User className="w-10 h-10 p-2 bg-yellow-500/20 text-yellow-400 rounded-full" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-[#EDEDED] truncate">
+                  <div className="text-sm font-medium text-foreground truncate">
                     {request.requester.name || request.requester.email}
                   </div>
                   <div className="text-xs text-gray-500">
@@ -105,7 +105,7 @@ export function FriendsTab({
                     variant="outline"
                     onClick={() => handleRejectFriendRequest(request.id)}
                     disabled={processingRequest === request.id}
-                    className="h-8 px-3 bg-neutral-800 hover:bg-neutral-700 text-white text-xs border-neutral-700"
+                    className="h-8 px-3 bg-secondary hover:bg-accent text-foreground text-xs border-border"
                   >
                     ✕
                   </Button>
@@ -130,13 +130,13 @@ export function FriendsTab({
           </div>
         ) : (
           <div className="space-y-2">
-            <div className="text-xs text-[#A0A0A0] uppercase tracking-wider font-bold px-1">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold px-1">
               Danh sách bạn bè
             </div>
             {friends.map((friend) => (
               <div
                 key={friend.id}
-                className="flex items-center gap-3 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-lg transition-colors"
+                className="flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-lg transition-colors"
               >
                 {friend.avatarUrl ? (
                   <img
@@ -148,7 +148,7 @@ export function FriendsTab({
                   <User className="w-10 h-10 p-2 bg-purple-500/20 text-purple-400 rounded-full" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-[#EDEDED] truncate">
+                  <div className="text-sm font-medium text-foreground truncate">
                     {friend.name || friend.email}
                   </div>
                   <div className="text-xs text-gray-500">

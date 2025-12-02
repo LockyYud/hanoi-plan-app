@@ -234,7 +234,7 @@ export function FloatingActionButton({
                     onClick={handleToggle}
                     className={cn(
                         "w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 relative overflow-hidden group",
-                        "bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53]",
+                        "bg-brand",
                         "hover:shadow-2xl hover:scale-105",
                         "active:scale-95",
                         isOpen && "rotate-45"
@@ -245,7 +245,7 @@ export function FloatingActionButton({
                 >
                     {/* Pulse effect when closed */}
                     {!isOpen && (
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] animate-ping opacity-20" />
+                        <div className="absolute inset-0 rounded-full bg-brand animate-ping opacity-20" />
                     )}
 
                     {/* Icon */}

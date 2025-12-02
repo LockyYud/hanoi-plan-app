@@ -42,7 +42,7 @@ export function FriendPinoryPin({
 
     // Custom placeholder with purple gradient for friend pins
     const friendPlaceholder = (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-purple-200">
+        <div className="w-full h-full flex items-center justify-center bg-purple-100">
             <span className="text-3xl">
                 {categoryInfo?.emoji || mood || "📍"}
             </span>

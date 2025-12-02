@@ -224,14 +224,14 @@ export function RouteDisplay({
 
   return (
     <div className="absolute top-2 sm:top-4 left-1/2 transform -translate-x-1/2 z-10 w-[90vw] xs:w-auto xs:max-w-sm sm:max-w-md px-2 xs:px-0">
-      <div className="bg-[#0C0C0C]/95 backdrop-blur-lg rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-neutral-800 shadow-2xl">
+      <div className="bg-background/95 backdrop-blur-lg rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-border shadow-2xl">
         <div className="flex items-start justify-between mb-2 sm:mb-3">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-[#EDEDED] mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2">
-              <Navigation className="h-3 w-3 sm:h-4 sm:w-4 text-[#FF6B6B] flex-shrink-0" />
+            <h3 className="text-xs sm:text-sm font-bold text-foreground mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2">
+              <Navigation className="h-3 w-3 sm:h-4 sm:w-4 text-brand flex-shrink-0" />
               <span className="truncate">Lộ trình kỷ niệm</span>
             </h3>
-            <p className="text-[10px] sm:text-xs text-[#A0A0A0]">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
               {notes.length} điểm • <span className="hidden xs:inline">~</span>
               {totalDistance.toFixed(1)} km
             </p>
@@ -240,14 +240,14 @@ export function RouteDisplay({
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-6 w-6 sm:h-8 sm:w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-800 flex-shrink-0"
+            className="h-6 w-6 sm:h-8 sm:w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary flex-shrink-0"
           >
             <X className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
 
         {/* Info */}
-        <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#A0A0A0]">
+        <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
           <div className="flex items-center gap-1 sm:gap-2">
             <span className="text-sm sm:text-base">▶ ▶ ▶</span>
             <span className="hidden xs:inline">Hướng đi</span>

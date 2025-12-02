@@ -41,9 +41,9 @@ export function JourneyCard({
         journey.coverImage || journey.stops[0]?.place?.media?.[0]?.url || null;
 
     return (
-        <Card className="group relative p-3 sm:p-4 bg-gradient-to-br from-neutral-900/70 to-neutral-800/70 border border-neutral-800/70 hover:border-[#FF6B6B]/40 hover:shadow-xl hover:shadow-[#FF6B6B]/10 transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden hover:scale-[1.02]">
+        <Card className="group relative p-3 sm:p-4 bg-card/70 border border-border/70 hover:border-brand/40 hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden hover:scale-[1.02]">
             {/* Hover gradient effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#FF6B6B]/0 via-[#FF6B6B]/5 to-[#FF6B6B]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
             <div className="relative flex gap-2.5 sm:gap-4">
                 {/* Cover Image */}
@@ -60,12 +60,12 @@ export function JourneyCard({
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-[#EDEDED] mb-1.5 sm:mb-2 truncate group-hover:text-[#FF6B6B] transition-colors duration-200">
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-foreground mb-1.5 sm:mb-2 truncate group-hover:text-brand transition-colors duration-200">
                         {journey.title}
                     </h3>
 
                     {journey.description && (
-                        <p className="text-xs sm:text-sm text-[#A0A0A0] mb-2 sm:mb-3 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
                             {journey.description}
                         </p>
                     )}
@@ -74,7 +74,7 @@ export function JourneyCard({
                     <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3">
                         <Badge
                             variant="outline"
-                            className="px-2 sm:px-2.5 py-0.5 sm:py-1 bg-gradient-to-r from-[#FF6B6B]/20 to-[#FF8E53]/20 text-[#FF6B6B] border-[#FF6B6B]/30 rounded-lg font-semibold text-[10px] sm:text-xs"
+                            className="px-2 sm:px-2.5 py-0.5 sm:py-1 bg-brand/20 text-brand border-brand/30 rounded-lg font-semibold text-[10px] sm:text-xs"
                         >
                             <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                             {journey.stops.length} địa điểm
@@ -83,7 +83,7 @@ export function JourneyCard({
                         {journey.startDate && journey.endDate && (
                             <Badge
                                 variant="outline"
-                                className="px-2 sm:px-2.5 py-0.5 sm:py-1 bg-neutral-800 border-neutral-700 text-[#EDEDED] rounded-lg text-[10px] sm:text-xs hidden xs:flex items-center"
+                                className="px-2 sm:px-2.5 py-0.5 sm:py-1 bg-secondary border-border text-foreground rounded-lg text-[10px] sm:text-xs hidden xs:flex items-center"
                             >
                                 <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                                 <span className="hidden sm:inline">
@@ -107,7 +107,7 @@ export function JourneyCard({
                         <Button
                             size="sm"
                             variant="outline"
-                            className="h-7 sm:h-8 px-2 sm:px-3 text-[10px] sm:text-xs bg-[#FF6B6B] hover:bg-[#FF5555] text-white border-0 flex-shrink-0"
+                            className="h-7 sm:h-8 px-2 sm:px-3 text-[10px] sm:text-xs bg-brand hover:bg-brand-hover text-white border-0 flex-shrink-0"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onShowOnMap(journey);
@@ -122,7 +122,7 @@ export function JourneyCard({
                         <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-[#A0A0A0] hover:text-[#EDEDED] hover:bg-neutral-700 flex-shrink-0"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent flex-shrink-0"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onView(journey);

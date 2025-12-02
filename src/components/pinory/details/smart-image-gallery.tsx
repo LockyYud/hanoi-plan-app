@@ -55,10 +55,10 @@ export function SmartImageGallery({
         <button
             type="button"
             className={cn(
-                "group relative bg-neutral-900 overflow-hidden transition-all duration-200 cursor-pointer",
+                "group relative bg-card overflow-hidden transition-all duration-200 cursor-pointer",
                 isMobile
-                    ? "rounded-lg border border-neutral-700/50"
-                    : "rounded-xl border border-neutral-700/50 hover:border-blue-500/50",
+                    ? "rounded-lg border border-border/50"
+                    : "rounded-xl border border-border/50 hover:border-blue-500/50",
                 aspectClass,
                 itemClassName
             )}
@@ -71,7 +71,7 @@ export function SmartImageGallery({
                         src={src}
                         alt={`Ảnh ${index + 1}`}
                         className={cn(
-                            "w-full h-full object-cover bg-neutral-950",
+                            "w-full h-full object-cover bg-background",
                             !isMobile &&
                                 "group-hover:scale-105 transition-transform duration-200"
                         )}
@@ -103,7 +103,7 @@ export function SmartImageGallery({
                     )}
                 </>
             ) : (
-                <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                     <div className="text-center">
                         <div
                             className={cn(

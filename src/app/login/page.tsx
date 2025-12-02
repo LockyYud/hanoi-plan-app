@@ -21,10 +21,10 @@ export default function LoginPage() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-[#0C0C0C] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#A0A0A0] text-sm">Đang tải...</p>
+          <p className="text-muted-foreground text-sm">Đang tải...</p>
         </div>
       </div>
     );
@@ -35,7 +35,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0C0C0C] via-[#111111] to-[#0C0C0C] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-card via-[#111111] to-[#0C0C0C] flex items-center justify-center p-4">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
@@ -46,7 +46,7 @@ export default function LoginPage() {
         {/* Back button */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-[#A0A0A0] hover:text-[#EDEDED] transition-colors mb-8 group"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 group"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
           <span className="text-sm">Quay lại trang chủ</span>
@@ -60,25 +60,25 @@ export default function LoginPage() {
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20"></div>
             </div>
 
-            <h1 className="text-2xl font-bold text-[#EDEDED] mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               Đăng nhập vào Pinory 🔐
             </h1>
-            <p className="text-[#A0A0A0] leading-relaxed">
+            <p className="text-muted-foreground leading-relaxed">
               Bắt đầu ghim câu chuyện của bạn
             </p>
           </div>
 
           {/* Benefits */}
           <div className="space-y-4 mb-8">
-            <div className="flex items-center gap-3 text-sm text-[#A0A0A0] bg-gradient-to-r from-blue-900/30 to-blue-800/30 border border-blue-700/30 rounded-xl p-4">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground bg-gradient-to-r from-blue-900/30 to-blue-800/30 border border-blue-700/30 rounded-xl p-4">
               <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
               <span>Lưu trữ ghi chú không giới hạn</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-[#A0A0A0] bg-gradient-to-r from-green-900/30 to-green-800/30 border border-green-700/30 rounded-xl p-4">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground bg-gradient-to-r from-green-900/30 to-green-800/30 border border-green-700/30 rounded-xl p-4">
               <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
               <span>Tạo nhóm và chia sẻ với bạn bè</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-[#A0A0A0] bg-gradient-to-r from-purple-900/30 to-purple-800/30 border border-purple-700/30 rounded-xl p-4">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground bg-gradient-to-r from-purple-900/30 to-purple-800/30 border border-purple-700/30 rounded-xl p-4">
               <div className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"></div>
               <span>Đồng bộ trên mọi thiết bị</span>
             </div>
@@ -134,7 +134,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-neutral-700/50 text-center">
-            <p className="text-xs text-[#A0A0A0]">
+            <p className="text-xs text-muted-foreground">
               Bằng việc đăng nhập, bạn đồng ý với{" "}
               <Link
                 href="/terms"

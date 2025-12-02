@@ -22,7 +22,7 @@ export function FeedTab({ activityFeed }: FeedTabProps) {
   return (
     <div className="p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-[10px] sm:text-xs font-bold text-[#EDEDED] uppercase tracking-wider">
+        <h3 className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-wider">
           Hoạt động
           <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
             {activityFeed.length}
@@ -46,7 +46,7 @@ export function FeedTab({ activityFeed }: FeedTabProps) {
             {activityFeed.map((item) => (
               <div
                 key={item.id}
-                className="p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-lg transition-colors"
+                className="p-3 bg-secondary/50 hover:bg-secondary rounded-lg transition-colors"
               >
                 <div className="flex items-start gap-3">
                   {item.user.avatarUrl ? (
@@ -59,7 +59,7 @@ export function FeedTab({ activityFeed }: FeedTabProps) {
                     <User className="w-10 h-10 p-2 bg-blue-500/20 text-blue-400 rounded-full" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-[#EDEDED] mb-1">
+                    <div className="text-sm font-medium text-foreground mb-1">
                       {item.user.name || item.user.email}
                     </div>
                     <div className="text-sm text-gray-300 mb-1">

@@ -218,18 +218,18 @@ export function MemoryLaneView({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-[#0C0C0C] border-neutral-800 w-[95vw] sm:w-full">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-background border-border w-[95vw] sm:w-full">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#EDEDED] flex items-center gap-1.5 sm:gap-2">
-              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-[#FF6B6B]" />
+            <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-foreground flex items-center gap-1.5 sm:gap-2">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-brand" />
               <span className="truncate">Xem lại kỷ niệm</span>
             </DialogTitle>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-[#A0A0A0] hover:text-[#EDEDED] flex-shrink-0"
+              className="text-muted-foreground hover:text-foreground flex-shrink-0"
             >
               <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
@@ -238,7 +238,7 @@ export function MemoryLaneView({
 
         <div className="flex-1 overflow-y-auto space-y-4">
           {/* Date Range Filters */}
-          <Card className="p-4 bg-neutral-900/50 border-neutral-800">
+          <Card className="p-4 bg-card/50 border-border">
             <div className="space-y-4">
               {/* Quick filters */}
               <div className="flex flex-wrap gap-2">
@@ -271,8 +271,8 @@ export function MemoryLaneView({
                     className={cn(
                       "text-xs",
                       quickFilter === filter.value
-                        ? "bg-[#FF6B6B] hover:bg-[#FF5555] text-white"
-                        : "bg-neutral-800 text-[#A0A0A0] hover:text-[#EDEDED]"
+                        ? "bg-brand hover:bg-brand-hover text-white"
+                        : "bg-secondary text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {filter.label}
@@ -285,7 +285,7 @@ export function MemoryLaneView({
                 <div>
                   <label
                     htmlFor="start-date"
-                    className="text-xs text-[#A0A0A0] mb-1 block"
+                    className="text-xs text-muted-foreground mb-1 block"
                   >
                     Từ ngày
                   </label>
@@ -297,13 +297,13 @@ export function MemoryLaneView({
                       setStartDate(e.target.value);
                       setQuickFilter("all");
                     }}
-                    className="bg-neutral-800 border-neutral-700 text-[#EDEDED]"
+                    className="bg-secondary border-border text-foreground"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="end-date"
-                    className="text-xs text-[#A0A0A0] mb-1 block"
+                    className="text-xs text-muted-foreground mb-1 block"
                   >
                     Đến ngày
                   </label>
@@ -315,7 +315,7 @@ export function MemoryLaneView({
                       setEndDate(e.target.value);
                       setQuickFilter("all");
                     }}
-                    className="bg-neutral-800 border-neutral-700 text-[#EDEDED]"
+                    className="bg-secondary border-border text-foreground"
                   />
                 </div>
               </div>
@@ -325,17 +325,17 @@ export function MemoryLaneView({
           {/* Stats */}
           {notes.length > 0 && (
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <Card className="p-2 sm:p-3 md:p-4 bg-gradient-to-br from-[#FF6B6B]/20 to-[#FF6B6B]/5 border-[#FF6B6B]/30">
+              <Card className="p-2 sm:p-3 md:p-4 bg-brand/15 border-brand/30">
                 <div className="text-center">
-                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#FF6B6B]">
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-brand">
                     {notes.length}
                   </div>
-                  <div className="text-[10px] sm:text-xs text-[#A0A0A0]">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">
                     Địa điểm
                   </div>
                 </div>
               </Card>
-              <Card className="p-2 sm:p-3 md:p-4 bg-gradient-to-br from-green-500/20 to-green-500/5 border-green-500/30">
+              <Card className="p-2 sm:p-3 md:p-4 bg-green-500/15 border-green-500/30">
                 <div className="text-center">
                   <div className="text-lg sm:text-xl md:text-2xl font-bold text-green-400">
                     {
@@ -343,12 +343,12 @@ export function MemoryLaneView({
                         .length
                     }
                   </div>
-                  <div className="text-[10px] sm:text-xs text-[#A0A0A0]">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">
                     Có ảnh
                   </div>
                 </div>
               </Card>
-              <Card className="p-2 sm:p-3 md:p-4 bg-gradient-to-br from-blue-500/20 to-blue-500/5 border-blue-500/30">
+              <Card className="p-2 sm:p-3 md:p-4 bg-blue-500/15 border-blue-500/30">
                 <div className="text-center">
                   <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-400">
                     <span className="hidden xs:inline">
@@ -358,7 +358,7 @@ export function MemoryLaneView({
                       {totalDistance.toFixed(0)}km
                     </span>
                   </div>
-                  <div className="text-[10px] sm:text-xs text-[#A0A0A0]">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">
                     <span className="hidden xs:inline">Tổng quãng đường</span>
                     <span className="xs:hidden">Khoảng cách</span>
                   </div>
@@ -369,9 +369,9 @@ export function MemoryLaneView({
 
           {/* Sort Options */}
           {notes.length > 0 && (
-            <Card className="p-3 sm:p-4 bg-neutral-900/50 border-neutral-800">
+            <Card className="p-3 sm:p-4 bg-card/50 border-border">
               <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2">
-                <div className="text-xs sm:text-sm text-[#EDEDED] font-medium">
+                <div className="text-xs sm:text-sm text-foreground font-medium">
                   Sắp xếp:
                 </div>
                 <div className="flex gap-1.5 sm:gap-2 w-full xs:w-auto">
@@ -382,8 +382,8 @@ export function MemoryLaneView({
                     className={cn(
                       "text-[10px] sm:text-xs h-7 sm:h-8 flex-1 xs:flex-initial",
                       sortBy === "time"
-                        ? "bg-[#FF6B6B] hover:bg-[#FF5555]"
-                        : "bg-neutral-800 text-[#A0A0A0]"
+                        ? "bg-brand hover:bg-brand-hover"
+                        : "bg-secondary text-muted-foreground"
                     )}
                   >
                     <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
@@ -402,8 +402,8 @@ export function MemoryLaneView({
                     className={cn(
                       "text-[10px] sm:text-xs h-7 sm:h-8 flex-1 xs:flex-initial",
                       sortBy === "custom"
-                        ? "bg-[#FF6B6B] hover:bg-[#FF5555]"
-                        : "bg-neutral-800 text-[#A0A0A0]"
+                        ? "bg-brand hover:bg-brand-hover"
+                        : "bg-secondary text-muted-foreground"
                     )}
                   >
                     <Navigation className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
@@ -412,7 +412,7 @@ export function MemoryLaneView({
                 </div>
               </div>
               {sortBy === "custom" && (
-                <div className="mt-2 text-[10px] sm:text-xs text-[#A0A0A0]">
+                <div className="mt-2 text-[10px] sm:text-xs text-muted-foreground">
                   💡 Kéo thả các ghi chú để sắp xếp lại lộ trình
                 </div>
               )}
@@ -422,13 +422,13 @@ export function MemoryLaneView({
           {/* Notes List */}
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin h-8 w-8 mx-auto mb-3 border-2 border-[#FF6B6B] border-t-transparent rounded-full" />
-              <p className="text-sm text-[#A0A0A0]">Đang tải kỷ niệm...</p>
+              <div className="animate-spin h-8 w-8 mx-auto mb-3 border-2 border-brand border-t-transparent rounded-full" />
+              <p className="text-sm text-muted-foreground">Đang tải kỷ niệm...</p>
             </div>
           ) : notes.length === 0 ? (
             <div className="text-center py-12">
-              <Calendar className="h-12 w-12 mx-auto mb-3 text-neutral-600" />
-              <p className="text-[#A0A0A0]">
+              <Calendar className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground">
                 Không có ghi chú nào trong khoảng thời gian này
               </p>
             </div>
@@ -442,39 +442,39 @@ export function MemoryLaneView({
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, note.id)}
                   className={cn(
-                    "p-3 sm:p-4 bg-neutral-900/70 border-neutral-800 hover:border-[#FF6B6B]/40 transition-all duration-200",
-                    sortBy === "custom" && "cursor-move hover:bg-neutral-800/70"
+                    "p-3 sm:p-4 bg-card/70 border-border hover:border-brand/40 transition-all duration-200",
+                    sortBy === "custom" && "cursor-move hover:bg-secondary/70"
                   )}
                   onClick={() => setSelectedPinory(note)}
                 >
                   <div className="flex items-start gap-2 sm:gap-3">
                     {/* Index/Number */}
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-[#FF6B6B] flex items-center justify-center text-white font-bold text-xs sm:text-sm">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-brand flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                         {index + 1}
                       </div>
                     </div>
 
                     {/* Mood */}
                     <div className="flex-shrink-0">
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-2xl bg-neutral-800 flex items-center justify-center text-xl sm:text-2xl">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-2xl bg-secondary flex items-center justify-center text-xl sm:text-2xl">
                         {note.mood || "📍"}
                       </div>
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs sm:text-sm font-semibold text-[#EDEDED] mb-1 line-clamp-2">
+                      <div className="text-xs sm:text-sm font-semibold text-foreground mb-1 line-clamp-2">
                         {note.content || "Không có nội dung"}
                       </div>
-                      <div className="text-[10px] sm:text-xs text-[#A0A0A0] mb-2 flex items-center gap-1 line-clamp-1">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground mb-2 flex items-center gap-1 line-clamp-1">
                         <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                         <span className="truncate">{note.address}</span>
                       </div>
                       <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                         <Badge
                           variant="outline"
-                          className="text-[10px] sm:text-xs bg-neutral-800 border-neutral-700 px-1.5 sm:px-2 py-0.5"
+                          className="text-[10px] sm:text-xs bg-secondary border-border px-1.5 sm:px-2 py-0.5"
                         >
                           <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                           <span className="hidden sm:inline">
@@ -524,7 +524,7 @@ export function MemoryLaneView({
           {sortedNotes.length >= 2 && (
             <Button
               onClick={() => onShowRoute(sortedNotes, sortBy)}
-              className="w-full h-10 sm:h-11 md:h-12 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FF5555] hover:to-[#FF7A3D] text-white font-bold rounded-xl text-xs sm:text-sm"
+              className="w-full h-10 sm:h-11 md:h-12 bg-brand hover:bg-brand-hover text-white font-bold rounded-xl text-xs sm:text-sm"
             >
               <Route className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
               <span className="hidden xs:inline">

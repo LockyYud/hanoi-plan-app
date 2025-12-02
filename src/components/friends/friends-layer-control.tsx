@@ -65,17 +65,17 @@ export function FriendsLayerControl() {
                             variant={showFriendsLayer ? "default" : "outline"}
                             size="icon"
                             onClick={() => setIsOpen(true)}
-                            className="shadow-lg rounded-full w-12 h-12 relative hover:scale-110 active:scale-95 transition-transform duration-200 bg-white border-2"
+                            className="shadow-lg rounded-full w-12 h-12 relative hover:scale-110 active:scale-95 transition-transform duration-200 border-2"
                             style={{
                                 borderColor: showFriendsLayer
                                     ? "var(--color-primary-500)"
-                                    : "var(--color-neutral-200)",
+                                    : "var(--border)",
                                 backgroundColor: showFriendsLayer
                                     ? "var(--color-primary-500)"
-                                    : "white",
+                                    : "var(--card)",
                                 color: showFriendsLayer
-                                    ? "white"
-                                    : "var(--color-neutral-700)",
+                                    ? "var(--primary-foreground)"
+                                    : "var(--muted-foreground)",
                             }}
                             title="Friends' Places"
                         >
@@ -136,10 +136,11 @@ export function FriendsLayerControl() {
                         }}
                     >
                         <Card
-                            className="w-80 max-w-[calc(100vw-5rem)] border-2 bg-white"
+                            className="w-80 max-w-[calc(100vw-5rem)] border-2"
                             style={{
                                 boxShadow: "var(--shadow-lg)",
-                                borderColor: "var(--color-neutral-200)",
+                                borderColor: "var(--border)",
+                                backgroundColor: "var(--card)",
                             }}
                         >
                             <div className="p-4 space-y-3">
@@ -147,13 +148,13 @@ export function FriendsLayerControl() {
                                 <div
                                     className="flex items-center justify-between pb-3 border-b-2"
                                     style={{
-                                        borderColor: "var(--color-neutral-200)",
+                                        borderColor: "var(--border)",
                                     }}
                                 >
                                     <h3
                                         className="font-bold flex items-center gap-2 text-base"
                                         style={{
-                                            color: "var(--color-neutral-900)",
+                                            color: "var(--foreground)",
                                         }}
                                     >
                                         <Users
@@ -190,11 +191,11 @@ export function FriendsLayerControl() {
                                             onClick={() => setIsOpen(false)}
                                             className="h-8 w-8 transition-colors duration-200"
                                             style={{
-                                                color: "var(--color-neutral-700)",
+                                                color: "var(--muted-foreground)",
                                             }}
                                             onMouseEnter={(e) => {
                                                 e.currentTarget.style.backgroundColor =
-                                                    "var(--color-neutral-100)";
+                                                    "var(--secondary)";
                                             }}
                                             onMouseLeave={(e) => {
                                                 e.currentTarget.style.backgroundColor =
@@ -210,23 +211,21 @@ export function FriendsLayerControl() {
                                 <motion.div
                                     className="flex items-center justify-between py-3 px-3 rounded-lg border"
                                     style={{
-                                        backgroundColor:
-                                            "var(--color-neutral-100)",
-                                        borderColor: "var(--color-neutral-200)",
+                                        backgroundColor: "var(--secondary)",
+                                        borderColor: "var(--border)",
                                     }}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1 }}
                                     whileHover={{
-                                        backgroundColor:
-                                            "var(--color-neutral-50)",
+                                        backgroundColor: "var(--accent)",
                                     }}
                                 >
                                     <Label
                                         htmlFor="show-friends-layer"
                                         className="text-sm font-semibold cursor-pointer"
                                         style={{
-                                            color: "var(--color-neutral-900)",
+                                            color: "var(--foreground)",
                                         }}
                                     >
                                         Show on map
@@ -254,7 +253,7 @@ export function FriendsLayerControl() {
                                         <Label
                                             className="text-xs font-bold uppercase tracking-wider"
                                             style={{
-                                                color: "var(--color-neutral-600)",
+                                                color: "var(--muted-foreground)",
                                             }}
                                         >
                                             Filter by friend
@@ -275,12 +274,12 @@ export function FriendsLayerControl() {
                                                         selectedFriendId ===
                                                         null
                                                             ? "var(--color-primary-50)"
-                                                            : "white",
+                                                            : "var(--card)",
                                                     borderColor:
                                                         selectedFriendId ===
                                                         null
                                                             ? "var(--color-primary-500)"
-                                                            : "var(--color-neutral-200)",
+                                                            : "var(--border)",
                                                     boxShadow:
                                                         selectedFriendId ===
                                                         null
@@ -296,24 +295,30 @@ export function FriendsLayerControl() {
                                                         className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
                                                         style={{
                                                             background:
-                                                                "linear-gradient(to bottom right, var(--color-primary-500), var(--color-primary-700))",
+                                                                "var(--color-primary-500)",
                                                         }}
                                                     >
-                                                        <Users className="w-4 h-4 text-white" />
+                                                        <Users
+                                                            className="w-4 h-4"
+                                                            style={{
+                                                                color: "var(--primary-foreground)",
+                                                            }}
+                                                        />
                                                     </div>
                                                     <span
                                                         className="text-sm font-bold"
                                                         style={{
-                                                            color: "var(--color-neutral-900)",
+                                                            color: "var(--foreground)",
                                                         }}
                                                     >
                                                         All Friends
                                                     </span>
                                                     <motion.span
-                                                        className="ml-auto text-xs font-bold text-white rounded-full px-2.5 py-1 min-w-[28px] text-center"
+                                                        className="ml-auto text-xs font-bold rounded-full px-2.5 py-1 min-w-[28px] text-center"
                                                         style={{
                                                             backgroundColor:
                                                                 "var(--color-primary-500)",
+                                                            color: "var(--primary-foreground)",
                                                         }}
                                                         key={
                                                             friendPinories.length
@@ -359,12 +364,12 @@ export function FriendsLayerControl() {
                                                             selectedFriendId ===
                                                             friend.id
                                                                 ? "var(--color-primary-50)"
-                                                                : "white",
+                                                                : "var(--card)",
                                                         borderColor:
                                                             selectedFriendId ===
                                                             friend.id
                                                                 ? "var(--color-primary-500)"
-                                                                : "var(--color-neutral-200)",
+                                                                : "var(--border)",
                                                         boxShadow:
                                                             selectedFriendId ===
                                                             friend.id
@@ -401,7 +406,7 @@ export function FriendsLayerControl() {
                                                                     className="rounded-full border-2 shadow-sm"
                                                                     style={{
                                                                         borderColor:
-                                                                            "var(--color-neutral-200)",
+                                                                            "var(--border)",
                                                                     }}
                                                                 />
                                                             </motion.div>
@@ -410,7 +415,7 @@ export function FriendsLayerControl() {
                                                                 className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
                                                                 style={{
                                                                     background:
-                                                                        "linear-gradient(to bottom right, var(--color-neutral-500), var(--color-neutral-700))",
+                                                                        "var(--muted-foreground)",
                                                                 }}
                                                                 whileHover={{
                                                                     rotate: 5,
@@ -420,13 +425,18 @@ export function FriendsLayerControl() {
                                                                     stiffness: 300,
                                                                 }}
                                                             >
-                                                                <UserCircle2 className="w-5 h-5 text-white" />
+                                                                <UserCircle2
+                                                                    className="w-5 h-5"
+                                                                    style={{
+                                                                        color: "var(--card)",
+                                                                    }}
+                                                                />
                                                             </motion.div>
                                                         )}
                                                         <span
                                                             className="text-sm font-semibold truncate flex-1"
                                                             style={{
-                                                                color: "var(--color-neutral-900)",
+                                                                color: "var(--foreground)",
                                                             }}
                                                         >
                                                             {friend.name ||
@@ -438,8 +448,8 @@ export function FriendsLayerControl() {
                                                                 className="text-xs font-bold rounded-full px-2.5 py-1 min-w-[28px] text-center"
                                                                 style={{
                                                                     backgroundColor:
-                                                                        "var(--color-neutral-100)",
-                                                                    color: "var(--color-neutral-700)",
+                                                                        "var(--secondary)",
+                                                                    color: "var(--muted-foreground)",
                                                                 }}
                                                                 key={
                                                                     friend.pinoriesCount
@@ -472,10 +482,8 @@ export function FriendsLayerControl() {
                                     <motion.div
                                         className="text-center py-8 rounded-lg border-2"
                                         style={{
-                                            backgroundColor:
-                                                "var(--color-neutral-50)",
-                                            borderColor:
-                                                "var(--color-neutral-200)",
+                                            backgroundColor: "var(--secondary)",
+                                            borderColor: "var(--border)",
                                         }}
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
@@ -490,7 +498,7 @@ export function FriendsLayerControl() {
                                             className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-md"
                                             style={{
                                                 background:
-                                                    "linear-gradient(to bottom right, var(--color-neutral-500), var(--color-neutral-700))",
+                                                    "var(--muted-foreground)",
                                             }}
                                             animate={{
                                                 rotate: [0, 10, -10, 10, 0],
@@ -501,12 +509,15 @@ export function FriendsLayerControl() {
                                                 repeatDelay: 3,
                                             }}
                                         >
-                                            <Users className="w-6 h-6 text-white" />
+                                            <Users
+                                                className="w-6 h-6"
+                                                style={{ color: "var(--card)" }}
+                                            />
                                         </motion.div>
                                         <motion.p
                                             className="font-bold text-sm"
                                             style={{
-                                                color: "var(--color-neutral-900)",
+                                                color: "var(--foreground)",
                                             }}
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
@@ -517,7 +528,7 @@ export function FriendsLayerControl() {
                                         <motion.p
                                             className="text-xs mt-1 font-medium"
                                             style={{
-                                                color: "var(--color-neutral-600)",
+                                                color: "var(--muted-foreground)",
                                             }}
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}

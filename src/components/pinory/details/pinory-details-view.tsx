@@ -483,7 +483,7 @@ export function PinoryDetailsView({
                 {/* Bottom Sheet */}
                 <div
                     className={cn(
-                        "fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-br from-[#0a0a0a] via-[#0C0C0C] to-[#0a0a0a] rounded-t-[32px] shadow-2xl overflow-hidden flex flex-col",
+                        "fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-[32px] shadow-2xl overflow-hidden flex flex-col",
                         isExpanded ? "h-[90vh]" : "h-[50vh]"
                     )}
                     style={{
@@ -517,7 +517,7 @@ export function PinoryDetailsView({
                         onClick={() => setIsExpanded(!isExpanded)}
                         aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
                     >
-                        <div className="w-10 h-1 bg-neutral-600 rounded-full"></div>
+                        <div className="w-10 h-1 bg-muted rounded-full"></div>
                     </button>
 
                     {/* Smart Image Display - Context-aware based on image count */}
@@ -535,7 +535,7 @@ export function PinoryDetailsView({
                                         {displayPinory.images.length === 1 && (
                                             <button
                                                 type="button"
-                                                className="w-full h-56 bg-gradient-to-r from-neutral-800 to-neutral-900 relative overflow-hidden flex-shrink-0 rounded-2xl shadow-lg"
+                                                className="w-full h-56 bg-secondary relative overflow-hidden flex-shrink-0 rounded-2xl shadow-lg"
                                                 onTouchStart={handleDragStart}
                                                 onTouchMove={handleDragMove}
                                                 onTouchEnd={handleDragEnd}
@@ -554,16 +554,16 @@ export function PinoryDetailsView({
                                                                 .images[0]
                                                         }
                                                         alt="Cover"
-                                                        className="w-full h-full object-contain pointer-events-none bg-neutral-950"
+                                                        className="w-full h-full object-contain pointer-events-none bg-background"
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center pointer-events-none">
-                                                        <span className="text-4xl text-[#A0A0A0]">
+                                                        <span className="text-4xl text-muted-foreground">
                                                             📷
                                                         </span>
                                                     </div>
                                                 )}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none"></div>
+                                                <div className="absolute inset-0 bg-black/15 pointer-events-none"></div>
                                             </button>
                                         )}
 
@@ -582,7 +582,7 @@ export function PinoryDetailsView({
                                                             <button
                                                                 key={`${displayPinory.id || pinory.id}-carousel-${index}`}
                                                                 type="button"
-                                                                className="flex-shrink-0 w-full h-56 bg-gradient-to-r from-neutral-800 to-neutral-900 relative overflow-hidden rounded-2xl shadow-lg snap-center"
+                                                                className="flex-shrink-0 w-full h-56 bg-secondary relative overflow-hidden rounded-2xl shadow-lg snap-center"
                                                                 onClick={() => {
                                                                     setCurrentImageIndex(
                                                                         index
@@ -601,16 +601,16 @@ export function PinoryDetailsView({
                                                                             image
                                                                         }
                                                                         alt={`Ảnh ${index + 1}`}
-                                                                        className="w-full h-full object-contain pointer-events-none bg-neutral-950"
+                                                                        className="w-full h-full object-contain pointer-events-none bg-background"
                                                                     />
                                                                 ) : (
                                                                     <div className="w-full h-full flex items-center justify-center pointer-events-none">
-                                                                        <span className="text-4xl text-[#A0A0A0]">
+                                                                        <span className="text-4xl text-muted-foreground">
                                                                             📷
                                                                         </span>
                                                                     </div>
                                                                 )}
-                                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none"></div>
+                                                                <div className="absolute inset-0 bg-black/15 pointer-events-none"></div>
 
                                                                 {/* Badge vị trí ảnh */}
                                                                 <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-lg pointer-events-none">
@@ -680,7 +680,7 @@ export function PinoryDetailsView({
                                     e.stopPropagation();
                                     onClose();
                                 }}
-                                className="absolute top-3 right-3 text-neutral-400 hover:text-white bg-neutral-800/80 hover:bg-neutral-700 rounded-full w-8 h-8 p-0 z-10"
+                                className="absolute top-3 right-3 text-muted-foreground hover:text-white bg-secondary/80 hover:bg-accent rounded-full w-8 h-8 p-0 z-10"
                             >
                                 <X className="h-4 w-4" strokeWidth={2.5} />
                             </Button>
@@ -689,7 +689,7 @@ export function PinoryDetailsView({
                         <div className="flex items-start gap-2.5">
                             <div className="flex-1 min-w-0 pr-10">
                                 {/* Hiển thị nội dung trước */}
-                                <h2 className="text-base font-semibold text-[#A0A0A0] mb-1 leading-tight">
+                                <h2 className="text-base font-semibold text-muted-foreground mb-1 leading-tight">
                                     {displayPinory.placeName ||
                                         "Ghi chú địa điểm"}
                                 </h2>
@@ -804,7 +804,7 @@ export function PinoryDetailsView({
                         {/* Text Content */}
                         {displayPinory.content && (
                             <div>
-                                <p className="text-sm text-[#EDEDED] leading-relaxed whitespace-pre-wrap">
+                                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                                     {displayPinory.content}
                                 </p>
                             </div>
@@ -812,13 +812,13 @@ export function PinoryDetailsView({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="sticky bottom-0 bg-gradient-to-t from-[#0a0a0a] via-[#0C0C0C]/95 to-transparent backdrop-blur-xl border-t border-neutral-800/50 px-5 py-3 flex-shrink-0">
+                    <div className="sticky bottom-0 bg-card/95 backdrop-blur-xl border-t border-border/50 px-5 py-3 flex-shrink-0">
                         <div className="flex gap-2">
                             <Button
                                 variant="outline"
                                 onClick={handleGetDirections}
                                 disabled={isGettingDirections}
-                                className="flex-1 h-11 bg-gradient-to-br from-blue-900/40 to-cyan-900/40 hover:from-blue-800/50 hover:to-cyan-800/50 border-blue-700/50 text-blue-300 font-semibold text-sm rounded-xl"
+                                className="flex-1 h-11 bg-blue-900/50 hover:bg-blue-800/60 border-blue-700/50 text-blue-300 font-semibold text-sm rounded-xl"
                             >
                                 <Navigation
                                     className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
@@ -828,7 +828,7 @@ export function PinoryDetailsView({
                             <Button
                                 variant="outline"
                                 onClick={onEdit}
-                                className="flex-1 h-11 bg-gradient-to-br from-[#FF6B6B]/20 to-[#FF8E53]/20 hover:from-[#FF6B6B]/30 hover:to-[#FF8E53]/30 border-[#FF6B6B]/40 text-[#FFD6A5] font-semibold text-sm rounded-xl"
+                                className="flex-1 h-11 bg-brand/25 hover:bg-brand/35 border-brand/40 text-brand-accent font-semibold text-sm rounded-xl"
                             >
                                 <Edit className="h-4 w-4 mr-1.5" />
                                 Chỉnh sửa
@@ -844,7 +844,7 @@ export function PinoryDetailsView({
                                         onDelete?.();
                                     }
                                 }}
-                                className="h-11 px-3.5 bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl"
+                                className="h-11 px-3.5 bg-red-600 hover:bg-red-700 rounded-xl"
                                 title="Xóa ghi chú"
                             >
                                 <Trash2 className="h-4 w-4" />
@@ -882,7 +882,7 @@ export function PinoryDetailsView({
     // DESKTOP: Original Dialog
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0 bg-[#0C0C0C] border border-neutral-800 shadow-2xl flex flex-col rounded-2xl">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0 bg-background border border-border shadow-2xl flex flex-col rounded-2xl">
                 {/* Accessible title for screen readers */}
                 <DialogTitle className="sr-only">
                     Chi tiết ghi chú:{" "}
@@ -892,21 +892,21 @@ export function PinoryDetailsView({
                 </DialogTitle>
 
                 {/* Modern Header */}
-                <div className="relative bg-neutral-900/80 border-b border-neutral-800/50 px-6 py-5 flex-shrink-0">
+                <div className="relative bg-card/80 border-b border-border/50 px-6 py-5 flex-shrink-0">
                     <div className="flex items-center justify-between">
                         {/* Title with emoji */}
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-lg">
                                 <span className="text-xl">
                                     {displayPinory.mood || "📍"}
                                 </span>
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-[#EDEDED]">
+                                <h2 className="text-lg font-bold text-foreground">
                                     {displayPinory.placeName ||
                                         "Ghi chú địa điểm"}
                                 </h2>
-                                <p className="text-xs text-neutral-400 flex items-center gap-1.5 mt-0.5">
+                                <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
                                     <MapPin className="h-3 w-3 flex-shrink-0" />
                                     <span className="line-clamp-1">
                                         {pinory.address}
@@ -918,7 +918,7 @@ export function PinoryDetailsView({
                 </div>
 
                 {/* Scrollable content area */}
-                <div className="flex-1 overflow-y-auto bg-[#0C0C0C] custom-scrollbar">
+                <div className="flex-1 overflow-y-auto bg-background custom-scrollbar">
                     <div className="space-y-5 p-6">
                         {/* Content Section - Facebook Post Style */}
                         {(displayPinory.hasImages ||
@@ -953,10 +953,10 @@ export function PinoryDetailsView({
                                         return (
                                             <div className="flex flex-col items-center justify-center py-10">
                                                 <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-                                                <span className="text-sm font-medium text-[#EDEDED] mb-1">
+                                                <span className="text-sm font-medium text-foreground mb-1">
                                                     Đang tải ảnh...
                                                 </span>
-                                                <span className="text-xs text-neutral-400">
+                                                <span className="text-xs text-muted-foreground">
                                                     Vui lòng đợi trong giây lát
                                                 </span>
                                             </div>
@@ -972,7 +972,7 @@ export function PinoryDetailsView({
                                                 {displayPinory.images.length >
                                                     0 && (
                                                     <div className="flex items-center justify-between mb-3">
-                                                        <span className="text-xs text-neutral-400">
+                                                        <span className="text-xs text-muted-foreground">
                                                             {
                                                                 displayPinory
                                                                     .images
@@ -1001,7 +1001,7 @@ export function PinoryDetailsView({
                                     }
                                     if (displayPinory.hasImages) {
                                         return (
-                                            <div className="text-center py-8 text-neutral-400">
+                                            <div className="text-center py-8 text-muted-foreground">
                                                 <Eye className="h-8 w-8 mx-auto mb-2" />
                                                 <div className="text-sm">
                                                     Có ảnh nhưng chưa tải được
@@ -1017,8 +1017,8 @@ export function PinoryDetailsView({
 
                         {/* Text Content Below Images */}
                         {displayPinory.content && (
-                            <div className="relative pt-2 border-t border-neutral-800/50">
-                                <p className="text-[#EDEDED] whitespace-pre-wrap leading-relaxed text-base">
+                            <div className="relative pt-2 border-t border-border/50">
+                                <p className="text-foreground whitespace-pre-wrap leading-relaxed text-base">
                                     {displayPinory.content}
                                 </p>
                             </div>
@@ -1027,10 +1027,10 @@ export function PinoryDetailsView({
                         {/* Metadata Tags */}
                         {(displayPinory.categoryName ||
                             displayPinory.visitTime) && (
-                            <div className="space-y-3 p-5 bg-neutral-900/50 rounded-xl border border-neutral-800/50">
+                            <div className="space-y-3 p-5 bg-card/50 rounded-xl border border-border/50">
                                 <div className="flex items-center gap-2">
                                     <div className="h-1 w-1 rounded-full bg-blue-500"></div>
-                                    <h3 className="text-base font-semibold text-[#EDEDED] flex items-center gap-2">
+                                    <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
                                         <Tag className="h-4 w-4" />
                                         Thông tin
                                     </h3>
@@ -1048,7 +1048,7 @@ export function PinoryDetailsView({
 
                                     {/* Visit Time */}
                                     {displayPinory.visitTime && (
-                                        <div className="flex items-center gap-1.5 bg-neutral-800 text-neutral-300 px-3 py-1.5 rounded-lg border border-neutral-700 text-sm">
+                                        <div className="flex items-center gap-1.5 bg-secondary text-muted-foreground px-3 py-1.5 rounded-lg border border-border text-sm">
                                             <CalendarDays className="h-3.5 w-3.5" />
                                             <span>
                                                 {formatVisitTime(
@@ -1060,7 +1060,7 @@ export function PinoryDetailsView({
 
                                     {/* Mood */}
                                     {pinory.mood && (
-                                        <div className="flex items-center gap-1.5 bg-neutral-800 text-neutral-300 px-3 py-1.5 rounded-lg border border-neutral-700 text-sm">
+                                        <div className="flex items-center gap-1.5 bg-secondary text-muted-foreground px-3 py-1.5 rounded-lg border border-border text-sm">
                                             <span className="text-base">
                                                 {pinory.mood}
                                             </span>
@@ -1075,8 +1075,8 @@ export function PinoryDetailsView({
                         )}
 
                         {/* Timestamp */}
-                        <div className="p-4 bg-neutral-900/30 rounded-lg border border-neutral-800/50">
-                            <div className="flex items-center gap-2 text-neutral-400 text-sm">
+                        <div className="p-4 bg-card/30 rounded-lg border border-border/50">
+                            <div className="flex items-center gap-2 text-muted-foreground text-sm">
                                 <Clock className="h-4 w-4" />
                                 <span>
                                     Tạo lúc {formatDateTime(pinory.timestamp)}
@@ -1087,7 +1087,7 @@ export function PinoryDetailsView({
                 </div>
 
                 {/* Action Buttons Footer */}
-                <div className="sticky bottom-0 bg-neutral-900/80 backdrop-blur-xl border-t border-neutral-800/50 p-4 flex-shrink-0">
+                <div className="sticky bottom-0 bg-card/80 backdrop-blur-xl border-t border-border/50 p-4 flex-shrink-0">
                     <div className="flex gap-2.5">
                         <Button
                             variant="outline"
@@ -1103,7 +1103,7 @@ export function PinoryDetailsView({
                         <Button
                             variant="outline"
                             onClick={onEdit}
-                            className="flex-1 h-11 bg-neutral-800/80 hover:bg-neutral-700 border-neutral-700 hover:border-neutral-600 text-[#EDEDED] font-semibold rounded-lg transition-all"
+                            className="flex-1 h-11 bg-secondary/80 hover:bg-accent border-border hover:border-border text-foreground font-semibold rounded-lg transition-all"
                         >
                             <Edit className="h-4 w-4 mr-1.5" />
                             Chỉnh sửa
