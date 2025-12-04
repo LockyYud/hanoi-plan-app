@@ -194,7 +194,7 @@ export function usePinoryAPI(session: Session | null) {
     const deletePinory = useCallback(
         async (noteId: string) => {
             try {
-                const response = await fetch(`/api/location-notes?id=${noteId}`, {
+                const response = await fetch(`/api/location-notes/${noteId}`, {
                     method: 'DELETE',
                     credentials: 'include',
                 });

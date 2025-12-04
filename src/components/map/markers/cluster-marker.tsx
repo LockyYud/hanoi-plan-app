@@ -61,31 +61,35 @@ export const ClusterMarker = memo(
                     container: "w-16 h-20",
                     image: "w-14 h-14",
                     imagePx: 56,
-                    border: "border-2",
+                    border: "border-[3px] border-brand/80",
                     badge: "w-6 h-6 text-xs",
+                    glow: "0 0 12px rgba(var(--brand-rgb, 239, 68, 68), 0.4)",
                 };
             if (count < 50)
                 return {
                     container: "w-20 h-24",
                     image: "w-18 h-18",
                     imagePx: 72,
-                    border: "border-2",
+                    border: "border-[3px] border-brand/80",
                     badge: "w-7 h-7 text-sm",
+                    glow: "0 0 16px rgba(var(--brand-rgb, 239, 68, 68), 0.5)",
                 };
             if (count < 100)
                 return {
                     container: "w-24 h-28",
                     image: "w-22 h-22",
                     imagePx: 88,
-                    border: "border-2",
+                    border: "border-[3px] border-brand/80",
                     badge: "w-8 h-8 text-base",
+                    glow: "0 0 20px rgba(var(--brand-rgb, 239, 68, 68), 0.5)",
                 };
             return {
                 container: "w-28 h-32",
                 image: "w-26 h-26",
                 imagePx: 104,
-                border: "border-2",
+                border: "border-4 border-brand",
                 badge: "w-9 h-9 text-lg",
+                glow: "0 0 24px rgba(var(--brand-rgb, 239, 68, 68), 0.6)",
             };
         };
 
@@ -123,15 +127,50 @@ export const ClusterMarker = memo(
                     filter: "drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25))",
                 }}
             >
-                {/* Photo container with thin border */}
+                {/* Stacked photos effect - creates depth illusion */}
+                <div
+                    className={cn(
+                        "absolute top-1 left-1 bg-white/60 rounded-sm",
+                        "rotate-6",
+                        config.image
+                    )}
+                    style={{
+                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    }}
+                />
+                <div
+                    className={cn(
+                        "absolute top-0.5 left-0.5 bg-white/80 rounded-sm",
+                        "rotate-3",
+                        config.image
+                    )}
+                    style={{
+                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    }}
+                />
+
+                {/* Continuous pulse ring animation */}
+                <div
+                    className={cn(
+                        "absolute -inset-1 rounded-sm pointer-events-none",
+                        "bg-brand/30"
+                    )}
+                    style={{
+                        animation: "clusterPulse 2s ease-in-out infinite",
+                    }}
+                />
+
+                {/* Photo container with brand border and glow */}
                 <div
                     className={cn(
                         "relative bg-white rounded-sm overflow-hidden",
                         "transition-all duration-300 group-hover:shadow-2xl",
-                        "border border-border",
                         config.border,
                         config.image
                     )}
+                    style={{
+                        boxShadow: config.glow,
+                    }}
                 >
                     {/* Photo image or placeholder */}
                     {selectedImage ? (
@@ -189,30 +228,22 @@ export const ClusterMarker = memo(
                     )}
 
                     {/* Subtle gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-                    {/* Pulse ring animation */}
-                    <div
-                        className="absolute -inset-2 rounded-sm bg-brand/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                        style={{
-                            animation: "clusterPulse 2s ease-in-out infinite",
-                        }}
-                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-brand/30 to-transparent opacity-40 group-hover:opacity-60 transition-opacity duration-300 pointer-events-none" />
                 </div>
 
                 <style>{`
                 @keyframes clusterPulse {
                     0% {
                         transform: scale(1);
-                        opacity: 0.4;
+                        opacity: 0.5;
                     }
                     50% {
-                        transform: scale(1.1);
+                        transform: scale(1.15);
                         opacity: 0.2;
                     }
                     100% {
                         transform: scale(1);
-                        opacity: 0.4;
+                        opacity: 0.5;
                     }
                 }
             `}</style>
