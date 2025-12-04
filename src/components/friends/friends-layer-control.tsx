@@ -189,7 +189,7 @@ function PanelContent({
                             style={{
                                 backgroundColor:
                                     selectedFriendId === null
-                                        ? "var(--color-primary-50)"
+                                        ? "var(--accent)"
                                         : "var(--card)",
                                 borderColor:
                                     selectedFriendId === null
@@ -270,7 +270,7 @@ function PanelContent({
                                 style={{
                                     backgroundColor:
                                         selectedFriendId === friend.id
-                                            ? "var(--color-primary-50)"
+                                            ? "var(--accent)"
                                             : "var(--card)",
                                     borderColor:
                                         selectedFriendId === friend.id
