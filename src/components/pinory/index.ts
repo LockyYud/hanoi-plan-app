@@ -17,3 +17,4 @@ export { SmartImageGallery } from "./details/smart-image-gallery";
 // Other pinory components
 export { DirectionPopup } from "./direction-popup";
 export { FloatingActionButton } from "./floating-action-button";
+export { PinoriesLayerControl } from "./pinories-layer-control";

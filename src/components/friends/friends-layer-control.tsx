@@ -5,11 +5,13 @@ import { useFriendStore } from "@/lib/store";
 import { useFriendAPI } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Users, X, UserCircle2 } from "lucide-react";
+import { Users, X, UserCircle2, Plus, Bell, Check, UserX } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { InviteDialog } from "./invite-dialog";
+import { toast } from "sonner";
 
 // Custom hook to detect mobile viewport
 function useIsMobile() {
@@ -42,7 +44,21 @@ interface PanelContentProps {
         avatarUrl?: string | null;
         pinoriesCount: number;
     }>;
+    readonly friendRequests: ReadonlyArray<{
+        id: string;
+        requester: {
+            id: string;
+            name?: string | null;
+            email: string;
+            avatarUrl?: string | null;
+        };
+        createdAt: Date;
+    }>;
     readonly setIsOpen: (value: boolean) => void;
+    readonly setShowInviteDialog: (value: boolean) => void;
+    readonly onAcceptRequest: (requestId: string) => void;
+    readonly onRejectRequest: (requestId: string) => void;
+    readonly processingRequest: string | null;
     readonly isMobile: boolean;
 }
 
@@ -53,7 +69,12 @@ function PanelContent({
     selectedFriendId,
     setSelectedFriendId,
     friends,
+    friendRequests,
     setIsOpen,
+    setShowInviteDialog,
+    onAcceptRequest,
+    onRejectRequest,
+    processingRequest,
     isMobile,
 }: PanelContentProps) {
     return (
@@ -77,48 +98,182 @@ function PanelContent({
                             color: "var(--color-primary-500)",
                         }}
                     />
-                    Friends' Places
-                    {friendPinories.length > 0 && (
+                    Friends
+                    {friends.length > 0 && (
                         <span
                             className="text-white text-xs rounded-full px-2 py-0.5 font-bold"
                             style={{
                                 backgroundColor: "var(--color-primary-500)",
                             }}
                         >
-                            {friendPinories.length}
+                            {friends.length}
                         </span>
                     )}
                 </h3>
-                <motion.div
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 15,
-                    }}
-                >
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsOpen(false)}
-                        className="h-8 w-8 transition-colors duration-200"
-                        style={{
-                            color: "var(--muted-foreground)",
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--secondary)";
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "transparent";
+                <div className="flex items-center gap-2">
+                    {/* Invite Friend Button */}
+                    <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowInviteDialog(true)}
+                            className="h-8 px-3 text-xs font-semibold"
+                            style={{
+                                borderColor: "var(--color-primary-500)",
+                                color: "var(--color-primary-500)",
+                            }}
+                        >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Mời bạn
+                        </Button>
+                    </motion.div>
+                    <motion.div
+                        whileHover={{ scale: 1.1, rotate: 90 }}
+                        whileTap={{ scale: 0.9 }}
+                        transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 15,
                         }}
                     >
-                        <X className="w-5 h-5" />
-                    </Button>
-                </motion.div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setIsOpen(false)}
+                            className="h-8 w-8 transition-colors duration-200"
+                            style={{
+                                color: "var(--muted-foreground)",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    "var(--secondary)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    "transparent";
+                            }}
+                        >
+                            <X className="w-5 h-5" />
+                        </Button>
+                    </motion.div>
+                </div>
             </div>
+
+            {/* Friend Requests Section */}
+            {friendRequests.length > 0 && (
+                <motion.div
+                    className="space-y-2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                >
+                    <div className="flex items-center gap-2 px-1">
+                        <Bell className="w-4 h-4 text-yellow-500" />
+                        <Label className="text-xs font-bold uppercase tracking-wider text-yellow-500">
+                            Lời mời kết bạn ({friendRequests.length})
+                        </Label>
+                    </div>
+                    <div className="space-y-2">
+                        {friendRequests.map((request, index) => (
+                            <motion.div
+                                key={request.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.15 + index * 0.05 }}
+                                className="flex items-center gap-3 p-3 rounded-lg border-2"
+                                style={{
+                                    backgroundColor: "rgba(234, 179, 8, 0.1)",
+                                    borderColor: "rgba(234, 179, 8, 0.3)",
+                                }}
+                            >
+                                {request.requester.avatarUrl ? (
+                                    <Image
+                                        src={request.requester.avatarUrl}
+                                        alt={
+                                            request.requester.name ||
+                                            request.requester.email
+                                        }
+                                        width={36}
+                                        height={36}
+                                        className="rounded-full"
+                                    />
+                                ) : (
+                                    <div
+                                        className="w-9 h-9 rounded-full flex items-center justify-center"
+                                        style={{
+                                            backgroundColor:
+                                                "rgba(234, 179, 8, 0.2)",
+                                        }}
+                                    >
+                                        <UserCircle2 className="w-5 h-5 text-yellow-500" />
+                                    </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <p
+                                        className="text-sm font-medium truncate"
+                                        style={{ color: "var(--foreground)" }}
+                                    >
+                                        {request.requester.name ||
+                                            request.requester.email}
+                                    </p>
+                                    <p
+                                        className="text-xs"
+                                        style={{
+                                            color: "var(--muted-foreground)",
+                                        }}
+                                    >
+                                        Muốn kết bạn với bạn
+                                    </p>
+                                </div>
+                                <div className="flex gap-1.5">
+                                    <motion.div
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
+                                        <Button
+                                            size="icon"
+                                            className="h-8 w-8 bg-green-600 hover:bg-green-700"
+                                            onClick={() =>
+                                                onAcceptRequest(request.id)
+                                            }
+                                            disabled={
+                                                processingRequest === request.id
+                                            }
+                                        >
+                                            <Check className="w-4 h-4 text-white" />
+                                        </Button>
+                                    </motion.div>
+                                    <motion.div
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
+                                        <Button
+                                            size="icon"
+                                            variant="outline"
+                                            className="h-8 w-8"
+                                            style={{
+                                                borderColor: "var(--border)",
+                                                color: "var(--muted-foreground)",
+                                            }}
+                                            onClick={() =>
+                                                onRejectRequest(request.id)
+                                            }
+                                            disabled={
+                                                processingRequest === request.id
+                                            }
+                                        >
+                                            <UserX className="w-4 h-4" />
+                                        </Button>
+                                    </motion.div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
 
             {/* Show/Hide Toggle */}
             <motion.div
@@ -441,11 +596,21 @@ export function FriendsLayerControl() {
         setSelectedFriendId,
         friends,
         friendPinories,
+        friendRequests,
     } = useFriendStore();
 
-    const { fetchFriends } = useFriendAPI();
+    const {
+        fetchFriends,
+        fetchFriendRequests,
+        acceptFriendRequest,
+        rejectFriendRequest,
+    } = useFriendAPI();
 
     const [isOpen, setIsOpen] = useState(false);
+    const [showInviteDialog, setShowInviteDialog] = useState(false);
+    const [processingRequest, setProcessingRequest] = useState<string | null>(
+        null
+    );
     const isMobile = useIsMobile();
 
     // Client-side filter to get displayed pinories count
@@ -456,20 +621,57 @@ export function FriendsLayerControl() {
         ).length;
     }, [friendPinories, selectedFriendId]);
 
+    // Handle accept friend request
+    const handleAcceptRequest = async (requestId: string) => {
+        setProcessingRequest(requestId);
+        try {
+            await acceptFriendRequest(requestId);
+            toast.success("Đã chấp nhận lời mời kết bạn");
+            fetchFriends();
+            fetchFriendRequests();
+        } catch (error) {
+            console.error("Error accepting friend request:", error);
+            toast.error("Lỗi khi chấp nhận lời mời");
+        } finally {
+            setProcessingRequest(null);
+        }
+    };
+
+    // Handle reject friend request
+    const handleRejectRequest = async (requestId: string) => {
+        setProcessingRequest(requestId);
+        try {
+            await rejectFriendRequest(requestId);
+            toast.success("Đã từ chối lời mời kết bạn");
+            fetchFriendRequests();
+        } catch (error) {
+            console.error("Error rejecting friend request:", error);
+            toast.error("Lỗi khi từ chối lời mời");
+        } finally {
+            setProcessingRequest(null);
+        }
+    };
+
     useEffect(() => {
         if (showFriendsLayer && friends.length === 0) {
             fetchFriends();
         }
     }, [showFriendsLayer, friends.length, fetchFriends]);
 
+    // Fetch friend requests when panel opens
+    useEffect(() => {
+        if (isOpen) {
+            fetchFriendRequests();
+        }
+    }, [isOpen, fetchFriendRequests]);
+
     return (
         <>
-            {/* Toggle Button - Fixed position */}
-            <div className="absolute top-4 right-20 z-[10]">
+            {/* Toggle Button - Left side, below Pinories button */}
+            <div className="absolute top-20 left-4 z-[10]">
                 <AnimatePresence mode="wait">
                     {!isOpen && (
                         <motion.div
-                            className="absolute top-0 right-0 z-[11]"
                             initial={false}
                             animate={{
                                 scale: 1,
@@ -503,10 +705,29 @@ export function FriendsLayerControl() {
                                         ? "var(--primary-foreground)"
                                         : "var(--muted-foreground)",
                                 }}
-                                title="Friends' Places"
+                                title="Friends"
                             >
                                 <Users className="w-5 h-5" />
-                                {showFriendsLayer &&
+                                {/* Friend Requests Badge */}
+                                {friendRequests.length > 0 && (
+                                    <motion.span
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{
+                                            type: "spring",
+                                            stiffness: 500,
+                                            damping: 15,
+                                        }}
+                                        className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md animate-pulse"
+                                    >
+                                        {friendRequests.length > 9
+                                            ? "9+"
+                                            : friendRequests.length}
+                                    </motion.span>
+                                )}
+                                {/* Pinories Count Badge (when no requests) */}
+                                {friendRequests.length === 0 &&
+                                    showFriendsLayer &&
                                     displayedPinoriesCount > 0 && (
                                         <motion.span
                                             initial={{ scale: 0 }}
@@ -533,28 +754,28 @@ export function FriendsLayerControl() {
                     )}
                 </AnimatePresence>
 
-                {/* Desktop Panel - Dropdown style */}
+                {/* Desktop Panel - Dropdown style, opens to the right */}
                 {!isMobile && (
                     <AnimatePresence mode="wait">
                         {isOpen && (
                             <motion.div
-                                className="absolute top-0 right-0 z-[10]"
+                                className="absolute top-0 left-0 z-[10]"
                                 initial={{
                                     opacity: 0,
                                     scale: 0,
-                                    originX: 1,
+                                    originX: 0,
                                     originY: 0,
                                 }}
                                 animate={{
                                     opacity: 1,
                                     scale: 1,
-                                    originX: 1,
+                                    originX: 0,
                                     originY: 0,
                                 }}
                                 exit={{
                                     opacity: 0,
                                     scale: 0,
-                                    originX: 1,
+                                    originX: 0,
                                     originY: 0,
                                 }}
                                 transition={{
@@ -582,7 +803,14 @@ export function FriendsLayerControl() {
                                             setSelectedFriendId
                                         }
                                         friends={friends}
+                                        friendRequests={friendRequests}
                                         setIsOpen={setIsOpen}
+                                        setShowInviteDialog={
+                                            setShowInviteDialog
+                                        }
+                                        onAcceptRequest={handleAcceptRequest}
+                                        onRejectRequest={handleRejectRequest}
+                                        processingRequest={processingRequest}
                                         isMobile={isMobile}
                                     />
                                 </Card>
@@ -611,13 +839,14 @@ export function FriendsLayerControl() {
 
                             {/* Bottom Sheet */}
                             <motion.div
-                                className="fixed bottom-0 left-0 right-0 z-[101] rounded-t-2xl border-t-2 overflow-hidden"
+                                className="fixed bottom-0 left-0 right-0 z-[101] rounded-t-2xl border-t-2 flex flex-col"
                                 style={{
                                     backgroundColor: "var(--card)",
                                     borderColor: "var(--border)",
                                     boxShadow:
                                         "0 -4px 20px rgba(0, 0, 0, 0.15)",
-                                    maxHeight: "70vh",
+                                    height: "70vh",
+                                    maxHeight: "85vh",
                                 }}
                                 initial={{ y: "100%" }}
                                 animate={{ y: 0 }}
@@ -637,7 +866,7 @@ export function FriendsLayerControl() {
                                 }}
                             >
                                 {/* Drag Handle */}
-                                <div className="flex justify-center pt-3 pb-1">
+                                <div className="flex-shrink-0 flex justify-center pt-3 pb-2">
                                     <div
                                         className="w-10 h-1 rounded-full"
                                         style={{
@@ -650,8 +879,11 @@ export function FriendsLayerControl() {
 
                                 {/* Scrollable Content */}
                                 <div
-                                    className="overflow-y-auto"
-                                    style={{ maxHeight: "calc(70vh - 20px)" }}
+                                    className="flex-1 overflow-y-auto overscroll-contain"
+                                    style={{
+                                        paddingBottom:
+                                            "env(safe-area-inset-bottom, 20px)",
+                                    }}
                                 >
                                     <PanelContent
                                         friendPinories={friendPinories}
@@ -664,18 +896,28 @@ export function FriendsLayerControl() {
                                             setSelectedFriendId
                                         }
                                         friends={friends}
+                                        friendRequests={friendRequests}
                                         setIsOpen={setIsOpen}
+                                        setShowInviteDialog={
+                                            setShowInviteDialog
+                                        }
+                                        onAcceptRequest={handleAcceptRequest}
+                                        onRejectRequest={handleRejectRequest}
+                                        processingRequest={processingRequest}
                                         isMobile={isMobile}
                                     />
                                 </div>
-
-                                {/* Safe area padding for devices with home indicator */}
-                                <div className="h-safe-area-inset-bottom" />
                             </motion.div>
                         </>
                     )}
                 </AnimatePresence>
             )}
+
+            {/* Invite Dialog */}
+            <InviteDialog
+                isOpen={showInviteDialog}
+                onClose={() => setShowInviteDialog(false)}
+            />
         </>
     );
 }

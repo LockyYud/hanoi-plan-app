@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Layers, Menu, Navigation, ZoomIn, ZoomOut } from "lucide-react";
-import { useUIStore } from "@/lib/store";
+import { Layers, Navigation, ZoomIn, ZoomOut } from "lucide-react";
 import { getCurrentLocation } from "@/lib/geolocation";
 import { toast } from "sonner";
 import mapboxgl from "mapbox-gl";
@@ -14,15 +13,10 @@ interface MapControlsProps {
 }
 
 export function MapControls({ mapRef }: MapControlsProps) {
-    const { sidebarOpen, setSidebarOpen } = useUIStore();
     const [isLocating, setIsLocating] = useState(false);
     const [mapStyle, setMapStyle] = useState<"streets" | "satellite">(
         "streets"
     );
-
-    const handleToggleSidebar = () => {
-        setSidebarOpen(!sidebarOpen);
-    };
 
     const handleLocateMe = useCallback(async () => {
         if (!mapRef.current) return;
@@ -83,22 +77,8 @@ export function MapControls({ mapRef }: MapControlsProps) {
 
     return (
         <>
-            {/* Toggle Sidebar Button - Top Left (Only shown when sidebar is closed) */}
-            {!sidebarOpen && (
-                <div className="absolute top-4 left-4 z-10">
-                    <Button
-                        size="sm"
-                        onClick={handleToggleSidebar}
-                        className="h-10 w-10 p-0 rounded-xl shadow-lg bg-brand hover:bg-brand-hover text-white transition-all duration-300"
-                        title="Mở sidebar"
-                    >
-                        <Menu className="h-5 w-5" />
-                    </Button>
-                </div>
-            )}
-
-            {/* Map Controls - Right Side */}
-            <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+            {/* Map Controls - Right Side, below Profile button */}
+            <div className="absolute top-20 right-4 z-10 flex flex-col gap-2">
                 {/* Zoom Controls */}
                 <div className="flex flex-col gap-1 bg-background/95 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border border-border">
                     <Button

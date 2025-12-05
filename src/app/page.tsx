@@ -1,7 +1,6 @@
 "use client";
 
 import { MapContainer } from "@/components/map/core/map-container";
-import { Sidebar } from "@/components/layout/sidebar";
 import { LandingPage } from "@/components/landing/landing-page";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -30,15 +29,10 @@ export default function Home() {
         return <LandingPage />;
     }
 
-    // Show main app if authenticated
+    // Show main app if authenticated - full screen map with floating controls
     return (
-        <div className="h-svh flex overflow-hidden" suppressHydrationWarning>
-            <Sidebar />
-
-            {/* Map container takes full width, sidebar overlays on top */}
-            <main className="flex-1 relative w-full h-full">
-                <MapContainer className="h-full" />
-            </main>
+        <div className="h-svh w-full overflow-hidden" suppressHydrationWarning>
+            <MapContainer className="h-full w-full" />
         </div>
     );
 }
