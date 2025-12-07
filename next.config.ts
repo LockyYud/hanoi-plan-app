@@ -7,11 +7,19 @@ const nextConfig: NextConfig = {
 
   // Image domains for external images
   images: {
-    domains: [
-      'lh3.googleusercontent.com', // Google profile images
-      'avatars.githubusercontent.com', // GitHub profile images
-    ],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: '*.tiktokcdn.com',
@@ -24,11 +32,6 @@ const nextConfig: NextConfig = {
   // Environment variables
   env: {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-  },
-
-  // Disable ESLint during build for deployment
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 
   // Disable TypeScript checking during build (optional)
