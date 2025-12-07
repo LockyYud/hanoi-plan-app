@@ -1,5 +1,5 @@
 {
-  "buildCommand": "prisma generate && npm run build",
+  "buildCommand": "npm run build",
   "env": {
     "PRISMA_GENERATE_SKIP": "false"
   },
