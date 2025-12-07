@@ -432,8 +432,8 @@ function PanelContent({
                             {Object.entries(groupedPinories).map(
                                 ([monthYear, items]) => (
                                     <div key={monthYear} className="space-y-3">
-                                        <h2 className="text-lg font-bold text-foreground sticky top-0 bg-card/80 backdrop-blur-sm py-2 z-10">
-                                            {monthYear.split(" ")[0]}
+                                        <h2 className="text-lg font-bold text-foreground sticky -top-4 bg-card/95 backdrop-blur-sm py-2 px-3 -mx-3 z-10 border-b border-border/50">
+                                            {monthYear}
                                         </h2>
 
                                         <div className="space-y-3">
@@ -656,7 +656,7 @@ export function PinoriesLayerControl() {
                             <Button
                                 variant="outline"
                                 onClick={() => setIsOpen(true)}
-                                className="shadow-lg rounded-full h-12 px-4 hover:scale-105 active:scale-95 transition-transform duration-200 border-2"
+                                className="shadow-lg rounded-full h-12 px-4 hover:scale-105 active:scale-95 transition-transform duration-200 border-2 cursor-pointer"
                                 style={{
                                     borderColor: "var(--border)",
                                     backgroundColor: "var(--card)",

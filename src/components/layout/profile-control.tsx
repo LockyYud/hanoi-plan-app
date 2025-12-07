@@ -293,7 +293,8 @@ export function ProfileControl() {
                                     boxShadow:
                                         "0 -4px 20px rgba(0, 0, 0, 0.15)",
                                     height: "50vh",
-                                    maxHeight: "70vh",
+                                    maxHeight:
+                                        "calc(100vh - env(safe-area-inset-top, 0px) - 1.5rem)",
                                 }}
                                 initial={{ y: "100%" }}
                                 animate={{ y: 0 }}

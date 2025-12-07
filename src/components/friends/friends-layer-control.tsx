@@ -693,7 +693,7 @@ export function FriendsLayerControl() {
                                 }
                                 size="icon"
                                 onClick={() => setIsOpen(true)}
-                                className="shadow-lg rounded-full w-12 h-12 relative hover:scale-110 active:scale-95 transition-transform duration-200 border-2"
+                                className="shadow-lg rounded-full w-12 h-12 relative hover:scale-110 active:scale-95 transition-transform duration-200 border-2 cursor-pointer"
                                 style={{
                                     borderColor: showFriendsLayer
                                         ? "var(--color-primary-500)"

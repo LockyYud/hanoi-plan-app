@@ -4,11 +4,18 @@
  * Components for creating, viewing, and managing pinories (location notes)
  */
 
+// Base components and hooks
+export * from "./base";
+
+// Variant components (friend pinory, etc.)
+export * from "./variants";
+
 // Form components
 export { PinoryForm } from "./form/pinory-form";
 
 // Popup components
 export { PinoryPopup } from "./popup/pinory-popup";
+export { PopupBase } from "./base/popup-base";
 
 // Details view components
 export { PinoryDetailsView } from "./details/pinory-details-view";

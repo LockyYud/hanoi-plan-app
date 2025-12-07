@@ -160,7 +160,7 @@ export function FloatingActionButton({
                         onClick={handleCreateNoteAtLocation}
                         disabled={isGettingLocation}
                         className={cn(
-                            "group flex items-center gap-2 sm:gap-3 transition-all duration-200",
+                            "group flex items-center gap-2 sm:gap-3 transition-all duration-200 cursor-pointer",
                             isOpen
                                 ? "animate-fade-in-up delay-75"
                                 : "animate-fade-out-down"
@@ -202,7 +202,7 @@ export function FloatingActionButton({
                     <button
                         onClick={handleCreateJourney}
                         className={cn(
-                            "group flex items-center gap-2 sm:gap-3 transition-all duration-200",
+                            "group flex items-center gap-2 sm:gap-3 transition-all duration-200 cursor-pointer",
                             isOpen
                                 ? "animate-fade-in-up delay-100"
                                 : "animate-fade-out-down"
@@ -233,7 +233,7 @@ export function FloatingActionButton({
                 <button
                     onClick={handleToggle}
                     className={cn(
-                        "w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 relative overflow-hidden group",
+                        "w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 relative overflow-hidden group cursor-pointer",
                         "bg-brand",
                         "hover:shadow-2xl hover:scale-105",
                         "active:scale-95",
