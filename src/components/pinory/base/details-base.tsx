@@ -278,9 +278,7 @@ export function PinoryDetailsBase({
                     className={cn(
                         "fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] shadow-2xl overflow-hidden flex flex-col",
                         styles.card,
-                        isExpanded
-                            ? "h-[calc(100vh-env(safe-area-inset-top,0px)-1.5rem)]"
-                            : "h-[50vh]"
+                        isExpanded ? "h-[80vh]" : "h-[50vh]"
                     )}
                     style={{
                         touchAction: "none",

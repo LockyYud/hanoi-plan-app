@@ -72,29 +72,49 @@ export function usePopupPosition(
             }
             const popupHeight = lastHeightRef.current;
             const arrowSize = 8;
+            const viewportHeight = window.innerHeight;
 
-            // Calculate space above and below the point
-            const spaceAbove = point.y - margin;
-            const spaceBelow = window.innerHeight - point.y - margin;
+            // Calculate space above and below the marker point
+            const spaceAbove = point.y - margin - markerOffset;
+            const spaceBelow = viewportHeight - point.y - margin - markerOffset;
 
             let left = point.x - popupWidth / 2;
             let top: number;
+            let maxHeight: number | undefined;
             let newArrowPosition: "top" | "bottom";
 
             // Choose position based on available space
             // Prefer below if there's enough space
-            const hasSpaceBelow = spaceBelow >= popupHeight + markerOffset;
-            const hasSpaceAbove = spaceAbove >= popupHeight + markerOffset;
-            const preferBelow = hasSpaceBelow || (!hasSpaceAbove && spaceBelow > spaceAbove);
+            const hasSpaceBelow = spaceBelow >= popupHeight;
+            const hasSpaceAbove = spaceAbove >= popupHeight;
+            const preferBelow =
+                hasSpaceBelow || (!hasSpaceAbove && spaceBelow > spaceAbove);
 
             if (preferBelow) {
-                // Position below
+                // Position below marker
                 top = point.y + arrowSize + markerOffset;
                 newArrowPosition = "top"; // Arrow points up
+
+                // Clamp top so popup stays within viewport
+                // If popup would overflow bottom, set maxHeight
+                const availableHeight = viewportHeight - top - margin;
+                if (availableHeight < popupHeight) {
+                    maxHeight = Math.max(200, availableHeight); // Min 200px
+                }
             } else {
-                // Position above
-                top = point.y - popupHeight - arrowSize - markerOffset;
+                // Position above marker
+                const idealTop = point.y - popupHeight - arrowSize - markerOffset;
                 newArrowPosition = "bottom"; // Arrow points down
+
+                // Clamp top so popup stays within viewport
+                if (idealTop < margin) {
+                    // Popup would overflow top - clamp and set maxHeight
+                    top = margin;
+                    const availableHeight = point.y - margin - arrowSize - markerOffset;
+                    maxHeight = Math.max(200, availableHeight);
+                } else {
+                    top = idealTop;
+                }
             }
 
             // Adjust horizontal position to stay within screen bounds
@@ -117,6 +137,10 @@ export function usePopupPosition(
                 top,
                 transform: "none",
                 zIndex: 50,
+                ...(maxHeight && {
+                    maxHeight,
+                    overflowY: "auto" as const,
+                }),
             });
             setArrowPosition(newArrowPosition);
             setArrowOffset(newArrowOffset);
