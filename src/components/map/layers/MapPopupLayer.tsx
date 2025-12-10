@@ -14,6 +14,7 @@ import React from "react";
 import mapboxgl from "mapbox-gl";
 import type { Pinory } from "@/lib/types";
 import { PinoryPopup } from "@/components/pinory/popup/pinory-popup";
+import { LocationPreviewPopup } from "@/components/pinory/popup/location-preview-popup";
 import { DirectionPopup } from "@/components/pinory/direction-popup";
 import { FriendLocationPopup } from "@/components/friends/pinory/friend-pinory-popup";
 
@@ -97,7 +98,7 @@ export function MapPopupLayer({
 
             {/* Clicked Location Popup (only show if no note selected and no form shown) */}
             {clickedPinory && !showPinoryForm && !selectedPinory && (
-                <PinoryPopup
+                <LocationPreviewPopup
                     location={{
                         lng: clickedPinory.lng,
                         lat: clickedPinory.lat,

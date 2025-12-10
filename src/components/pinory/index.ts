@@ -15,7 +15,9 @@ export { PinoryForm } from "./form/pinory-form";
 
 // Popup components
 export { PinoryPopup } from "./popup/pinory-popup";
+export { LocationPreviewPopup } from "./popup/location-preview-popup";
 export { PopupBase } from "./base/popup-base";
+export { MediaGrid } from "./popup/components/media-grid";
 
 // Details view components
 export { PinoryDetailsView } from "./details/pinory-details-view";
