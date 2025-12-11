@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,6 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { SmartImageGallery } from "@/components/pinory/details/smart-image-gallery";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 import type { Pinory } from "@/lib/types";
 
 interface PublicPinoryViewProps {
@@ -33,6 +34,8 @@ interface PublicPinoryViewProps {
  */
 export function PublicPinoryView({ pinory, shareInfo }: PublicPinoryViewProps) {
     const { data: session } = useSession();
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [showLightbox, setShowLightbox] = useState(false);
 
     const formatDate = (date: Date | string | undefined) => {
         if (!date) return "";
@@ -118,7 +121,10 @@ export function PublicPinoryView({ pinory, shareInfo }: PublicPinoryViewProps) {
                             <SmartImageGallery
                                 images={images}
                                 pinoryId={pinory.id}
-                                onImageClick={() => {}}
+                                onImageClick={(index) => {
+                                    setCurrentImageIndex(index);
+                                    setShowLightbox(true);
+                                }}
                                 variant="desktop"
                             />
                         </div>
@@ -230,6 +236,25 @@ export function PublicPinoryView({ pinory, shareInfo }: PublicPinoryViewProps) {
                     </p>
                 </div>
             </footer>
+
+            {/* Image Lightbox */}
+            <ImageLightbox
+                images={images}
+                currentIndex={currentImageIndex}
+                isOpen={showLightbox}
+                onClose={() => setShowLightbox(false)}
+                onNext={() => {
+                    setCurrentImageIndex((prev) =>
+                        prev === images.length - 1 ? 0 : prev + 1
+                    );
+                }}
+                onPrevious={() => {
+                    setCurrentImageIndex((prev) =>
+                        prev === 0 ? images.length - 1 : prev - 1
+                    );
+                }}
+                title={pinory.name}
+            />
         </div>
     );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,6 +16,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { SmartImageGallery } from "@/components/pinory/details/smart-image-gallery";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { useDirections } from "@/components/pinory/base/hooks";
 import { cn } from "@/lib/utils";
 import type { Pinory } from "@/lib/types";
@@ -38,6 +39,9 @@ export function FriendPinoryShareView({
     pinory,
     shareInfo,
 }: FriendPinoryShareViewProps) {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [showLightbox, setShowLightbox] = useState(false);
+
     const { isGettingDirections, handleGetDirections } = useDirections({
         toastId: "friend-share-directions",
     });
@@ -143,7 +147,10 @@ export function FriendPinoryShareView({
                             <SmartImageGallery
                                 images={images}
                                 pinoryId={pinory.id}
-                                onImageClick={() => {}}
+                                onImageClick={(index) => {
+                                    setCurrentImageIndex(index);
+                                    setShowLightbox(true);
+                                }}
                                 variant="desktop"
                             />
                         </div>
@@ -249,6 +256,25 @@ export function FriendPinoryShareView({
                     )}
                 </div>
             </main>
+
+            {/* Image Lightbox */}
+            <ImageLightbox
+                images={images}
+                currentIndex={currentImageIndex}
+                isOpen={showLightbox}
+                onClose={() => setShowLightbox(false)}
+                onNext={() => {
+                    setCurrentImageIndex((prev) =>
+                        prev === images.length - 1 ? 0 : prev + 1
+                    );
+                }}
+                onPrevious={() => {
+                    setCurrentImageIndex((prev) =>
+                        prev === 0 ? images.length - 1 : prev - 1
+                    );
+                }}
+                title={pinory.name}
+            />
         </div>
     );
 }
