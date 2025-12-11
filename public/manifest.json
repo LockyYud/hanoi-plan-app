@@ -1,7 +1,7 @@
 {
   "name": "Pinory",
   "short_name": "Pinory",
-  "description": "Pin your story — Ghim lại những kỷ niệm của bạn trên bản đồ. Khám phá hành trình của chính mình.",
+  "description": "Drop a pin, keep a memory. Pin your favorite places with photos, notes, and share with friends.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -20,7 +20,7 @@
     "photography",
     "lifestyle"
   ],
-  "lang": "vi-VN",
+  "lang": "en",
   "dir": "ltr",
   "scope": "/",
   "prefer_related_applications": false

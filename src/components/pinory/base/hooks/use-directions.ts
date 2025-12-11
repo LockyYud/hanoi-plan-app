@@ -43,11 +43,11 @@ export function useDirections(
             setIsGettingDirections(true);
 
             try {
-                toast.loading("Đang lấy vị trí hiện tại...", { id: toastId });
+                toast.loading("Getting current location...", { id: toastId });
 
                 const currentLocation = await getCurrentLocation();
 
-                toast.loading("Đang tính toán tuyến đường...", { id: toastId });
+                toast.loading("Calculating route...", { id: toastId });
 
                 // Calculate route using Mapbox Directions API
                 const destinationCoords = {
@@ -79,7 +79,7 @@ export function useDirections(
                     })
                 );
 
-                toast.success("Đã tìm thấy tuyến đường!", { id: toastId });
+                toast.success("Route found!", { id: toastId });
 
                 // Callback with route data
                 onRouteCalculated?.(route);
@@ -90,11 +90,11 @@ export function useDirections(
                 }
             } catch (error) {
                 console.error("❌ Error getting directions:", error);
-                toast.error("Không thể tính toán tuyến đường", {
+                toast.error("Could not calculate route", {
                     description:
                         error instanceof Error
                             ? error.message
-                            : "Vui lòng thử lại sau",
+                            : "Please try again later",
                     id: toastId,
                 });
 

@@ -127,7 +127,7 @@ function PanelContent({
                             }}
                         >
                             <Plus className="w-4 h-4 mr-1" />
-                            Mời bạn
+                            Invite
                         </Button>
                     </motion.div>
                     <motion.div
@@ -173,7 +173,7 @@ function PanelContent({
                     <div className="flex items-center gap-2 px-1">
                         <Bell className="w-4 h-4 text-yellow-500" />
                         <Label className="text-xs font-bold uppercase tracking-wider text-yellow-500">
-                            Lời mời kết bạn ({friendRequests.length})
+                            Friend requests ({friendRequests.length})
                         </Label>
                     </div>
                     <div className="space-y-2">
@@ -225,7 +225,7 @@ function PanelContent({
                                             color: "var(--muted-foreground)",
                                         }}
                                     >
-                                        Muốn kết bạn với bạn
+                                        Wants to be friends
                                     </p>
                                 </div>
                                 <div className="flex gap-1.5">
@@ -626,12 +626,12 @@ export function FriendsLayerControl() {
         setProcessingRequest(requestId);
         try {
             await acceptFriendRequest(requestId);
-            toast.success("Đã chấp nhận lời mời kết bạn");
+            toast.success("Friend request accepted");
             fetchFriends();
             fetchFriendRequests();
         } catch (error) {
             console.error("Error accepting friend request:", error);
-            toast.error("Lỗi khi chấp nhận lời mời");
+            toast.error("Failed to accept friend request");
         } finally {
             setProcessingRequest(null);
         }
@@ -642,11 +642,11 @@ export function FriendsLayerControl() {
         setProcessingRequest(requestId);
         try {
             await rejectFriendRequest(requestId);
-            toast.success("Đã từ chối lời mời kết bạn");
+            toast.success("Friend request declined");
             fetchFriendRequests();
         } catch (error) {
             console.error("Error rejecting friend request:", error);
-            toast.error("Lỗi khi từ chối lời mời");
+            toast.error("Failed to decline friend request");
         } finally {
             setProcessingRequest(null);
         }

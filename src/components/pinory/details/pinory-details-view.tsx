@@ -149,10 +149,10 @@ export function PinoryDetailsView({
                 console.log(
                     "💡 Tip: Images are very large. Consider using compression."
                 );
-                setLoadError("Hết thời gian chờ tải ảnh. Vui lòng thử lại.");
+                setLoadError("Image loading timed out. Please try again.");
             } else {
                 console.error("❌ Error loading note images:", error);
-                setLoadError("Lỗi không xác định khi tải ghi chú.");
+                setLoadError("Unknown error while loading pinory.");
             }
         } finally {
             setIsLoadingImages(false);
@@ -241,14 +241,14 @@ export function PinoryDetailsView({
     };
 
     const moodLabels: { [key: string]: string } = {
-        "😊": "Vui vẻ",
-        "😍": "Yêu thích",
-        "😎": "Thư giãn",
-        "🤔": "Suy nghĩ",
-        "😴": "Bình thản",
-        "😋": "Ngon miệng",
-        "🥳": "Vui nhộn",
-        "😤": "Không hài lòng",
+        "😊": "Happy",
+        "😍": "Love it",
+        "😎": "Relaxed",
+        "🤔": "Thoughtful",
+        "😴": "Peaceful",
+        "😋": "Delicious",
+        "🥳": "Excited",
+        "😤": "Disappointed",
     };
 
     // Detect mobile
@@ -394,13 +394,13 @@ export function PinoryDetailsView({
         setIsGettingDirections(true);
 
         try {
-            toast.loading("Đang lấy vị trí hiện tại...", {
+            toast.loading("Getting current location...", {
                 id: "note-directions",
             });
 
             const currentLocation = await getCurrentLocation();
 
-            toast.loading("Đang tính toán tuyến đường...", {
+            toast.loading("Calculating route...", {
                 id: "note-directions",
             });
 
@@ -417,7 +417,7 @@ export function PinoryDetailsView({
                 new CustomEvent("showDirections", {
                     detail: {
                         destination: {
-                            name: pinory.content || "Ghi chú",
+                            name: pinory.content || "Pinory",
                             address: pinory.address || "",
                             lat: pinory.lat,
                             lng: pinory.lng,
@@ -431,7 +431,7 @@ export function PinoryDetailsView({
                 })
             );
 
-            toast.success("Đã tìm thấy tuyến đường!", {
+            toast.success("Route found!", {
                 id: "note-directions",
             });
 
@@ -439,11 +439,11 @@ export function PinoryDetailsView({
             openExternalNavigation(destination, currentLocation);
         } catch (error) {
             console.error("❌ Error getting directions:", error);
-            toast.error("Không thể tính toán tuyến đường", {
+            toast.error("Could not calculate route", {
                 description:
                     error instanceof Error
                         ? error.message
-                        : "Vui lòng thử lại sau",
+                        : "Please try again later",
                 id: "note-directions",
             });
 
@@ -477,7 +477,7 @@ export function PinoryDetailsView({
                         touchAction: "none",
                         willChange: "opacity",
                     }}
-                    aria-label="Đóng"
+                    aria-label="Close"
                 />
 
                 {/* Bottom Sheet */}
@@ -515,7 +515,7 @@ export function PinoryDetailsView({
                         onTouchMove={handleDragMove}
                         onTouchEnd={handleDragEnd}
                         onClick={() => setIsExpanded(!isExpanded)}
-                        aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
+                        aria-label={isExpanded ? "Collapse" : "Expand"}
                     >
                         <div className="w-10 h-1 bg-muted rounded-full"></div>
                     </button>
@@ -543,7 +543,7 @@ export function PinoryDetailsView({
                                                     setCurrentImageIndex(0);
                                                     setShowLightbox(true);
                                                 }}
-                                                aria-label="Xem ảnh"
+                                                aria-label="View photo"
                                             >
                                                 {isValidImageUrl(
                                                     displayPinory.images[0]
@@ -691,7 +691,7 @@ export function PinoryDetailsView({
                                 {/* Hiển thị nội dung trước */}
                                 <h2 className="text-base font-semibold text-muted-foreground mb-1 leading-tight">
                                     {displayPinory.placeName ||
-                                        "Ghi chú địa điểm"}
+                                        "Location pinory"}
                                 </h2>
                                 <p className="text-xs text-[#888] flex items-center gap-1.5 leading-relaxed">
                                     <MapPin className="h-3 w-3 flex-shrink-0" />
@@ -823,7 +823,7 @@ export function PinoryDetailsView({
                                 <Navigation
                                     className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
                                 />
-                                Chỉ đường
+                                Directions
                             </Button>
                             <Button
                                 variant="outline"
@@ -831,21 +831,21 @@ export function PinoryDetailsView({
                                 className="flex-1 h-11 bg-brand/25 hover:bg-brand/35 border-brand/40 text-brand-accent font-semibold text-sm rounded-xl"
                             >
                                 <Edit className="h-4 w-4 mr-1.5" />
-                                Chỉnh sửa
+                                Edit
                             </Button>
                             <Button
                                 variant="destructive"
                                 onClick={() => {
                                     if (
                                         globalThis.confirm(
-                                            "Bạn có chắc muốn xóa ghi chú này?"
+                                            "Are you sure you want to delete this pinory?"
                                         )
                                     ) {
                                         onDelete?.();
                                     }
                                 }}
                                 className="h-11 px-3.5 bg-red-600 hover:bg-red-700 rounded-xl"
-                                title="Xóa ghi chú"
+                                title="Delete pinory"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
@@ -885,10 +885,10 @@ export function PinoryDetailsView({
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0 bg-background border border-border shadow-2xl flex flex-col rounded-2xl">
                 {/* Accessible title for screen readers */}
                 <DialogTitle className="sr-only">
-                    Chi tiết ghi chú:{" "}
+                    Pinory details:{" "}
                     {displayPinory.placeName ||
                         displayPinory.content?.slice(0, 50) ||
-                        "Ghi chú địa điểm"}
+                        "Location pinory"}
                 </DialogTitle>
 
                 {/* Modern Header */}
@@ -904,7 +904,7 @@ export function PinoryDetailsView({
                             <div>
                                 <h2 className="text-lg font-bold text-foreground">
                                     {displayPinory.placeName ||
-                                        "Ghi chú địa điểm"}
+                                        "Location pinory"}
                                 </h2>
                                 <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
                                     <MapPin className="h-3 w-3 flex-shrink-0" />
@@ -954,10 +954,10 @@ export function PinoryDetailsView({
                                             <div className="flex flex-col items-center justify-center py-10">
                                                 <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
                                                 <span className="text-sm font-medium text-foreground mb-1">
-                                                    Đang tải ảnh...
+                                                    Loading images...
                                                 </span>
                                                 <span className="text-xs text-muted-foreground">
-                                                    Vui lòng đợi trong giây lát
+                                                    Please wait a moment
                                                 </span>
                                             </div>
                                         );
@@ -978,7 +978,7 @@ export function PinoryDetailsView({
                                                                     .images
                                                                     .length
                                                             }{" "}
-                                                            ảnh
+                                                            photos
                                                         </span>
                                                     </div>
                                                 )}
@@ -1004,7 +1004,8 @@ export function PinoryDetailsView({
                                             <div className="text-center py-8 text-muted-foreground">
                                                 <Eye className="h-8 w-8 mx-auto mb-2" />
                                                 <div className="text-sm">
-                                                    Có ảnh nhưng chưa tải được
+                                                    Has images but failed to
+                                                    load
                                                 </div>
                                             </div>
                                         );
@@ -1066,7 +1067,7 @@ export function PinoryDetailsView({
                                             </span>
                                             <span>
                                                 {moodLabels[pinory.mood] ||
-                                                    "Khác"}
+                                                    "Other"}
                                             </span>
                                         </div>
                                     )}
@@ -1079,7 +1080,7 @@ export function PinoryDetailsView({
                             <div className="flex items-center gap-2 text-muted-foreground text-sm">
                                 <Clock className="h-4 w-4" />
                                 <span>
-                                    Tạo lúc {formatDateTime(pinory.timestamp)}
+                                    Created {formatDateTime(pinory.timestamp)}
                                 </span>
                             </div>
                         </div>
@@ -1098,7 +1099,7 @@ export function PinoryDetailsView({
                             <Navigation
                                 className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
                             />
-                            Chỉ đường
+                            Directions
                         </Button>
                         <Button
                             variant="outline"
@@ -1106,14 +1107,14 @@ export function PinoryDetailsView({
                             className="flex-1 h-11 bg-secondary/80 hover:bg-accent border-border hover:border-border text-foreground font-semibold rounded-lg transition-all"
                         >
                             <Edit className="h-4 w-4 mr-1.5" />
-                            Chỉnh sửa
+                            Edit
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={() => {
                                 if (
                                     globalThis.confirm(
-                                        "Bạn có chắc muốn xóa ghi chú này?"
+                                        "Are you sure you want to delete this pinory?"
                                     )
                                 ) {
                                     onDelete?.();

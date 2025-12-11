@@ -1,92 +1,103 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, UserPlus, CheckCircle, XCircle } from "lucide-react"
-import Link from "next/link"
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2, UserPlus, CheckCircle, XCircle } from "lucide-react";
+import Link from "next/link";
 
 interface InviteData {
-    inviterName: string
-    inviterImage?: string
-    inviterEmail: string
-    inviteCode: string
+    inviterName: string;
+    inviterImage?: string;
+    inviterEmail: string;
+    inviteCode: string;
 }
 
 export default function InvitePage() {
-    const params = useParams()
-    const router = useRouter()
-    const { data: session, status } = useSession()
-    const code = params.code as string
+    const params = useParams();
+    const router = useRouter();
+    const { data: session, status } = useSession();
+    const code = params.code as string;
 
-    const [inviteData, setInviteData] = useState<InviteData | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [accepting, setAccepting] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-    const [success, setSuccess] = useState(false)
+    const [inviteData, setInviteData] = useState<InviteData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [accepting, setAccepting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
 
     // Fetch invite data
     useEffect(() => {
         const fetchInviteData = async () => {
             try {
-                const response = await fetch(`/api/friends/invite/info?code=${code}`)
+                const response = await fetch(
+                    `/api/friends/invite/info?code=${code}`
+                );
                 if (response.ok) {
-                    const data = await response.json()
-                    setInviteData(data)
+                    const data = await response.json();
+                    setInviteData(data);
                 } else {
-                    const error = await response.json()
-                    setError(error.error || "Link lời mời không hợp lệ hoặc đã hết hạn")
+                    const error = await response.json();
+                    setError(
+                        error.error || "Invite link is invalid or expired"
+                    );
                 }
             } catch (err) {
-                setError("Không thể tải thông tin lời mời")
-                console.error(err)
+                setError("Could not load invite info");
+                console.error(err);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
+        };
 
         if (code) {
-            fetchInviteData()
+            fetchInviteData();
         }
-    }, [code])
+    }, [code]);
 
     const handleAccept = async () => {
         if (!session?.user) {
             // Redirect to signin with callback
-            router.push(`/auth/signin?callbackUrl=/invite/${code}`)
-            return
+            router.push(`/auth/signin?callbackUrl=/invite/${code}`);
+            return;
         }
 
-        setAccepting(true)
-        setError(null)
+        setAccepting(true);
+        setError(null);
 
         try {
             const response = await fetch("/api/friends/invite/accept", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ inviteCode: code })
-            })
+                body: JSON.stringify({ inviteCode: code }),
+            });
 
             if (response.ok) {
-                setSuccess(true)
+                setSuccess(true);
                 // Redirect to home after 2 seconds
                 setTimeout(() => {
-                    router.push("/")
-                }, 2000)
+                    router.push("/");
+                }, 2000);
             } else {
-                const error = await response.json()
-                setError(error.error || "Không thể chấp nhận lời mời")
+                const error = await response.json();
+                setError(error.error || "Could not accept invite");
             }
         } catch (err) {
-            setError("Đã xảy ra lỗi. Vui lòng thử lại")
-            console.error(err)
+            setError("An error occurred. Please try again");
+            console.error(err);
         } finally {
-            setAccepting(false)
+            setAccepting(false);
         }
-    }
+    };
 
     if (loading) {
         return (
@@ -97,7 +108,7 @@ export default function InvitePage() {
                     </CardContent>
                 </Card>
             </div>
-        )
+        );
     }
 
     if (success) {
@@ -108,17 +119,17 @@ export default function InvitePage() {
                         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
                             <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
                         </div>
-                        <CardTitle className="text-2xl">Thành công! 🎉</CardTitle>
+                        <CardTitle className="text-2xl">Success! 🎉</CardTitle>
                         <CardDescription>
-                            Bạn và {inviteData?.inviterName} giờ đã là bạn bè!
+                            You and {inviteData?.inviterName} are now friends!
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="text-center text-sm text-muted-foreground">
-                        Đang chuyển về trang chủ...
+                        Redirecting to home...
                     </CardContent>
                 </Card>
             </div>
-        )
+        );
     }
 
     if (error) {
@@ -130,20 +141,22 @@ export default function InvitePage() {
                             <XCircle className="h-10 w-10 text-red-600 dark:text-red-400" />
                         </div>
                         <CardTitle className="text-2xl">Oops!</CardTitle>
-                        <CardDescription className="text-base">{error}</CardDescription>
+                        <CardDescription className="text-base">
+                            {error}
+                        </CardDescription>
                     </CardHeader>
                     <CardFooter className="flex justify-center">
                         <Link href="/">
-                            <Button variant="outline">Về trang chủ</Button>
+                            <Button variant="outline">Back to home</Button>
                         </Link>
                     </CardFooter>
                 </Card>
             </div>
-        )
+        );
     }
 
     if (!inviteData) {
-        return null
+        return null;
     }
 
     return (
@@ -152,7 +165,10 @@ export default function InvitePage() {
                 <CardHeader className="text-center space-y-4">
                     <div className="mx-auto">
                         <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
-                            <AvatarImage src={inviteData.inviterImage} alt={inviteData.inviterName} />
+                            <AvatarImage
+                                src={inviteData.inviterImage}
+                                alt={inviteData.inviterName}
+                            />
                             <AvatarFallback className="text-2xl">
                                 {inviteData.inviterName.charAt(0).toUpperCase()}
                             </AvatarFallback>
@@ -160,10 +176,11 @@ export default function InvitePage() {
                     </div>
                     <div>
                         <CardTitle className="text-2xl font-bold">
-                            {inviteData.inviterName} mời bạn kết bạn
+                            {inviteData.inviterName} invites you to connect
                         </CardTitle>
                         <CardDescription className="text-base mt-2">
-                            Tham gia Hanoi Plan để chia sẻ địa điểm yêu thích với {inviteData.inviterName}!
+                            Join Pinory to share your favorite places with{" "}
+                            {inviteData.inviterName}!
                         </CardDescription>
                     </div>
                 </CardHeader>
@@ -172,22 +189,25 @@ export default function InvitePage() {
                     {status === "unauthenticated" && (
                         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-center">
                             <p className="text-sm text-blue-900 dark:text-blue-200">
-                                Bạn cần đăng nhập để chấp nhận lời mời
+                                You need to sign in to accept the invite
                             </p>
                         </div>
                     )}
 
-                    {status === "authenticated" && session?.user?.email === inviteData.inviterEmail && (
-                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-center">
-                            <p className="text-sm text-yellow-900 dark:text-yellow-200">
-                                ⚠️ Đây là link mời của bạn. Bạn không thể kết bạn với chính mình!
-                            </p>
-                        </div>
-                    )}
+                    {status === "authenticated" &&
+                        session?.user?.email === inviteData.inviterEmail && (
+                            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-center">
+                                <p className="text-sm text-yellow-900 dark:text-yellow-200">
+                                    ⚠️ This is your own invite link. You cannot
+                                    be friends with yourself!
+                                </p>
+                            </div>
+                        )}
                 </CardContent>
 
                 <CardFooter className="flex flex-col gap-3">
-                    {status === "authenticated" && session?.user?.email !== inviteData.inviterEmail ? (
+                    {status === "authenticated" &&
+                    session?.user?.email !== inviteData.inviterEmail ? (
                         <Button
                             onClick={handleAccept}
                             disabled={accepting}
@@ -197,47 +217,58 @@ export default function InvitePage() {
                             {accepting ? (
                                 <>
                                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                    Đang xử lý...
+                                    Processing...
                                 </>
                             ) : (
                                 <>
                                     <UserPlus className="mr-2 h-5 w-5" />
-                                    Chấp nhận lời mời
+                                    Accept invite
                                 </>
                             )}
                         </Button>
                     ) : status === "unauthenticated" ? (
                         <Button
-                            onClick={() => router.push(`/auth/signin?callbackUrl=/invite/${code}`)}
+                            onClick={() =>
+                                router.push(
+                                    `/auth/signin?callbackUrl=/invite/${code}`
+                                )
+                            }
                             className="w-full h-12 text-lg"
                             size="lg"
                         >
-                            Đăng nhập để tiếp tục
+                            Sign in to continue
                         </Button>
                     ) : (
                         <Link href="/" className="w-full">
-                            <Button variant="outline" className="w-full h-12 text-lg" size="lg">
-                                Về trang chủ
+                            <Button
+                                variant="outline"
+                                className="w-full h-12 text-lg"
+                                size="lg"
+                            >
+                                Back to home
                             </Button>
                         </Link>
                     )}
 
-                    {status === "authenticated" && session?.user?.email !== inviteData.inviterEmail && (
-                        <Link href="/" className="w-full">
-                            <Button variant="ghost" className="w-full">
-                                Từ chối
-                            </Button>
-                        </Link>
-                    )}
+                    {status === "authenticated" &&
+                        session?.user?.email !== inviteData.inviterEmail && (
+                            <Link href="/" className="w-full">
+                                <Button variant="ghost" className="w-full">
+                                    Decline
+                                </Button>
+                            </Link>
+                        )}
                 </CardFooter>
 
                 <div className="px-6 pb-6 text-center">
                     <p className="text-xs text-muted-foreground">
-                        Mã mời: <code className="bg-muted px-2 py-1 rounded">{code}</code>
+                        Invite code:{" "}
+                        <code className="bg-muted px-2 py-1 rounded">
+                            {code}
+                        </code>
                     </p>
                 </div>
             </Card>
         </div>
-    )
+    );
 }
-

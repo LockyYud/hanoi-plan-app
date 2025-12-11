@@ -155,7 +155,7 @@ export function ImageLightbox({
         <div
             role="dialog"
             aria-modal="true"
-            aria-label="Xem ảnh toàn màn hình"
+            aria-label="View image fullscreen"
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-8 animate-in fade-in duration-300"
             onClick={(e) => {
                 if (e.target === e.currentTarget) {
@@ -186,7 +186,7 @@ export function ImageLightbox({
                         onClose();
                     }}
                     className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-white hover:bg-gray-100 text-gray-600 hover:text-gray-900 p-2 sm:p-2.5 rounded-full shadow-lg z-10 transition-all duration-200 active:scale-95"
-                    aria-label="Đóng lightbox"
+                    aria-label="Close lightbox"
                 >
                     <X className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2.5} />
                 </button>
@@ -295,7 +295,7 @@ export function ImageLightbox({
                             letterSpacing: "0.01em",
                         }}
                     >
-                        {title || "Ảnh"}
+                        {title || "Photo"}
                     </h3>
 
                     {/* Counter & Navigation dots */}
@@ -327,7 +327,7 @@ export function ImageLightbox({
                                                 ? "bg-gray-700 scale-125"
                                                 : "bg-gray-300 hover:bg-gray-400"
                                         }`}
-                                        aria-label={`Xem ảnh ${idx + 1}`}
+                                        aria-label={`View photo ${idx + 1}`}
                                         disabled={isControlled}
                                     />
                                 ))}
@@ -354,7 +354,7 @@ export function ImageLightbox({
                             goToPrevious();
                         }}
                         className="hidden md:flex absolute left-4 lg:left-8 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 hover:text-gray-900 p-3 lg:p-4 rounded-full shadow-lg transition-all duration-200 items-center justify-center hover:scale-105 active:scale-95"
-                        aria-label="Ảnh trước"
+                        aria-label="Previous photo"
                         disabled={isTransitioning}
                     >
                         <ChevronLeft
@@ -369,7 +369,7 @@ export function ImageLightbox({
                             goToNext();
                         }}
                         className="hidden md:flex absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 hover:text-gray-900 p-3 lg:p-4 rounded-full shadow-lg transition-all duration-200 items-center justify-center hover:scale-105 active:scale-95"
-                        aria-label="Ảnh tiếp theo"
+                        aria-label="Next photo"
                         disabled={isTransitioning}
                     >
                         <ChevronRight

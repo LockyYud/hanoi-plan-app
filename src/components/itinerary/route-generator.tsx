@@ -72,7 +72,7 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
             toast.success(`Đã tạo ${result.routes.length} lộ trình thú vị!`);
         } catch (error) {
             console.error("Error generating routes:", error);
-            toast.error("Có lỗi xảy ra khi tạo lộ trình");
+            toast.error("Error creating route");
         } finally {
             setIsGenerating(false);
         }
@@ -94,7 +94,7 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
                     <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                             <Wand2 className="h-5 w-5" />
-                            Tạo lộ trình tự động
+                            Auto-generate route
                         </CardTitle>
                         <Button
                             variant="outline"
@@ -184,7 +184,7 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
                                         onChange={(e) =>
                                             setStartLocation(e.target.value)
                                         }
-                                        placeholder="VD: Hồ Hoàn Kiếm"
+                                        placeholder="e.g., Central Park"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -197,7 +197,7 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
                                         onChange={(e) =>
                                             setEndLocation(e.target.value)
                                         }
-                                        placeholder="VD: Phố cổ"
+                                        placeholder="e.g., Downtown"
                                     />
                                 </div>
                             </div>
@@ -214,12 +214,12 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
                         {isGenerating ? (
                             <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Đang tạo lộ trình...
+                                Creating route...
                             </>
                         ) : (
                             <>
                                 <Wand2 className="h-4 w-4 mr-2" />
-                                Tạo lộ trình thông minh
+                                Smart route
                             </>
                         )}
                     </Button>
@@ -238,7 +238,7 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
                             size="sm"
                             onClick={handleGenerateRoutes}
                         >
-                            Tạo lại
+                            Regenerate
                         </Button>
                     </div>
 
@@ -267,7 +267,7 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h4 className="font-medium text-green-900">
-                                            Hoàn thiện lộ trình
+                                            Finalize route
                                         </h4>
                                         <p className="text-sm text-green-700">
                                             Lộ trình đã được chọn, sẵn sàng chia
@@ -275,7 +275,7 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
                                         </p>
                                     </div>
                                     <Button className="bg-green-600 hover:bg-green-700">
-                                        Hoàn thiện & Chia sẻ
+                                        Finalize & Share
                                     </Button>
                                 </div>
                             </CardContent>
@@ -289,7 +289,7 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
                 <div className="text-center py-12 text-gray-500">
                     <MapPin className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Tạo lộ trình thông minh
+                        Smart route
                     </h3>
                     <p className="text-sm mb-4">
                         AI sẽ phân tích sở thích của nhóm và tạo ra những lộ
@@ -305,4 +305,3 @@ export function RouteGenerator({ groupId, className }: RouteGeneratorProps) {
         </div>
     );
 }
-

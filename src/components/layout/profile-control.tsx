@@ -65,7 +65,7 @@ function ProfileContent({
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="font-semibold text-foreground truncate">
-                                {session.user?.name || "Người dùng"}
+                                {session.user?.name || "User"}
                             </p>
                             <p className="text-sm text-muted-foreground truncate">
                                 {session.user?.email}
@@ -89,7 +89,7 @@ function ProfileContent({
                             </span>
                         </div>
                         <span className="text-xs text-muted-foreground px-2 py-1 bg-secondary rounded">
-                            {theme === "dark" ? "Tối" : "Sáng"}
+                            {theme === "dark" ? "Dark" : "Light"}
                         </span>
                     </button>
 
@@ -99,7 +99,7 @@ function ProfileContent({
                         className="w-full flex items-center gap-3 p-3 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
                     >
                         <LogOut className="w-5 h-5" />
-                        <span className="text-sm font-medium">Đăng xuất</span>
+                        <span className="text-sm font-medium">Sign out</span>
                     </button>
                 </>
             ) : (
@@ -148,7 +148,7 @@ function ProfileContent({
                             </span>
                         </div>
                         <span className="text-xs text-muted-foreground px-2 py-1 bg-secondary rounded">
-                            {theme === "dark" ? "Tối" : "Sáng"}
+                            {theme === "dark" ? "Dark" : "Light"}
                         </span>
                     </button>
                 </>

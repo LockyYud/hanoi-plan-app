@@ -162,7 +162,7 @@ describe("MapContainer Integration Tests", () => {
             );
 
             // Should show error UI
-            expect(container.textContent).toContain("Bản đồ không khả dụng");
+            expect(container.textContent).toContain("Map not available");
         });
     });
 

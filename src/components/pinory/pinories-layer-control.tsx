@@ -301,7 +301,7 @@ function PanelContent({
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Tìm kiếm kỷ niệm..."
+                        placeholder="Search memories..."
                         value={filter.query || ""}
                         onChange={(e) =>
                             setFilter({ ...filter, query: e.target.value })
@@ -409,7 +409,7 @@ function PanelContent({
                 {isLoadingPinories && (
                     <div className="text-center py-12 text-muted-foreground">
                         <div className="animate-spin h-8 w-8 mx-auto mb-3 border-2 border-white border-t-transparent rounded-full" />
-                        <p className="text-sm">Đang tải...</p>
+                        <p className="text-sm">Loading...</p>
                     </div>
                 )}
 
@@ -582,11 +582,11 @@ export function PinoriesLayerControl() {
         setIsGettingDirections(place.id);
 
         try {
-            toast.loading("Đang lấy vị trí hiện tại...", { id: "directions" });
+            toast.loading("Getting current location...", { id: "directions" });
 
             const currentLocation = await getCurrentLocation();
 
-            toast.loading("Đang tính toán tuyến đường...", {
+            toast.loading("Calculating route...", {
                 id: "directions",
             });
 
@@ -599,7 +599,7 @@ export function PinoriesLayerControl() {
                 new CustomEvent("showDirections", {
                     detail: {
                         destination: {
-                            name: place.name || "Vị trí đã chọn",
+                            name: place.name || "Selected location",
                             address: place.address || "",
                             lat: place.lat,
                             lng: place.lng,
@@ -613,16 +613,16 @@ export function PinoriesLayerControl() {
                 })
             );
 
-            toast.success("Đã tìm thấy tuyến đường!", { id: "directions" });
+            toast.success("Route found!", { id: "directions" });
 
             openExternalNavigation(destination, currentLocation);
         } catch (error) {
             console.error("Error getting directions:", error);
-            toast.error("Không thể tính toán tuyến đường", {
+            toast.error("Could not calculate route", {
                 description:
                     error instanceof Error
                         ? error.message
-                        : "Vui lòng thử lại sau",
+                        : "Please try again later",
                 id: "directions",
             });
 

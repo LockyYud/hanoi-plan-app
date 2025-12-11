@@ -227,7 +227,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
                         Bản đồ không khả dụng
                     </h3>
                     <p className="text-sm text-gray-600">
-                        {mapInit.mapError || "Cần cấu hình Mapbox Token"}
+                        {mapInit.mapError || "Mapbox Token required"}
                     </p>
                 </div>
             </div>
@@ -273,7 +273,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
                 onDeleteNote={async () => {
                     if (
                         selectedPinory &&
-                        confirm("Bạn có chắc muốn xóa ghi chú này?")
+                        confirm("Are you sure you want to delete this pinory?")
                     ) {
                         try {
                             await pinoriesManager.deletePinory(
@@ -282,7 +282,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
                             setSelectedPinory(null);
                         } catch (error) {
                             console.error("Failed to delete note:", error);
-                            alert("Không thể xóa ghi chú. Vui lòng thử lại.");
+                            alert("Could not delete pinory. Please try again.");
                         }
                     }
                 }}

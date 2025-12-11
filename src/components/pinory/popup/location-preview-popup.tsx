@@ -87,16 +87,16 @@ export function LocationPreviewPopup({
                 setRouteInfo(null);
                 setHasRoute(false);
                 globalThis.dispatchEvent(new CustomEvent("routeCleared"));
-                toast.success("Đã tắt chỉ đường");
+                toast.success("Directions cleared");
             } else {
-                toast.error("Không thể tắt chỉ đường");
+                toast.error("Could not clear directions");
             }
         }
     };
 
     const onGetDirections = () => {
         handleGetDirections({
-            name: "Vị trí được chọn",
+            name: "Selected location",
             address: location.address,
             lat: location.lat,
             lng: location.lng,
@@ -125,7 +125,7 @@ export function LocationPreviewPopup({
                         touchAction: "none",
                         willChange: "opacity",
                     }}
-                    aria-label="Đóng"
+                    aria-label="Close"
                 />
 
                 {/* Mini Bottom Sheet */}
@@ -168,7 +168,7 @@ export function LocationPreviewPopup({
                             document.addEventListener("touchmove", handleMove);
                             document.addEventListener("touchend", handleEnd);
                         }}
-                        aria-label="Kéo xuống để đóng"
+                        aria-label="Swipe down to close"
                     >
                         <div className="w-10 h-1 bg-muted rounded-full"></div>
                     </button>
@@ -179,7 +179,7 @@ export function LocationPreviewPopup({
                             <span className="text-2xl flex-shrink-0">📍</span>
                             <div className="flex-1 min-w-0">
                                 <div className="text-base font-medium text-foreground line-clamp-2">
-                                    {location.address || "Địa điểm mới"}
+                                    {location.address || "New location"}
                                 </div>
                                 <div className="text-xs text-muted-foreground mt-0.5">
                                     {location.lat.toFixed(6)},{" "}
@@ -208,7 +208,7 @@ export function LocationPreviewPopup({
                                     className="h-5 w-5 mr-2"
                                     strokeWidth={1.5}
                                 />
-                                Thêm ghi chú
+                                Add pinory
                             </Button>
 
                             {hasRoute ? (
@@ -222,7 +222,7 @@ export function LocationPreviewPopup({
                                         className="h-5 w-5 mr-2"
                                         strokeWidth={1.5}
                                     />
-                                    Tắt đường
+                                    Clear route
                                 </Button>
                             ) : (
                                 <Button
@@ -236,7 +236,7 @@ export function LocationPreviewPopup({
                                         className={`h-5 w-5 mr-2 ${isGettingDirections ? "animate-spin" : ""}`}
                                         strokeWidth={2}
                                     />
-                                    Chỉ đường
+                                    Directions
                                 </Button>
                             )}
                         </div>
@@ -300,7 +300,7 @@ export function LocationPreviewPopup({
                             strokeWidth={1.5}
                         />
                         <span className="text-sm text-muted-foreground">
-                            Địa điểm mới
+                            New location
                         </span>
                     </div>
 
@@ -340,7 +340,7 @@ export function LocationPreviewPopup({
                                 className="h-4 w-4 mr-1"
                                 strokeWidth={1.5}
                             />
-                            Thêm ghi chú
+                            Add pinory
                         </Button>
 
                         {hasRoute ? (
@@ -354,7 +354,7 @@ export function LocationPreviewPopup({
                                     className="h-3 w-3 mr-1"
                                     strokeWidth={1.5}
                                 />
-                                Tắt đường
+                                Clear route
                             </Button>
                         ) : (
                             <Button
@@ -368,7 +368,7 @@ export function LocationPreviewPopup({
                                     className={`h-3 w-3 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
                                     strokeWidth={2}
                                 />
-                                Chỉ đường
+                                Directions
                             </Button>
                         )}
                     </div>

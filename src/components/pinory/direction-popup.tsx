@@ -70,7 +70,7 @@ export function DirectionPopup({
                                 </div>
                                 <div className="hidden sm:block">
                                     <div className="text-sm font-bold text-foreground">
-                                        Đang chỉ đường
+                                        Navigating
                                     </div>
                                     <div className="text-xs text-muted-foreground truncate max-w-[150px]">
                                         {destination.name}
@@ -117,7 +117,7 @@ export function DirectionPopup({
                                 size="sm"
                                 onClick={onClose}
                                 className="text-white bg-red-600 hover:bg-red-700 rounded-full w-9 h-9 p-0 flex-shrink-0 border-2 border-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
-                                title="Tắt chỉ đường"
+                                title="Stop navigation"
                             >
                                 <X className="h-4 w-4" strokeWidth={2.5} />
                             </Button>

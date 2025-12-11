@@ -23,7 +23,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
 
         setIsLocating(true);
         try {
-            toast.loading("Đang lấy vị trí...", { id: "locate" });
+            toast.loading("Getting location...", { id: "locate" });
 
             const location = await getCurrentLocation();
 
@@ -33,12 +33,12 @@ export function MapControls({ mapRef }: MapControlsProps) {
                 duration: 1500,
             });
 
-            toast.success("Đã tìm thấy vị trí của bạn!", { id: "locate" });
+            toast.success("Location found!", { id: "locate" });
         } catch (error) {
             console.error("Error getting location:", error);
-            toast.error("Không thể lấy vị trí hiện tại", {
+            toast.error("Could not get current location", {
                 description:
-                    error instanceof Error ? error.message : "Vui lòng thử lại",
+                    error instanceof Error ? error.message : "Please try again",
                 id: "locate",
             });
         } finally {
@@ -70,7 +70,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
         setMapStyle(mapStyle === "streets" ? "satellite" : "streets");
 
         toast.success(
-            `Đã chuyển sang chế độ ${mapStyle === "streets" ? "vệ tinh" : "đường phố"}`,
+            `Switched to ${mapStyle === "streets" ? "satellite" : "street"} view`,
             { duration: 1500 }
         );
     };
@@ -86,7 +86,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
                         variant="ghost"
                         onClick={handleZoomIn}
                         className="h-10 w-10 p-0 hover:bg-accent rounded-none border-b border-border"
-                        title="Phóng to"
+                        title="Zoom in"
                     >
                         <ZoomIn className="h-5 w-5 text-foreground" />
                     </Button>
@@ -95,7 +95,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
                         variant="ghost"
                         onClick={handleZoomOut}
                         className="h-10 w-10 p-0 hover:bg-accent rounded-none"
-                        title="Thu nhỏ"
+                        title="Zoom out"
                     >
                         <ZoomOut className="h-5 w-5 text-foreground" />
                     </Button>
@@ -107,7 +107,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
                     onClick={handleLocateMe}
                     disabled={isLocating}
                     className="h-10 w-10 p-0 rounded-xl shadow-lg bg-background/95 hover:bg-accent backdrop-blur-sm border border-border"
-                    title="Vị trí của tôi"
+                    title="My location"
                 >
                     <Navigation
                         className={cn(
@@ -124,8 +124,8 @@ export function MapControls({ mapRef }: MapControlsProps) {
                     className="h-10 w-10 p-0 rounded-xl shadow-lg bg-background/95 hover:bg-accent backdrop-blur-sm border border-border"
                     title={
                         mapStyle === "streets"
-                            ? "Chế độ vệ tinh"
-                            : "Chế độ đường phố"
+                            ? "Satellite view"
+                            : "Street view"
                     }
                 >
                     <Layers className="h-5 w-5 text-foreground" />

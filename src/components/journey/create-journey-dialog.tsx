@@ -110,7 +110,7 @@ export function CreateJourneyDialog({
             }
         } catch (error) {
             console.error("Error loading notes:", error);
-            toast.error("Không thể tải danh sách địa điểm");
+            toast.error("Could not load locations");
         } finally {
             setLoadingNotes(false);
         }
@@ -120,12 +120,12 @@ export function CreateJourneyDialog({
         e.preventDefault();
 
         if (!title.trim()) {
-            toast.error("Vui lòng nhập tên hành trình");
+            toast.error("Please enter a journey name");
             return;
         }
 
         if (selectedPlaceIds.length === 0) {
-            toast.error("Vui lòng chọn ít nhất một địa điểm");
+            toast.error("Please select at least one location");
             return;
         }
 
@@ -153,15 +153,13 @@ export function CreateJourneyDialog({
             }
 
             toast.success(
-                editingJourney
-                    ? "Đã cập nhật hành trình"
-                    : "Đã tạo hành trình mới"
+                editingJourney ? "Journey updated" : "Journey created"
             );
             onSuccess();
             onClose();
         } catch (error) {
             console.error("Error saving journey:", error);
-            toast.error("Có lỗi xảy ra khi lưu hành trình");
+            toast.error("Error saving journey");
         } finally {
             setLoading(false);
         }
@@ -318,13 +316,13 @@ export function CreateJourneyDialog({
                         <div className="flex-1">
                             <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-0.5">
                                 {editingJourney
-                                    ? "Chỉnh sửa hành trình"
-                                    : "Tạo hành trình mới"}
+                                    ? "Edit journey"
+                                    : "Create new journey"}
                             </DialogTitle>
                             <p className="text-xs sm:text-sm text-muted-foreground">
                                 {editingJourney
-                                    ? "Cập nhật thông tin và địa điểm"
-                                    : "Tạo hành trình từ các địa điểm đã lưu"}
+                                    ? "Update info and locations"
+                                    : "Create a journey from saved pinories"}
                             </p>
                         </div>
                     </div>
@@ -356,7 +354,7 @@ export function CreateJourneyDialog({
                                 id="title"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Ví dụ: Khám phá Hà Nội - Tuần 1"
+                                placeholder="e.g., Weekend Adventure - Week 1"
                                 className="bg-secondary/80 border-border hover:border-border focus:border-brand/50 text-foreground h-10 sm:h-11 text-sm transition-colors rounded-lg"
                                 required
                             />
@@ -374,7 +372,7 @@ export function CreateJourneyDialog({
                                 id="description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Mô tả ngắn về hành trình của bạn..."
+                                placeholder="Short description of your journey..."
                                 rows={2}
                                 className="bg-secondary/80 border-border hover:border-border focus:border-brand/50 text-foreground text-sm resize-none transition-colors rounded-lg"
                             />
@@ -388,7 +386,7 @@ export function CreateJourneyDialog({
                                 <div className="h-1 w-1 rounded-full bg-brand"></div>
                                 <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
                                     <Clock className="h-4 w-4" />
-                                    Thời gian hành trình
+                                    Journey dates
                                 </h3>
                             </div>
                             {selectedNotes.length > 0 && (
@@ -422,7 +420,7 @@ export function CreateJourneyDialog({
                                             type="button"
                                             onClick={setStartDateFromSelection}
                                             className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors"
-                                            title="Lấy ngày sớm nhất từ địa điểm đã chọn"
+                                            title="Get earliest date from selected locations"
                                         >
                                             ← Lấy ngày
                                         </button>
@@ -451,7 +449,7 @@ export function CreateJourneyDialog({
                                             type="button"
                                             onClick={setEndDateFromSelection}
                                             className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors"
-                                            title="Lấy ngày muộn nhất từ địa điểm đã chọn"
+                                            title="Get latest date from selected locations"
                                         >
                                             ← Lấy ngày
                                         </button>
@@ -473,7 +471,7 @@ export function CreateJourneyDialog({
                                 <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                                     <Calendar className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
                                     <p className="text-xs text-blue-300">
-                                        Đang hiển thị{" "}
+                                        Showing{" "}
                                         <span className="font-semibold">
                                             {filteredAvailableNotes.length}
                                         </span>
@@ -585,8 +583,7 @@ export function CreateJourneyDialog({
                                             {/* Place info */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="text-xs sm:text-sm font-medium text-foreground truncate">
-                                                    {note.content ||
-                                                        "Không có tiêu đề"}
+                                                    {note.content || "Untitled"}
                                                 </div>
                                                 <div className="text-[10px] sm:text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
                                                     <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
@@ -644,7 +641,7 @@ export function CreateJourneyDialog({
                             <Input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Tìm theo tên hoặc địa chỉ..."
+                                placeholder="Search by name or address..."
                                 className="pl-9 bg-secondary/80 border-border hover:border-border focus:border-brand/50 text-foreground h-10 text-sm transition-colors rounded-lg"
                             />
                             {searchQuery && (
@@ -664,7 +661,7 @@ export function CreateJourneyDialog({
                         {loadingNotes && (
                             <div className="text-center py-8 text-muted-foreground text-sm">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand mx-auto mb-2"></div>
-                                Đang tải địa điểm...
+                                Loading locations...
                             </div>
                         )}
 
@@ -677,9 +674,9 @@ export function CreateJourneyDialog({
                                     </p>
                                     {(startDate || endDate || searchQuery) && (
                                         <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-                                            {searchQuery && "với từ khóa này"}
+                                            {searchQuery && "with this keyword"}
                                             {!searchQuery &&
-                                                "trong khoảng thời gian này"}
+                                                "in this time period"}
                                         </p>
                                     )}
                                 </div>
@@ -717,8 +714,7 @@ export function CreateJourneyDialog({
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="text-xs sm:text-sm font-medium text-foreground truncate">
-                                                    {note.content ||
-                                                        "Không có tiêu đề"}
+                                                    {note.content || "Untitled"}
                                                 </div>
                                                 <div className="text-[10px] sm:text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
                                                     <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
@@ -755,7 +751,7 @@ export function CreateJourneyDialog({
                             onClick={onClose}
                             className="flex-1 bg-secondary/80 hover:bg-accent text-foreground border-border hover:border-border h-10 sm:h-11 text-sm font-medium rounded-lg transition-all"
                         >
-                            Hủy
+                            Cancel
                         </Button>
                         <Button
                             type="submit"
@@ -765,13 +761,13 @@ export function CreateJourneyDialog({
                             {loading ? (
                                 <span className="flex items-center gap-2">
                                     <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    Đang lưu...
+                                    Saving...
                                 </span>
                             ) : (
                                 <>
                                     {editingJourney
-                                        ? "Cập nhật hành trình"
-                                        : "Tạo hành trình"}
+                                        ? "Update journey"
+                                        : "Create journey"}
                                 </>
                             )}
                         </Button>

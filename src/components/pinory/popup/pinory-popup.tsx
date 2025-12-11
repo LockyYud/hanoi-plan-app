@@ -102,16 +102,16 @@ export function PinoryPopup({
                 setRouteInfo(null);
                 setHasRoute(false);
                 globalThis.dispatchEvent(new CustomEvent("routeCleared"));
-                toast.success("Đã tắt chỉ đường");
+                toast.success("Directions cleared");
             } else {
-                toast.error("Không thể tắt chỉ đường");
+                toast.error("Could not clear directions");
             }
         }
     };
 
     const onGetDirections = () => {
         handleGetDirections({
-            name: pinory.name || "Ghi chú của bạn",
+            name: pinory.name || "Your pinory",
             address: pinory.address || "",
             lat: pinory.lat,
             lng: pinory.lng,
@@ -211,7 +211,7 @@ export function PinoryPopup({
                             onClick={onViewDetails}
                         >
                             <Eye className="h-4 w-4 mr-1" strokeWidth={1.5} />
-                            Chi tiết
+                            Details
                         </Button>
 
                         {hasRoute ? (
@@ -225,7 +225,7 @@ export function PinoryPopup({
                                     className="h-3 w-3 mr-1"
                                     strokeWidth={1.5}
                                 />
-                                Tắt đường
+                                Clear route
                             </Button>
                         ) : (
                             <Button
@@ -239,7 +239,7 @@ export function PinoryPopup({
                                     className={`h-3 w-3 mr-1 ${isGettingDirections ? "animate-spin" : ""}`}
                                     strokeWidth={2}
                                 />
-                                Chỉ đường
+                                Directions
                             </Button>
                         )}
 
@@ -249,7 +249,7 @@ export function PinoryPopup({
                                 variant="outline"
                                 className="px-3 bg-secondary hover:bg-red-900/30 text-red-400 border-border hover:border-red-800"
                                 onClick={onDelete}
-                                title="Xóa ghi chú"
+                                title="Delete pinory"
                             >
                                 <Trash2 className="h-4 w-4" strokeWidth={1.5} />
                             </Button>

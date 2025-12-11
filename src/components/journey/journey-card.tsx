@@ -127,7 +127,7 @@ export function JourneyCard({
                                 e.stopPropagation();
                                 onView(journey);
                             }}
-                            title="Xem chi tiết"
+                            title="View details"
                         >
                             <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
@@ -140,7 +140,7 @@ export function JourneyCard({
                                 e.stopPropagation();
                                 onEdit(journey);
                             }}
-                            title="Chỉnh sửa"
+                            title="Edit"
                         >
                             <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
@@ -153,13 +153,13 @@ export function JourneyCard({
                                 e.stopPropagation();
                                 if (
                                     confirm(
-                                        "Bạn có chắc muốn xóa hành trình này?"
+                                        "Are you sure you want to delete this journey?"
                                     )
                                 ) {
                                     onDelete(journey);
                                 }
                             }}
-                            title="Xóa"
+                            title="Delete"
                         >
                             <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>

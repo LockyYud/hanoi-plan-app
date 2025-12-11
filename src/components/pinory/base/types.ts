@@ -176,12 +176,12 @@ export interface UserInfo {
 }
 
 export const moodLabels: Record<string, string> = {
-    "😊": "Vui vẻ",
-    "😍": "Yêu thích",
-    "😎": "Thư giãn",
-    "🤔": "Suy nghĩ",
-    "😴": "Bình thản",
-    "😋": "Ngon miệng",
-    "🥳": "Vui nhộn",
-    "😤": "Không hài lòng",
+    "😊": "Happy",
+    "😍": "Love it",
+    "😎": "Relaxed",
+    "🤔": "Thoughtful",
+    "😴": "Peaceful",
+    "😋": "Delicious",
+    "🥳": "Excited",
+    "😤": "Disappointed",
 };

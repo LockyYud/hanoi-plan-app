@@ -31,9 +31,9 @@ import { useSession } from "next-auth/react";
 
 const PinorySchema = z.object({
     category: z.string().optional(), // Category is optional now
-    content: z.string().max(280, "Nội dung tối đa 280 ký tự").optional(),
-    placeName: z.string().min(1, "Tên địa điểm không được để trống"),
-    visitTime: z.string().min(1, "Thời gian thăm không được để trống"),
+    content: z.string().max(280, "Maximum 280 characters").optional(),
+    placeName: z.string().min(1, "Place name is required"),
+    visitTime: z.string().min(1, "Visit time is required"),
     visibility: z.enum(["private", "friends", "public"]),
 });
 
@@ -411,7 +411,7 @@ export function PinoryForm({
 
             if (existingPinory) {
                 // Editing existing pinory
-                setUploadProgress("Đang xử lý ảnh...");
+                setUploadProgress("Processing images...");
 
                 const imageUrls: string[] = [];
                 for (const existingImage of existingImageUrls) {
@@ -421,13 +421,13 @@ export function PinoryForm({
                 }
 
                 if (images.length > 0) {
-                    setUploadProgress(`Đang upload 0/${images.length} ảnh...`);
+                    setUploadProgress(`Uploading 0/${images.length} images...`);
                     const uploadResults = await uploadMultipleImages(
                         images,
                         existingPinory.id,
                         (completed, total) => {
                             setUploadProgress(
-                                `Đang upload ${completed}/${total} ảnh...`
+                                `Uploading ${completed}/${total} images...`
                             );
                         }
                     );
@@ -441,12 +441,12 @@ export function PinoryForm({
                     }
 
                     setUploadProgress(
-                        `Đã upload ${successCount}/${images.length} ảnh thành công`
+                        `Uploaded ${successCount}/${images.length} images successfully`
                     );
                     await new Promise((resolve) => setTimeout(resolve, 500));
                 }
 
-                setUploadProgress("Đang cập nhật ghi chú...");
+                setUploadProgress("Updating pinory...");
 
                 // Wait for onSubmit to complete (API call)
                 await onSubmit({
@@ -461,7 +461,7 @@ export function PinoryForm({
                 });
             } else {
                 // Creating new pinory
-                setUploadProgress("Đang tạo pinory...");
+                setUploadProgress("Creating pinory...");
 
                 const pinoryResponse = await fetch("/api/location-notes", {
                     method: "POST",
@@ -490,13 +490,13 @@ export function PinoryForm({
 
                 const imageUrls: string[] = [];
                 if (images.length > 0) {
-                    setUploadProgress(`Đang upload 0/${images.length} ảnh...`);
+                    setUploadProgress(`Uploading 0/${images.length} images...`);
                     const uploadResults = await uploadMultipleImages(
                         images,
                         createdPinory.id,
                         (completed, total) => {
                             setUploadProgress(
-                                `Đang upload ${completed}/${total} ảnh...`
+                                `Uploading ${completed}/${total} images...`
                             );
                         }
                     );
@@ -510,12 +510,12 @@ export function PinoryForm({
                     }
 
                     setUploadProgress(
-                        `Đã upload ${successCount}/${images.length} ảnh thành công`
+                        `Uploaded ${successCount}/${images.length} images successfully`
                     );
                     await new Promise((resolve) => setTimeout(resolve, 500));
                 }
 
-                setUploadProgress("Hoàn tất...");
+                setUploadProgress("Done...");
 
                 console.log("📝 PinoryForm: Calling onSubmit with data:", {
                     id: createdPinory.id,
@@ -565,11 +565,11 @@ export function PinoryForm({
             const errorMessage =
                 error instanceof Error
                     ? error.message
-                    : "Có lỗi xảy ra khi xử lý";
+                    : "An error occurred while processing";
             setUploadProgress(`❌ ${errorMessage}`);
 
             // Show error alert
-            alert(`Không thể lưu ghi chú: ${errorMessage}`);
+            alert(`Failed to save pinory: ${errorMessage}`);
 
             // Keep form open on error so user can retry
         } finally {
@@ -621,7 +621,7 @@ export function PinoryForm({
                                 <DialogTitle asChild>
                                     <Input
                                         {...register("placeName")}
-                                        placeholder="Tên địa điểm"
+                                        placeholder="Place name"
                                         className="text-xl font-semibold text-[var(--foreground)] mb-2 h-auto py-2 px-3 bg-transparent border-transparent hover:border-border focus:border-[var(--color-primary-500)] focus:bg-secondary rounded-lg transition-all"
                                     />
                                 </DialogTitle>
@@ -629,7 +629,7 @@ export function PinoryForm({
                                     <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                     <span className="text-sm text-muted-foreground truncate">
                                         {location.address ||
-                                            "Không xác định được địa chỉ"}
+                                            "Address not available"}
                                     </span>
                                 </div>
                             </div>
@@ -641,7 +641,7 @@ export function PinoryForm({
                                 className="text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent p-2 h-10 w-10"
                             >
                                 <X className="h-4 w-4" />
-                                <span className="sr-only">Đóng</span>
+                                <span className="sr-only">Close</span>
                             </Button>
                         </div>
                     </div>
@@ -664,7 +664,7 @@ export function PinoryForm({
                                                     e.scrollHeight + "px";
                                             }
                                         }}
-                                        placeholder="Bạn nghĩ gì về địa điểm này?"
+                                        placeholder="What do you think about this place?"
                                         onInput={(e) => {
                                             const target =
                                                 e.target as HTMLTextAreaElement;
@@ -742,7 +742,7 @@ export function PinoryForm({
                                                                         src={
                                                                             url
                                                                         }
-                                                                        alt={`Ảnh ${index + 1}`}
+                                                                        alt={`Photo ${index + 1}`}
                                                                         className="w-full h-full object-contain"
                                                                     />
                                                                 </button>
@@ -794,7 +794,8 @@ export function PinoryForm({
                                                                         📷
                                                                     </div>
                                                                     <div className="text-xs">
-                                                                        Ảnh lỗi
+                                                                        Image
+                                                                        error
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -833,7 +834,7 @@ export function PinoryForm({
                                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                                         <img
                                                             src={url}
-                                                            alt={`Ảnh mới ${index + 1}`}
+                                                            alt={`New photo ${index + 1}`}
                                                             className="w-full h-full object-contain"
                                                         />
                                                     </button>
@@ -899,7 +900,7 @@ export function PinoryForm({
                                                 className="text-muted-foreground hover:text-[var(--foreground)] hover:bg-secondary h-10"
                                             >
                                                 <Plus className="h-4 w-4 mr-2" />
-                                                Thêm ảnh
+                                                Add photos
                                             </Button>
                                         </div>
                                     </div>
@@ -911,7 +912,7 @@ export function PinoryForm({
                     {/* Add to post - Facebook style actions bar */}
                     <div className="flex items-center justify-between px-7 py-3 border-t border-border bg-[var(--background)] flex-shrink-0">
                         <span className="text-sm font-medium text-[var(--foreground)]">
-                            Thêm vào bài viết
+                            Add to your post
                         </span>
                         <div className="flex items-center gap-1">
                             {/* Image Button */}
@@ -923,7 +924,7 @@ export function PinoryForm({
                                     document.getElementById("images")?.click()
                                 }
                                 className="h-9 w-9 rounded-full hover:bg-secondary text-green-500"
-                                title="Thêm ảnh"
+                                title="Add photos"
                             >
                                 <ImageIcon className="h-5 w-5" />
                             </Button>
@@ -940,7 +941,7 @@ export function PinoryForm({
                                         setShowTimeMenu(false);
                                     }}
                                     className={`h-9 w-9 rounded-full hover:bg-secondary ${selectedCategory ? "text-purple-500" : "text-muted-foreground"}`}
-                                    title="Chọn danh mục"
+                                    title="Select category"
                                 >
                                     <Tag className="h-5 w-5" />
                                 </Button>
@@ -950,14 +951,14 @@ export function PinoryForm({
                                     <div className="absolute bottom-full right-0 mb-2 w-72 bg-card border border-border rounded-lg shadow-xl z-50 p-3">
                                         <div className="space-y-3">
                                             <div className="text-sm font-medium text-[var(--foreground)]">
-                                                Danh mục
+                                                Category
                                             </div>
 
                                             {isLoadingCategories ? (
                                                 <div className="flex items-center py-2">
                                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary-500)]"></div>
                                                     <span className="ml-2 text-sm text-muted-foreground">
-                                                        Đang tải...
+                                                        Loading...
                                                     </span>
                                                 </div>
                                             ) : (
@@ -982,7 +983,7 @@ export function PinoryForm({
                                                         }}
                                                     >
                                                         <option value="">
-                                                            Không chọn
+                                                            None
                                                         </option>
                                                         {categories.map(
                                                             (category) => (
@@ -1017,7 +1018,7 @@ export function PinoryForm({
                                                                         .value
                                                                 )
                                                             }
-                                                            placeholder="Tạo mới..."
+                                                            placeholder="Create new..."
                                                             className="flex-1 h-9 text-sm bg-secondary border-border text-[var(--foreground)] placeholder-muted-foreground rounded-lg"
                                                             onKeyDown={(e) => {
                                                                 if (
@@ -1063,7 +1064,7 @@ export function PinoryForm({
                                         setShowCategoryMenu(false);
                                     }}
                                     className="h-9 w-9 rounded-full hover:bg-secondary text-orange-500"
-                                    title="Thời gian ghé thăm"
+                                    title="Visit time"
                                 >
                                     <Clock className="h-5 w-5" />
                                 </Button>
@@ -1073,7 +1074,7 @@ export function PinoryForm({
                                     <div className="absolute bottom-full right-0 mb-2 w-64 bg-card border border-border rounded-lg shadow-xl z-50 p-3">
                                         <div className="space-y-2">
                                             <div className="text-sm font-medium text-[var(--foreground)]">
-                                                Thời gian ghé thăm
+                                                Visit time
                                             </div>
                                             <Input
                                                 type="datetime-local"
@@ -1099,7 +1100,7 @@ export function PinoryForm({
                                         setShowTimeMenu(false);
                                     }}
                                     className="h-9 w-9 rounded-full hover:bg-secondary text-blue-500"
-                                    title="Ai có thể xem?"
+                                    title="Who can see?"
                                 >
                                     {watch("visibility") === "private" && (
                                         <Lock className="h-5 w-5" />
@@ -1137,10 +1138,10 @@ export function PinoryForm({
                                                 <Lock className="h-5 w-5 flex-shrink-0" />
                                                 <div className="flex-1">
                                                     <div className="font-medium text-sm">
-                                                        Riêng tư
+                                                        Private
                                                     </div>
                                                     <div className="text-xs text-muted-foreground">
-                                                        Chỉ bạn có thể xem
+                                                        Only you can see
                                                     </div>
                                                 </div>
                                             </button>
@@ -1166,11 +1167,10 @@ export function PinoryForm({
                                                 <Users className="h-5 w-5 flex-shrink-0" />
                                                 <div className="flex-1">
                                                     <div className="font-medium text-sm">
-                                                        Bạn bè
+                                                        Friends
                                                     </div>
                                                     <div className="text-xs text-muted-foreground">
-                                                        Bạn bè của bạn có thể
-                                                        xem
+                                                        Your friends can see
                                                     </div>
                                                 </div>
                                             </button>
@@ -1196,10 +1196,10 @@ export function PinoryForm({
                                                 <Globe className="h-5 w-5 flex-shrink-0" />
                                                 <div className="flex-1">
                                                     <div className="font-medium text-sm">
-                                                        Công khai
+                                                        Public
                                                     </div>
                                                     <div className="text-xs text-muted-foreground">
-                                                        Mọi người có thể xem
+                                                        Everyone can see
                                                     </div>
                                                 </div>
                                             </button>
@@ -1222,7 +1222,7 @@ export function PinoryForm({
                                 onClick={handleClose}
                                 className="min-h-[44px] px-6 text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent/50 rounded-lg transition-all"
                             >
-                                Hủy
+                                Cancel
                             </Button>
                             <Button
                                 type="submit"
@@ -1232,18 +1232,18 @@ export function PinoryForm({
                                 {isUploadingImages ? (
                                     <>
                                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        {uploadProgress || "Đang xử lý..."}
+                                        {uploadProgress || "Processing..."}
                                     </>
                                 ) : (
                                     <>
                                         <Save className="h-4 w-4 mr-2" />
-                                        {isSubmitting && "Đang lưu..."}
+                                        {isSubmitting && "Saving..."}
                                         {!isSubmitting &&
                                             existingPinory &&
-                                            "Cập nhật ghi chú"}
+                                            "Update Pinory"}
                                         {!isSubmitting &&
                                             !existingPinory &&
-                                            "Lưu ghi chú"}
+                                            "Save Pinory"}
                                     </>
                                 )}
                             </Button>
@@ -1265,7 +1265,7 @@ export function PinoryForm({
                 <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-card border border-border text-[var(--foreground)] px-6 py-3 rounded-xl shadow-[var(--shadow-lg)] flex items-center gap-4 z-50 backdrop-blur-sm">
                     <span className="flex items-center gap-2">
                         <span className="text-green-400">✅</span>
-                        <span>Đã lưu ghi chú</span>
+                        <span>Pinory saved</span>
                     </span>
                     <Button
                         variant="ghost"
@@ -1276,7 +1276,7 @@ export function PinoryForm({
                             setShowUndoToast(false);
                         }}
                     >
-                        Hoàn tác
+                        Undo
                     </Button>
                 </div>
             )}

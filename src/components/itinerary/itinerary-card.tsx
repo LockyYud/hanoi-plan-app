@@ -80,9 +80,9 @@ export function ItineraryCard({
         };
 
         const labels = {
-            1: "🥇 Tốt nhất",
-            2: "🥈 Thú vị",
-            3: "🥉 Phù hợp",
+            1: "🥇 Best",
+            2: "🥈 Great",
+            3: "🥉 Good",
         };
 
         return (
@@ -218,7 +218,7 @@ export function ItineraryCard({
                                 Đã chọn
                             </>
                         ) : (
-                            "Chọn lộ trình này"
+                            "Select this route"
                         )}
                     </Button>
                     <Button variant="outline" size="sm" onClick={onEdit}>
@@ -242,7 +242,7 @@ export function ItineraryCard({
                         stops: itinerary.stops.map((stop) => ({
                             ...stop.place,
                             time: `${formatTime(new Date(stop.arriveTime))} - ${formatTime(new Date(stop.departTime))}`,
-                            address: stop.place.address || "Hà Nội",
+                            address: stop.place.address || "Unknown",
                             lat: stop.place.lat || 21.0285,
                             lng: stop.place.lng || 105.8542,
                         })),

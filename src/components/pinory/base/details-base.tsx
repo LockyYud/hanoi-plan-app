@@ -194,7 +194,7 @@ export function PinoryDetailsBase({
     // Get directions for this pinory
     const handleDirections = useCallback(() => {
         const destination: DirectionsDestination = {
-            name: pinory.name || pinory.content || "Địa điểm",
+            name: pinory.name || pinory.content || "Location",
             address: pinory.address || "",
             lat: pinory.lat,
             lng: pinory.lng,
@@ -270,7 +270,7 @@ export function PinoryDetailsBase({
                         e.stopPropagation();
                     }}
                     style={{ touchAction: "none", willChange: "opacity" }}
-                    aria-label="Đóng"
+                    aria-label="Close"
                 />
 
                 {/* Bottom Sheet */}
@@ -303,7 +303,7 @@ export function PinoryDetailsBase({
                         onTouchMove={handleDragMove}
                         onTouchEnd={handleDragEnd}
                         onClick={toggleExpanded}
-                        aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
+                        aria-label={isExpanded ? "Collapse" : "Expand"}
                     >
                         <div className="w-10 h-1 bg-muted rounded-full" />
                     </button>
@@ -407,10 +407,10 @@ export function PinoryDetailsBase({
                     )}
                 >
                     <DialogTitle className="sr-only">
-                        Chi tiết:{" "}
+                        Details:{" "}
                         {displayPinory.name ||
                             displayPinory.content?.slice(0, 50) ||
-                            "Địa điểm"}
+                            "Location"}
                     </DialogTitle>
 
                     {/* Desktop Header Slot */}

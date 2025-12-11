@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
         if (!code) {
             return NextResponse.json(
-                { error: "Mã mời không hợp lệ" },
+                { error: "Invalid invite code" },
                 { status: 400 }
             )
         }
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
         if (!invitation) {
             return NextResponse.json(
-                { error: "Lời mời không tồn tại" },
+                { error: "Invite not found" },
                 { status: 404 }
             )
         }
@@ -38,21 +38,21 @@ export async function GET(req: NextRequest) {
         // Check if invitation is still valid
         if (!invitation.isActive) {
             return NextResponse.json(
-                { error: "Lời mời đã bị vô hiệu hóa" },
+                { error: "Invite has been deactivated" },
                 { status: 410 }
             )
         }
 
         if (invitation.expiresAt && invitation.expiresAt < new Date()) {
             return NextResponse.json(
-                { error: "Lời mời đã hết hạn" },
+                { error: "Invite has expired" },
                 { status: 410 }
             )
         }
 
         if (invitation.maxUsage !== null && invitation.usageCount >= invitation.maxUsage) {
             return NextResponse.json(
-                { error: "Lời mời đã đạt giới hạn sử dụng" },
+                { error: "Invite has reached usage limit" },
                 { status: 410 }
             )
         }
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     } catch (error) {
         console.error("Error fetching invite info:", error)
         return NextResponse.json(
-            { error: "Không thể tải thông tin lời mời" },
+            { error: "Could not load invite info" },
             { status: 500 }
         )
     }

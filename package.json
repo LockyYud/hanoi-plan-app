@@ -2,6 +2,17 @@
   "name": "pinory-app",
   "version": "0.1.0",
   "private": true,
+  "description": "Drop a pin, keep a memory. Pin your favorite places on the map with photos, notes, and share with friends.",
+  "author": "Pinory Team",
+  "keywords": [
+    "pinory",
+    "map",
+    "memories",
+    "photos",
+    "friends",
+    "sharing",
+    "vietnam"
+  ],
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "prisma generate && next build",

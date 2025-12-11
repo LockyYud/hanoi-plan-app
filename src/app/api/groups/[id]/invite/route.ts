@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 const InviteSchema = z.object({
-    email: z.string().email("Email không hợp lệ"),
+    email: z.string().email("Invalid email"),
 })
 
 export async function POST(

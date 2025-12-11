@@ -78,7 +78,7 @@ export function FloatingActionButton({
         setIsOpen(false);
 
         try {
-            toast.loading("Đang lấy vị trí của bạn...", { id: "get-location" });
+            toast.loading("Getting your location...", { id: "get-location" });
 
             const location = await getCurrentLocation();
 
@@ -101,7 +101,7 @@ export function FloatingActionButton({
                 data.features?.[0]?.place_name ||
                 `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`;
 
-            toast.success("Đã lấy vị trí!", { id: "get-location" });
+            toast.success("Location found!", { id: "get-location" });
 
             onCreateNote({
                 lng: location.lng,
@@ -110,9 +110,9 @@ export function FloatingActionButton({
             });
         } catch (error) {
             console.error("Error getting location:", error);
-            toast.error("Không thể lấy vị trí", {
+            toast.error("Could not get location", {
                 description:
-                    error instanceof Error ? error.message : "Vui lòng thử lại",
+                    error instanceof Error ? error.message : "Please try again",
                 id: "get-location",
             });
         } finally {
@@ -135,7 +135,7 @@ export function FloatingActionButton({
             {isOpen && (
                 <button
                     type="button"
-                    aria-label="Đóng menu"
+                    aria-label="Close menu"
                     className="fixed inset-0 z-40 transition-all duration-300 backdrop-blur-[2px] bg-black/20 border-0 cursor-default"
                     onClick={() => setIsOpen(false)}
                 />
@@ -168,12 +168,12 @@ export function FloatingActionButton({
                         style={{
                             animationDelay: isOpen ? "50ms" : "0ms",
                         }}
-                        title="Ghi chú tại vị trí hiện tại (phím N)"
+                        title="Add pinory at current location (N)"
                     >
                         {/* Label - Hidden on mobile */}
                         <div className="hidden sm:block bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                             <span className="text-sm font-medium text-neutral-800">
-                                Ghi chú tại đây
+                                Add pinory here
                             </span>
                             <span className="ml-2 text-xs text-neutral-500">
                                 N
@@ -210,12 +210,12 @@ export function FloatingActionButton({
                         style={{
                             animationDelay: isOpen ? "100ms" : "0ms",
                         }}
-                        title="Tạo hành trình mới (phím J)"
+                        title="Create new journey (J)"
                     >
                         {/* Label - Hidden on mobile */}
                         <div className="hidden sm:block bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                             <span className="text-sm font-medium text-neutral-800">
-                                Tạo hành trình
+                                Create journey
                             </span>
                             <span className="ml-2 text-xs text-neutral-500">
                                 J
@@ -239,8 +239,8 @@ export function FloatingActionButton({
                         "active:scale-95",
                         isOpen && "rotate-45"
                     )}
-                    title={isOpen ? "Đóng menu" : "Tạo mới"}
-                    aria-label={isOpen ? "Đóng menu" : "Tạo mới"}
+                    title={isOpen ? "Close menu" : "Create new"}
+                    aria-label={isOpen ? "Close menu" : "Create new"}
                     aria-expanded={isOpen}
                 >
                     {/* Pulse effect when closed */}

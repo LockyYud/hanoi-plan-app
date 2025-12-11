@@ -302,7 +302,7 @@ export function PinoriesTab({
             const date = pinory.createdAt
                 ? new Date(pinory.createdAt)
                 : new Date();
-            const monthYear = `${date.toLocaleString("vi-VN", { month: "long" })} ${date.getFullYear()}`;
+            const monthYear = `${date.toLocaleString("en-US", { month: "long" })} ${date.getFullYear()}`;
 
             if (!acc[monthYear]) {
                 acc[monthYear] = [];
@@ -317,7 +317,7 @@ export function PinoriesTab({
     const formatDate = (date: Date | undefined) => {
         if (!date) return "";
         const d = new Date(date);
-        return d.toLocaleString("vi-VN", {
+        return d.toLocaleString("en-US", {
             weekday: "long",
             day: "numeric",
             month: "short",
@@ -331,7 +331,7 @@ export function PinoriesTab({
                 <div className="relative group">
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
                     <Input
-                        placeholder="Tìm kiếm kỷ niệm..."
+                        placeholder="Search memories..."
                         value={filter.query || ""}
                         onChange={(e) =>
                             setFilter({ ...filter, query: e.target.value })
@@ -348,7 +348,7 @@ export function PinoriesTab({
                                 ? "text-foreground bg-accent"
                                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                         )}
-                        title="Bộ lọc"
+                        title="Filter"
                     >
                         <Filter className="h-4 w-4" />
                     </Button>
@@ -359,7 +359,7 @@ export function PinoriesTab({
                     <div className="mt-3 bg-secondary rounded-xl border border-border shadow-2xl p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
                         <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-foreground">
-                                Bộ lọc
+                                Filters
                             </h4>
                             <Button
                                 variant="ghost"
@@ -375,7 +375,7 @@ export function PinoriesTab({
                         {categories.length > 0 && (
                             <div className="space-y-2">
                                 <div className="text-sm font-medium text-foreground">
-                                    Danh mục
+                                    Categories
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {categories.map((category) => {
@@ -448,14 +448,14 @@ export function PinoriesTab({
                                 }}
                                 className="flex-1 h-9 text-xs bg-secondary hover:bg-accent border-border rounded-lg text-foreground"
                             >
-                                Đặt lại
+                                Reset
                             </Button>
                             <Button
                                 size="sm"
                                 onClick={() => setShowFilterPopover(false)}
                                 className="flex-1 h-9 text-xs bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
                             >
-                                Áp dụng
+                                Apply
                             </Button>
                         </div>
                     </div>
@@ -467,7 +467,7 @@ export function PinoriesTab({
                 {isLoadingPinories && (
                     <div className="text-center py-12 text-muted-foreground">
                         <div className="animate-spin h-8 w-8 mx-auto mb-3 border-2 border-white border-t-transparent rounded-full" />
-                        <p className="text-sm">Đang tải...</p>
+                        <p className="text-sm">Loading...</p>
                     </div>
                 )}
 
@@ -475,11 +475,9 @@ export function PinoriesTab({
                     Object.keys(groupedPinories).length === 0 && (
                         <div className="text-center py-12 text-muted-foreground">
                             <MapPin className="h-12 w-12 mx-auto mb-3 text-foreground" />
-                            <p className="text-base mb-1">
-                                Chưa có kỷ niệm nào
-                            </p>
+                            <p className="text-base mb-1">No memories yet</p>
                             <p className="text-sm">
-                                Hãy bắt đầu ghi lại những khoảnh khắc đáng nhớ
+                                Start recording your memorable moments
                             </p>
                         </div>
                     )}

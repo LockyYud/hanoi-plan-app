@@ -40,7 +40,7 @@ export function LandingPage() {
                         onClick={handleSignIn}
                         className="px-6 py-2 bg-brand text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105"
                     >
-                        Đăng nhập
+                        Sign In
                     </button>
                 </div>
             </header>
@@ -52,17 +52,16 @@ export function LandingPage() {
                     <div className="space-y-8 animate-fade-in">
                         <div className="space-y-4">
                             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                                Ghim lại những
+                                Drop a pin,
                                 <span className="text-transparent bg-clip-text bg-brand">
                                     {" "}
-                                    khoảnh khắc{" "}
+                                    keep a memory
                                 </span>
-                                của bạn
                             </h1>
                             <p className="text-xl text-gray-600 leading-relaxed">
-                                Như một chiếc bảng bản đồ, nơi bạn có thể ghim
-                                lại từng kỷ niệm tại mọi địa điểm bạn đã đi qua.
-                                Nhìn lại hành trình của chính mình.
+                                Like a personal pinboard for your life. Pin your
+                                favorite places with photos, notes, and mood.
+                                Rediscover your journey anytime.
                             </p>
                         </div>
 
@@ -72,13 +71,13 @@ export function LandingPage() {
                                 className="px-8 py-4 bg-brand text-white rounded-full font-semibold text-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
                             >
                                 <MapPin className="w-5 h-5" />
-                                Bắt đầu hành trình
+                                Start Your Journey
                             </button>
                             <a
                                 href="#features"
                                 className="px-8 py-4 bg-white border-2 border-gray-300 text-gray-900 rounded-full font-semibold text-lg hover:border-brand transition-all duration-300 flex items-center justify-center gap-2"
                             >
-                                Tìm hiểu thêm
+                                Learn More
                             </a>
                         </div>
 
@@ -88,7 +87,7 @@ export function LandingPage() {
                                     1000+
                                 </div>
                                 <div className="text-sm text-gray-600">
-                                    Kỷ niệm đã ghim
+                                    Memories Pinned
                                 </div>
                             </div>
                             <div>
@@ -96,7 +95,7 @@ export function LandingPage() {
                                     500+
                                 </div>
                                 <div className="text-sm text-gray-600">
-                                    Người dùng
+                                    Users
                                 </div>
                             </div>
                         </div>
@@ -183,10 +182,10 @@ export function LandingPage() {
             >
                 <div className="text-center mb-16">
                     <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                        Tính năng nổi bật
+                        Features
                     </h2>
                     <p className="text-xl text-gray-600">
-                        Mọi thứ bạn cần để lưu giữ kỷ niệm
+                        Everything you need to save your memories
                     </p>
                 </div>
 
@@ -197,10 +196,10 @@ export function LandingPage() {
                             <MapPin className="w-7 h-7 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-3">
-                            Ghim địa điểm
+                            Pin Places
                         </h3>
                         <p className="text-gray-600">
-                            Đánh dấu mọi nơi bạn đã đến trên bản đồ tương tác
+                            Mark every place you've been on an interactive map
                         </p>
                     </div>
 
@@ -210,10 +209,10 @@ export function LandingPage() {
                             <Camera className="w-7 h-7 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-3">
-                            Lưu ảnh & ghi chú
+                            Photos & Notes
                         </h3>
                         <p className="text-gray-600">
-                            Thêm ảnh, cảm xúc và câu chuyện cho từng địa điểm
+                            Add photos, mood, and stories to each location
                         </p>
                     </div>
 
@@ -223,10 +222,10 @@ export function LandingPage() {
                             <MapIcon className="w-7 h-7 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-3">
-                            Xem hành trình
+                            Explore Your Map
                         </h3>
                         <p className="text-gray-600">
-                            Nhìn lại toàn bộ những nơi bạn đã đi qua
+                            Look back at all the places you've visited
                         </p>
                     </div>
 
@@ -236,10 +235,10 @@ export function LandingPage() {
                             <Share2 className="w-7 h-7 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-3">
-                            Chia sẻ kỷ niệm
+                            Share Memories
                         </h3>
                         <p className="text-gray-600">
-                            Chia sẻ hành trình của bạn với bạn bè
+                            Share your pinned places with friends
                         </p>
                     </div>
                 </div>
@@ -249,10 +248,10 @@ export function LandingPage() {
             <section className="container mx-auto px-6 py-20">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                        Cách hoạt động
+                        How It Works
                     </h2>
                     <p className="text-xl text-gray-600">
-                        Chỉ 3 bước đơn giản để bắt đầu
+                        Just 3 simple steps to get started
                     </p>
                 </div>
 
@@ -265,10 +264,10 @@ export function LandingPage() {
                             </span>
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                            Đăng nhập
+                            Sign In
                         </h3>
                         <p className="text-gray-600">
-                            Đăng nhập nhanh chóng với tài khoản Google
+                            Quick sign in with your Google account
                         </p>
                     </div>
 
@@ -280,10 +279,10 @@ export function LandingPage() {
                             </span>
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                            Thêm địa điểm
+                            Drop a Pin
                         </h3>
                         <p className="text-gray-600">
-                            Chọn vị trí trên bản đồ và thêm ảnh, ghi chú
+                            Select a location on the map and add photos, notes
                         </p>
                     </div>
 
@@ -295,10 +294,10 @@ export function LandingPage() {
                             </span>
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                            Nhìn lại
+                            Rediscover
                         </h3>
                         <p className="text-gray-600">
-                            Khám phá lại hành trình và kỷ niệm của bạn
+                            Explore your journey and memories anytime
                         </p>
                     </div>
                 </div>
@@ -308,21 +307,21 @@ export function LandingPage() {
             <section className="container mx-auto px-6 py-20">
                 <div className="bg-brand rounded-3xl p-12 md:p-16 text-center shadow-2xl">
                     <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                        Bắt đầu ghim câu chuyện của bạn
+                        Start pinning your story
                     </h2>
                     <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                        Mỗi địa điểm là một kỷ niệm, mỗi ghim kể một câu chuyện.
-                        Hãy tạo bản đồ kỷ niệm của riêng bạn.
+                        Every place is a memory, every pin tells a story. Create
+                        your own memory map today.
                     </p>
                     <button
                         onClick={handleSignIn}
                         className="px-10 py-5 bg-white text-brand rounded-full font-bold text-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 inline-flex items-center gap-3"
                     >
                         <MapPin className="w-6 h-6" />
-                        Bắt đầu miễn phí
+                        Get Started Free
                     </button>
                     <p className="text-white/80 mt-4">
-                        Không cần thẻ tín dụng • Miễn phí mãi mãi
+                        No credit card required • Free forever
                     </p>
                 </div>
             </section>
@@ -343,7 +342,7 @@ export function LandingPage() {
                                 Pinory
                             </div>
                             <div className="text-sm text-gray-600">
-                                Pin Your Story
+                                Drop a pin, keep a memory
                             </div>
                         </div>
                     </div>

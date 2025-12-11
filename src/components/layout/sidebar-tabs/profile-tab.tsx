@@ -28,7 +28,7 @@ export function ProfileTab({
                         <div className="absolute inset-0 rounded-full bg-brand/10 blur-xl animate-pulse"></div>
                     </div>
                     <p className="text-muted-foreground text-sm font-medium">
-                        Đang tải...
+                        Loading...
                     </p>
                 </div>
             ) : session ? (
@@ -56,7 +56,7 @@ export function ProfileTab({
                                 </div>
                             </div>
                             <h3 className="font-bold text-xl text-foreground mb-1.5">
-                                {session.user?.name || "Người dùng"}
+                                {session.user?.name || "User"}
                             </h3>
                             <p className="text-sm text-muted-foreground mb-5">
                                 {session.user?.email}
@@ -69,7 +69,7 @@ export function ProfileTab({
                                         {pinories.length}
                                     </div>
                                     <div className="text-xs text-brand-accent font-semibold">
-                                        Ghi chú
+                                        Pinories
                                     </div>
                                 </div>
                                 <div className="relative group bg-green-500/15 border border-green-500/30 rounded-2xl p-4 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-300">
@@ -147,11 +147,11 @@ export function ProfileTab({
 
                     {/* Quick info */}
                     <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                        <span>📝 Lưu ghi chú</span>
+                        <span>📝 Save pinories</span>
                         <span>•</span>
-                        <span>👥 Tạo nhóm</span>
+                        <span>👥 Add friends</span>
                         <span>•</span>
-                        <span>🔗 Chia sẻ</span>
+                        <span>🔗 Share</span>
                     </div>
                 </div>
             )}

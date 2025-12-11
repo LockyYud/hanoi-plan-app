@@ -10,18 +10,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-    title: "Pinory — Pin Your Story",
+    title: "Pinory — Drop a pin, keep a memory",
     description:
-        "Ghim lại những kỷ niệm của bạn trên bản đồ. Khám phá hành trình của chính mình. Every pin tells a story.",
+        "Pin your favorite places on the map with photos, notes, and mood. Save memories, share with friends, and rediscover your journey.",
     keywords: [
         "Pinory",
+        "memory map",
+        "pin memories",
+        "photo journal",
+        "travel memories",
+        "location diary",
+        "share moments",
+        "place memories",
         "travel",
-        "memories",
         "photography",
-        "journey",
-        "map",
-        "stories",
-        "Vietnam",
+        "lifestyle",
     ],
     authors: [{ name: "Pinory" }],
     creator: "Pinory",
@@ -37,18 +40,19 @@ export const metadata: Metadata = {
             "http://localhost:3000"
     ),
     openGraph: {
-        title: "Pinory — Pin Your Story",
+        title: "Pinory — Drop a pin, keep a memory",
         description:
-            "Ghim lại những kỷ niệm của bạn trên bản đồ. Every pin tells a story.",
+            "Pin your favorite places on the map with photos, notes, and mood. Save memories and share with friends.",
         url: "/",
         siteName: "Pinory",
-        locale: "vi_VN",
+        locale: "en_US",
         type: "website",
     },
     twitter: {
         card: "summary_large_image",
-        title: "Pinory — Pin Your Story",
-        description: "Your memories, mapped. Every pin tells a story.",
+        title: "Pinory — Drop a pin, keep a memory",
+        description:
+            "Pin your favorite places on the map with photos and notes. Every pin tells a story.",
     },
     robots: {
         index: true,
@@ -69,7 +73,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="vi" suppressHydrationWarning>
+        <html lang="en" suppressHydrationWarning>
             <head>
                 <link
                     href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css"

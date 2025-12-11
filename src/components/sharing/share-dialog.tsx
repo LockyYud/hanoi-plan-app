@@ -58,9 +58,9 @@ export function ShareDialog({
             const link = `${window.location.origin}/share/${slug}`;
             setShareLink(link);
 
-            toast.success("Đã tạo link chia sẻ!");
+            toast.success("Share link created!");
         } catch (error) {
-            toast.error("Không thể tạo link chia sẻ");
+            toast.error("Could not create share link");
         } finally {
             setIsGeneratingLink(false);
         }
@@ -70,11 +70,11 @@ export function ShareDialog({
         try {
             await navigator.clipboard.writeText(shareLink);
             setCopied(true);
-            toast.success("Đã sao chép link!");
+            toast.success("Link copied!");
 
             setTimeout(() => setCopied(false), 2000);
         } catch (error) {
-            toast.error("Không thể sao chép link");
+            toast.error("Could not copy link");
         }
     };
 
@@ -105,9 +105,9 @@ export function ShareDialog({
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
-            toast.success("Đã xuất lịch thành công!");
+            toast.success("Calendar exported successfully!");
         } catch (error) {
-            toast.error("Không thể xuất lịch");
+            toast.error("Could not export calendar");
         }
     };
 
@@ -137,21 +137,21 @@ export function ShareDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Share2 className="h-5 w-5" />
-                        Chia sẻ lộ trình
+                        Share itinerary
                     </DialogTitle>
                     <DialogDescription>
-                        Chia sẻ lộ trình "{itinerary.title}" với bạn bè và gia
-                        đình
+                        Share itinerary "{itinerary.title}" with friends and
+                        family
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">
                     {/* Custom Message */}
                     <div className="space-y-2">
-                        <Label htmlFor="message">Tin nhắn tùy chỉnh</Label>
+                        <Label htmlFor="message">Custom message</Label>
                         <Textarea
                             id="message"
-                            placeholder="Thêm tin nhắn cá nhân..."
+                            placeholder="Add a personal message..."
                             value={customMessage}
                             onChange={(e) => setCustomMessage(e.target.value)}
                             rows={2}
@@ -160,7 +160,7 @@ export function ShareDialog({
 
                     {/* Share Link */}
                     <div className="space-y-2">
-                        <Label>Link chia sẻ</Label>
+                        <Label>Share link</Label>
                         {shareLink ? (
                             <div className="flex gap-2">
                                 <Input
@@ -183,15 +183,15 @@ export function ShareDialog({
                                 className="w-full"
                             >
                                 {isGeneratingLink
-                                    ? "Đang tạo..."
-                                    : "Tạo link chia sẻ"}
+                                    ? "Creating..."
+                                    : "Create share link"}
                             </Button>
                         )}
                     </div>
 
                     {/* Social Share */}
                     <div className="space-y-2">
-                        <Label>Chia sẻ trên</Label>
+                        <Label>Share on</Label>
                         <div className="flex gap-2">
                             <Button
                                 variant="outline"
@@ -243,7 +243,7 @@ export function ShareDialog({
                                 variant="outline"
                                 size="sm"
                                 onClick={() =>
-                                    toast.info("Tính năng đang phát triển")
+                                    toast.info("Feature coming soon")
                                 }
                                 className="flex-1"
                             >
@@ -270,4 +270,3 @@ export function ShareDialog({
         </Dialog>
     );
 }
-

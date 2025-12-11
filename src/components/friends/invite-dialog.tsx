@@ -56,16 +56,16 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
 
                     // Show specific error message
                     if (error.error?.includes("not found")) {
-                        toast.error(
-                            "Tài khoản không tồn tại. Vui lòng đăng nhập lại."
-                        );
+                        toast.error("Account not found. Please sign in again.");
                     } else {
-                        toast.error(error.error || "Không thể tạo link mời");
+                        toast.error(
+                            error.error || "Could not create invite link"
+                        );
                     }
                 }
             } catch (error) {
                 console.error("Error fetching invite:", error);
-                toast.error("Lỗi khi tạo link mời");
+                toast.error("Error creating invite link");
             } finally {
                 setIsLoading(false);
             }
@@ -80,11 +80,11 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
         try {
             await navigator.clipboard.writeText(inviteData.inviteUrl);
             setCopied(true);
-            toast.success("Đã copy link!");
+            toast.success("Link copied!");
             setTimeout(() => setCopied(false), 2000);
         } catch (error) {
             console.error("Failed to copy:", error);
-            toast.error("Không thể copy link");
+            toast.error("Could not copy link");
         }
     };
 
@@ -94,8 +94,8 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
         try {
             if (navigator.share) {
                 await navigator.share({
-                    title: "Tham gia Pinory cùng tôi!",
-                    text: "Khám phá và chia sẻ những địa điểm tuyệt vời tại Hà Nội",
+                    title: "Join me on Pinory!",
+                    text: "Discover and share amazing places with me",
                     url: inviteData.inviteUrl,
                 });
             } else {
@@ -111,7 +111,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
     const shareViaSMS = () => {
         if (!inviteData) return;
         const text = encodeURIComponent(
-            `Tham gia Pinory cùng tôi! ${inviteData.inviteUrl}`
+            `Join me on Pinory! ${inviteData.inviteUrl}`
         );
         window.open(`sms:?body=${text}`, "_blank");
     };
@@ -127,9 +127,9 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
 
     const shareViaEmail = () => {
         if (!inviteData) return;
-        const subject = encodeURIComponent("Tham gia Pinory!");
+        const subject = encodeURIComponent("Join Pinory!");
         const body = encodeURIComponent(
-            `Tôi đang dùng Pinory để lưu và chia sẻ những địa điểm yêu thích tại Hà Nội. Tham gia cùng tôi nhé!\n\n${inviteData.inviteUrl}`
+            `I'm using Pinory to save and share my favorite places. Join me!\n\n${inviteData.inviteUrl}`
         );
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
     };
@@ -161,10 +161,10 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                     <div>
                         <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                             <Users className="w-5 h-5 text-purple-400" />
-                            Mời bạn bè
+                            Invite friends
                         </h2>
                         <p className="text-xs text-muted-foreground mt-1">
-                            Chia sẻ link để kết bạn
+                            Share link to connect
                         </p>
                     </div>
                     <Button
@@ -183,7 +183,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                         <div className="text-center py-8">
                             <div className="animate-spin h-8 w-8 border-3 border-purple-500/30 border-t-purple-500 rounded-full mx-auto mb-3" />
                             <p className="text-sm text-muted-foreground">
-                                Đang tạo link...
+                                Creating link...
                             </p>
                         </div>
                     ) : inviteData ? (
@@ -191,7 +191,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                             {/* Invite Link */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-foreground">
-                                    Link mời của bạn
+                                    Your invite link
                                 </label>
                                 <div className="flex gap-2">
                                     <Input
@@ -217,15 +217,15 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                     </Button>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    Người nhận click vào link sẽ tự động kết bạn
-                                    với bạn
+                                    Recipients who click the link will
+                                    automatically become friends with you
                                 </p>
                             </div>
 
                             {/* Share Buttons */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-foreground">
-                                    Hoặc chia sẻ qua
+                                    Or share via
                                 </label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <Button
@@ -276,7 +276,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                 <div className="flex items-center gap-2 mb-3">
                                     <Users className="w-4 h-4 text-purple-400" />
                                     <span className="text-sm font-semibold text-purple-300">
-                                        Thống kê lời mời
+                                        Invite stats
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 text-center">
@@ -285,7 +285,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                             {inviteData.acceptedCount}
                                         </div>
                                         <div className="text-xs text-muted-foreground mt-1">
-                                            Đã tham gia
+                                            Joined
                                         </div>
                                     </div>
                                     <div>
@@ -293,7 +293,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                             {inviteData.usageCount}
                                         </div>
                                         <div className="text-xs text-muted-foreground mt-1">
-                                            Lần dùng
+                                            Times used
                                         </div>
                                     </div>
                                 </div>
@@ -302,7 +302,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                             {/* Invite Code Display */}
                             <div className="text-center">
                                 <div className="text-xs text-muted-foreground mb-2">
-                                    Mã mời của bạn
+                                    Your invite code
                                 </div>
                                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/60 border border-border rounded-lg">
                                     <span className="font-mono text-lg font-bold text-purple-400 tracking-wider">
@@ -315,11 +315,10 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                         <div className="text-center py-8 space-y-4">
                             <div className="text-muted-foreground">
                                 <p className="text-sm">
-                                    Không thể tải link mời
+                                    Could not load invite link
                                 </p>
                                 <p className="text-xs mt-2">
-                                    Vui lòng kiểm tra console để xem lỗi chi
-                                    tiết
+                                    Please check console for error details
                                 </p>
                             </div>
                             <Button
@@ -327,7 +326,7 @@ export function InviteDialog({ isOpen, onClose }: InviteDialogProps) {
                                 variant="outline"
                                 className="bg-secondary border-border text-foreground hover:bg-accent"
                             >
-                                Thử lại
+                                Try again
                             </Button>
                         </div>
                     )}
