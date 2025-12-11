@@ -15,6 +15,8 @@ Feature share cho phép user chia sẻ các pinory (location notes) với bạn 
 
 1. **POST /api/pinory/share** - Tạo share link
 2. **GET /api/pinory/share/[slug]** - Lấy dữ liệu từ share link
+3. **PATCH /api/pinory/share/[id]** - Revoke share link
+4. **DELETE /api/pinory/share/[id]** - Xóa vĩnh viễn share link
 
 ### Components
 
@@ -93,6 +95,8 @@ Show appropriate view
 - ✅ Friendship verification
 - ✅ Unique slug generation (nanoid)
 - ✅ View count tracking
+- ✅ **Revoke capability** (soft delete with `isActive` flag)
+- ✅ **Revoked links return 410 Gone** status
 
 ## Usage
 
@@ -145,6 +149,34 @@ prisma/
 └── schema.prisma                     # PinoryShare model
 ```
 
+## Revoke Share Feature ✅
+
+### How it works:
+
+1. User opens SharePinoryDialog
+2. If active share exists → Shows share link with stats
+3. User clicks "Revoke Share Link"
+4. Confirms action
+5. Share is soft-deleted (`isActive = false`, `revokedAt = timestamp`)
+6. Link immediately stops working (returns 410 Gone)
+7. User can create new share link
+
+### Database:
+
+```prisma
+model PinoryShare {
+  isActive   Boolean   @default(true)
+  revokedAt  DateTime?
+}
+```
+
+### API Behavior:
+
+- **GET share by slug**: Checks `isActive`, returns 410 if revoked
+- **POST create share**: Only checks for existing **active** shares
+- **PATCH revoke**: Sets `isActive = false` + `revokedAt`
+- **DELETE**: Hard delete (optional, for permanent removal)
+
 ## Future Enhancements
 
 - [ ] Social media preview (OG tags optimization)
@@ -154,6 +186,8 @@ prisma/
 - [ ] Selected friends sharing
 - [ ] Share to specific friends in-app
 - [ ] Share statistics (clicks, views over time)
+- [ ] Restore revoked shares
+- [ ] Share history (view all revoked shares)
 
 ## Testing
 

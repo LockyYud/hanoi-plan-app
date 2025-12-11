@@ -21,6 +21,8 @@ import {
     Lock,
     ExternalLink,
     Loader2,
+    XCircle,
+    AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ShareVisibility } from "@prisma/client";
@@ -37,11 +39,13 @@ interface SharePinoryDialogProps {
 }
 
 interface ShareData {
+    id: string; // Keep for backward compatibility but use shareSlug
     shareSlug: string;
     shareUrl: string;
     visibility: ShareVisibility;
     expiresAt: Date | null;
     viewCount: number;
+    isActive: boolean;
     createdAt: Date;
 }
 
@@ -78,6 +82,7 @@ export function SharePinoryDialog({
     const [selectedVisibility, setSelectedVisibility] =
         useState<ShareVisibility>("friends");
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isRevoking, setIsRevoking] = useState(false);
     const [copied, setCopied] = useState(false);
 
     const generateShareLink = async () => {
@@ -136,6 +141,51 @@ export function SharePinoryDialog({
         setSelectedVisibility(visibility);
         // Reset share data when visibility changes
         setShareData(null);
+    };
+
+    const handleRevokeShare = async () => {
+        if (!shareData?.shareSlug) return;
+
+        // Confirm action
+        if (
+            !confirm(
+                "Are you sure you want to revoke this share link? It will no longer be accessible."
+            )
+        ) {
+            return;
+        }
+
+        setIsRevoking(true);
+
+        try {
+            const response = await fetch(
+                `/api/pinory/share/${shareData.shareSlug}`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "revoke",
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || "Failed to revoke share");
+            }
+
+            toast.success("Share link revoked successfully");
+            setShareData(null); // Clear share data
+        } catch (error) {
+            console.error("Error revoking share:", error);
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Could not revoke share"
+            );
+        } finally {
+            setIsRevoking(false);
+        }
     };
 
     return (
@@ -230,7 +280,7 @@ export function SharePinoryDialog({
                                 </div>
 
                                 {/* Stats */}
-                                <div className="pt-2 border-t">
+                                <div className="pt-2 border-t space-y-3">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-muted-foreground">
                                             {formatShareStats(
@@ -243,13 +293,34 @@ export function SharePinoryDialog({
                                         </Badge>
                                     </div>
                                     {shareData.expiresAt && (
-                                        <div className="text-xs text-muted-foreground mt-1">
+                                        <div className="text-xs text-muted-foreground">
                                             Expires:{" "}
                                             {new Date(
                                                 shareData.expiresAt
                                             ).toLocaleDateString()}
                                         </div>
                                     )}
+
+                                    {/* Revoke Button */}
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={handleRevokeShare}
+                                        disabled={isRevoking}
+                                        className="w-full"
+                                    >
+                                        {isRevoking ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                Revoking...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <XCircle className="h-4 w-4 mr-2" />
+                                                Revoke Share Link
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
                             </div>
                         ) : (

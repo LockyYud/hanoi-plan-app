@@ -12,6 +12,8 @@ import {
     UserCircle2,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { SmartImageGallery } from "@/components/pinory/details/smart-image-gallery";
 import type { Pinory } from "@/lib/types";
 
@@ -30,6 +32,8 @@ interface PublicPinoryViewProps {
  * Features: Read-only, CTA to sign up, SEO-friendly
  */
 export function PublicPinoryView({ pinory, shareInfo }: PublicPinoryViewProps) {
+    const { data: session } = useSession();
+
     const formatDate = (date: Date | string | undefined) => {
         if (!date) return "";
         try {
@@ -45,6 +49,10 @@ export function PublicPinoryView({ pinory, shareInfo }: PublicPinoryViewProps) {
 
     const images = pinory.images || pinory.media?.map((m) => m.url) || [];
 
+    // Button link changes based on auth status
+    const ctaLink = session ? "/" : "/login";
+    const ctaText = session ? "Back to App" : "Sign up to save";
+
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}
@@ -57,13 +65,15 @@ export function PublicPinoryView({ pinory, shareInfo }: PublicPinoryViewProps) {
                                 Pinory
                             </span>
                         </div>
-                        <Button
-                            variant="default"
-                            className="bg-brand hover:bg-brand/90"
-                        >
-                            Sign up to save
-                            <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
+                        <Link href={ctaLink}>
+                            <Button
+                                variant="default"
+                                className="bg-brand hover:bg-brand/90"
+                            >
+                                {ctaText}
+                                <ArrowRight className="h-4 w-4 ml-2" />
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </header>
@@ -186,24 +196,28 @@ export function PublicPinoryView({ pinory, shareInfo }: PublicPinoryViewProps) {
                         </div>
                     )}
 
-                    {/* CTA Card */}
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-center text-white">
-                        <h2 className="text-2xl font-bold mb-2">
-                            Create Your Own Pinories
-                        </h2>
-                        <p className="text-blue-100 mb-6 max-w-md mx-auto">
-                            Save your favorite places in Hanoi, share with
-                            friends, and plan amazing trips together.
-                        </p>
-                        <Button
-                            variant="secondary"
-                            size="lg"
-                            className="bg-white text-blue-600 hover:bg-gray-100"
-                        >
-                            Get Started
-                            <ArrowRight className="h-5 w-5 ml-2" />
-                        </Button>
-                    </div>
+                    {/* CTA Card - Only show for non-logged in users */}
+                    {!session && (
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-center text-white">
+                            <h2 className="text-2xl font-bold mb-2">
+                                Create Your Own Pinories
+                            </h2>
+                            <p className="text-blue-100 mb-6 max-w-md mx-auto">
+                                Save your favorite places in Hanoi, share with
+                                friends, and plan amazing trips together.
+                            </p>
+                            <Link href="/login">
+                                <Button
+                                    variant="secondary"
+                                    size="lg"
+                                    className="bg-white text-blue-600 hover:bg-gray-100"
+                                >
+                                    Get Started
+                                    <ArrowRight className="h-5 w-5 ml-2" />
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </main>
 

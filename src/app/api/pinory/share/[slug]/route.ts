@@ -70,10 +70,22 @@ export async function GET(
             );
         }
 
-        // 4. Check if expired
+        // 4. Check if share is active (not revoked)
+        if (!share.isActive) {
+            return NextResponse.json(
+                {
+                    error: "Share link has been revoked",
+                    canView: false,
+                    reason: "This share link has been revoked by the owner",
+                },
+                { status: 410 } // 410 Gone
+            );
+        }
+
+        // 5. Check if expired
         const expired = isShareExpired(share.expiresAt);
 
-        // 5. Check friendship status if viewer is logged in
+        // 6. Check friendship status if viewer is logged in
         let friendshipStatus = null;
         if (viewerUserId && viewerUserId !== share.place.createdBy) {
             const friendship = await prisma.friendship.findFirst({
@@ -94,7 +106,7 @@ export async function GET(
             friendshipStatus = friendship?.status || null;
         }
 
-        // 6. Determine access
+        // 7. Determine access
         const accessInfo = determineShareAccess({
             shareVisibility: share.visibility,
             viewerUserId,
@@ -114,7 +126,7 @@ export async function GET(
             );
         }
 
-        // 7. Increment view count (only once per session, not for owner)
+        // 8. Increment view count (only once per session, not for owner)
         if (viewerUserId !== share.place.createdBy) {
             // In production, you might want to use Redis or similar to track unique views
             await prisma.pinoryShare.update({
@@ -127,7 +139,7 @@ export async function GET(
             });
         }
 
-        // 8. Transform place data to Pinory format
+        // 9. Transform place data to Pinory format
         const pinory = {
             id: share.place.id,
             name: share.place.name,
@@ -153,7 +165,7 @@ export async function GET(
             visibility: share.place.visibility,
         };
 
-        // 9. Return share data
+        // 10. Return share data
         return NextResponse.json({
             canView: true,
             viewType: accessInfo.viewType,
@@ -168,6 +180,175 @@ export async function GET(
         });
     } catch (error) {
         console.error("❌ Error fetching shared pinory:", error);
+        return NextResponse.json(
+            {
+                error: "Internal server error",
+                details: error instanceof Error ? error.message : "Unknown error",
+            },
+            { status: 500 }
+        );
+    }
+}
+
+/**
+ * PATCH /api/pinory/share/[slug]
+ * Revoke or update a share
+ */
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ slug: string }> }
+) {
+    try {
+        const { slug } = await params;
+
+        // Check database connection
+        if (!prisma) {
+            return NextResponse.json(
+                { error: "Database unavailable" },
+                { status: 503 }
+            );
+        }
+
+        // Authentication check
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
+        // Parse request body
+        const body = await request.json();
+        const { action } = body; // "revoke" or future: "update_visibility"
+
+        // Find share and verify ownership
+        const share = await prisma.pinoryShare.findUnique({
+            where: { shareSlug: slug },
+            include: {
+                place: {
+                    select: {
+                        createdBy: true,
+                    },
+                },
+            },
+        });
+
+        if (!share) {
+            return NextResponse.json(
+                { error: "Share not found" },
+                { status: 404 }
+            );
+        }
+
+        // Verify user owns the pinory
+        if (share.place.createdBy !== session.user.id) {
+            return NextResponse.json(
+                { error: "You can only manage your own shares" },
+                { status: 403 }
+            );
+        }
+
+        // Handle revoke action
+        if (action === "revoke") {
+            const updatedShare = await prisma.pinoryShare.update({
+                where: { shareSlug: slug },
+                data: {
+                    isActive: false,
+                    revokedAt: new Date(),
+                },
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: "Share revoked successfully",
+                share: {
+                    shareSlug: updatedShare.shareSlug,
+                    isActive: updatedShare.isActive,
+                    revokedAt: updatedShare.revokedAt,
+                },
+            });
+        }
+
+        return NextResponse.json(
+            { error: "Invalid action" },
+            { status: 400 }
+        );
+    } catch (error) {
+        console.error("❌ Error updating share:", error);
+        return NextResponse.json(
+            {
+                error: "Internal server error",
+                details: error instanceof Error ? error.message : "Unknown error",
+            },
+            { status: 500 }
+        );
+    }
+}
+
+/**
+ * DELETE /api/pinory/share/[slug]
+ * Permanently delete a share (hard delete)
+ */
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ slug: string }> }
+) {
+    try {
+        const { slug } = await params;
+
+        if (!prisma) {
+            return NextResponse.json(
+                { error: "Database unavailable" },
+                { status: 503 }
+            );
+        }
+
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
+        // Find share and verify ownership
+        const share = await prisma.pinoryShare.findUnique({
+            where: { shareSlug: slug },
+            include: {
+                place: {
+                    select: {
+                        createdBy: true,
+                    },
+                },
+            },
+        });
+
+        if (!share) {
+            return NextResponse.json(
+                { error: "Share not found" },
+                { status: 404 }
+            );
+        }
+
+        if (share.place.createdBy !== session.user.id) {
+            return NextResponse.json(
+                { error: "You can only delete your own shares" },
+                { status: 403 }
+            );
+        }
+
+        // Hard delete
+        await prisma.pinoryShare.delete({
+            where: { shareSlug: slug },
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: "Share deleted permanently",
+        });
+    } catch (error) {
+        console.error("❌ Error deleting share:", error);
         return NextResponse.json(
             {
                 error: "Internal server error",

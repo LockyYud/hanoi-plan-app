@@ -2,8 +2,14 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { PublicPinoryView } from "@/components/pinory/share/public-pinory-view";
 import { FriendPinoryShareView } from "@/components/pinory/share/friend-pinory-share-view";
+import {
+    isShareExpired,
+    determineShareAccess,
+    isValidShareSlug,
+} from "@/lib/share-utils";
 
 interface SharePageProps {
     params: Promise<{
@@ -12,29 +18,140 @@ interface SharePageProps {
 }
 
 /**
- * Fetch shared pinory data server-side
+ * Fetch shared pinory data directly from database (server-side)
  */
 async function getSharedPinory(shareSlug: string, session: any) {
     try {
-        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-        const response = await fetch(
-            `${baseUrl}/api/pinory/share/${shareSlug}`,
-            {
-                headers: {
-                    // Pass session cookie if available
-                    cookie: session
-                        ? `next-auth.session-token=${session.sessionToken}`
-                        : "",
-                },
-                cache: "no-store",
-            }
-        );
-
-        if (!response.ok) {
+        if (!prisma || !isValidShareSlug(shareSlug)) {
             return null;
         }
 
-        return await response.json();
+        const viewerUserId = session?.user?.id;
+
+        // Find share record
+        const share = await prisma.pinoryShare.findUnique({
+            where: { shareSlug: shareSlug },
+            include: {
+                place: {
+                    include: {
+                        media: {
+                            where: { isActive: true },
+                            orderBy: { createdAt: "asc" },
+                        },
+                        categoryModel: true,
+                        creator: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                avatarUrl: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!share) {
+            return null;
+        }
+
+        // Check if share is active
+        if (!share.isActive) {
+            return {
+                canView: false,
+                reason: "This share link has been revoked by the owner",
+            };
+        }
+
+        // Check if expired
+        const expired = isShareExpired(share.expiresAt);
+
+        // Check friendship status if viewer is logged in
+        let friendshipStatus = null;
+        if (viewerUserId && viewerUserId !== share.place.createdBy) {
+            const friendship = await prisma.friendship.findFirst({
+                where: {
+                    OR: [
+                        {
+                            requesterId: viewerUserId,
+                            addresseeId: share.place.createdBy,
+                        },
+                        {
+                            requesterId: share.place.createdBy,
+                            addresseeId: viewerUserId,
+                        },
+                    ],
+                },
+                select: { status: true },
+            });
+            friendshipStatus = friendship?.status || null;
+        }
+
+        // Determine access
+        const accessInfo = determineShareAccess({
+            shareVisibility: share.visibility,
+            viewerUserId,
+            ownerUserId: share.place.createdBy,
+            friendshipStatus,
+            isExpired: expired,
+        });
+
+        if (!accessInfo.canView) {
+            return {
+                canView: false,
+                reason: accessInfo.reason,
+            };
+        }
+
+        // Increment view count (not for owner)
+        if (viewerUserId !== share.place.createdBy) {
+            await prisma.pinoryShare.update({
+                where: { id: share.id },
+                data: {
+                    viewCount: {
+                        increment: 1,
+                    },
+                },
+            });
+        }
+
+        // Transform place data to Pinory format
+        const pinory = {
+            id: share.place.id,
+            name: share.place.name,
+            address: share.place.address,
+            ward: share.place.ward,
+            district: share.place.district,
+            lat: share.place.lat,
+            lng: share.place.lng,
+            priceLevel: share.place.priceLevel,
+            category: share.place.category,
+            categoryName: share.place.categoryModel?.name,
+            phone: share.place.phone,
+            website: share.place.website,
+            rating: share.place.rating,
+            note: share.place.note,
+            visitDate: share.place.visitDate,
+            createdAt: share.place.createdAt,
+            images: share.place.media.map((m) => m.url),
+            media: share.place.media,
+            creator: share.place.creator,
+            visibility: share.place.visibility,
+        };
+
+        return {
+            canView: true,
+            viewType: accessInfo.viewType,
+            pinory,
+            shareInfo: {
+                shareSlug: share.shareSlug,
+                visibility: share.visibility,
+                viewCount: share.viewCount + 1,
+                createdAt: share.createdAt,
+                expiresAt: share.expiresAt,
+            },
+        };
     } catch (error) {
         console.error("Error fetching shared pinory:", error);
         return null;

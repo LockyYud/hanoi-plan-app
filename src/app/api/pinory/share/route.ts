@@ -94,24 +94,27 @@ export async function POST(request: NextRequest) {
                 ? visibility
                 : "friends";
 
-        // 5. Check if share already exists
+        // 5. Check if active share already exists
         const existingShare = await prisma.pinoryShare.findFirst({
             where: {
                 placeId: placeId,
                 createdBy: session.user.id,
+                isActive: true, // Only check for active shares
             },
         });
 
         if (existingShare) {
-            // Return existing share link with full URL
+            // Return existing active share link with full URL
             const baseUrl = getBaseUrl(request);
             const shareUrl = formatShareUrl(existingShare.shareSlug, baseUrl);
             return NextResponse.json({
+                id: existingShare.id, // Include id for revoke action
                 shareSlug: existingShare.shareSlug,
                 shareUrl,
                 visibility: existingShare.visibility,
                 expiresAt: existingShare.expiresAt,
                 viewCount: existingShare.viewCount,
+                isActive: existingShare.isActive,
                 createdAt: existingShare.createdAt,
             });
         }
@@ -157,11 +160,13 @@ export async function POST(request: NextRequest) {
         const shareUrl = formatShareUrl(shareSlug, baseUrl);
 
         return NextResponse.json({
+            id: share.id, // Include id for revoke action
             shareSlug: share.shareSlug,
             shareUrl,
             visibility: share.visibility,
             expiresAt: share.expiresAt,
             viewCount: share.viewCount,
+            isActive: share.isActive,
             createdAt: share.createdAt,
         });
     } catch (error) {
@@ -200,6 +205,7 @@ export async function GET(request: NextRequest) {
         const shares = await prisma.pinoryShare.findMany({
             where: {
                 createdBy: session.user.id,
+                isActive: true, // Only return active shares
             },
             include: {
                 place: {

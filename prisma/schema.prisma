@@ -229,6 +229,8 @@ model PinoryShare {
   visibility ShareVisibility @default(friends)
   expiresAt  DateTime?       @map("expires_at")
   viewCount  Int             @default(0) @map("view_count")
+  isActive   Boolean         @default(true) @map("is_active")
+  revokedAt  DateTime?       @map("revoked_at")
   createdAt  DateTime        @default(now()) @map("created_at")
   createdBy  String          @map("created_by")
   place      Place           @relation(fields: [placeId], references: [id], onDelete: Cascade)
@@ -236,6 +238,7 @@ model PinoryShare {
   @@index([shareSlug])
   @@index([placeId])
   @@index([createdBy])
+  @@index([isActive])
   @@map("pinory_shares")
 }
 
