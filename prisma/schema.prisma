@@ -87,6 +87,7 @@ model Place {
   categoryModel   Category?        @relation(fields: [categoryId], references: [id])
   creator         User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   recommendations Recommendation[]
+  shares          PinoryShare[]
 
   @@index([lat, lng])
   @@index([district, category])
@@ -219,6 +220,23 @@ model Share {
   itinerary   Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
 
   @@map("shares")
+}
+
+model PinoryShare {
+  id         String          @id @default(cuid())
+  placeId    String          @map("place_id")
+  shareSlug  String          @unique @map("share_slug")
+  visibility ShareVisibility @default(friends)
+  expiresAt  DateTime?       @map("expires_at")
+  viewCount  Int             @default(0) @map("view_count")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  createdBy  String          @map("created_by")
+  place      Place           @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@index([shareSlug])
+  @@index([placeId])
+  @@index([createdBy])
+  @@map("pinory_shares")
 }
 
 model Account {

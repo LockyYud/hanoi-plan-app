@@ -14,10 +14,12 @@ import {
     CalendarDays,
     X,
     Navigation,
+    Share2,
 } from "lucide-react";
 import { isValidImageUrl, ImageDisplay } from "@/lib/image-utils";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { SmartImageGallery } from "./smart-image-gallery";
+import { SharePinoryDialog } from "../share/share-pinory-dialog";
 import { cn } from "@/lib/utils";
 import {
     getCurrentLocation,
@@ -47,6 +49,7 @@ export function PinoryDetailsView({
     const [loadError, setLoadError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showLightbox, setShowLightbox] = useState(false);
+    const [showShareDialog, setShowShareDialog] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -827,11 +830,19 @@ export function PinoryDetailsView({
                             </Button>
                             <Button
                                 variant="outline"
-                                onClick={onEdit}
-                                className="flex-1 h-11 bg-brand/25 hover:bg-brand/35 border-brand/40 text-brand-accent font-semibold text-sm rounded-xl"
+                                onClick={() => setShowShareDialog(true)}
+                                className="flex-1 h-11 bg-green-900/50 hover:bg-green-800/60 border-green-700/50 text-green-300 font-semibold text-sm rounded-xl"
                             >
-                                <Edit className="h-4 w-4 mr-1.5" />
-                                Edit
+                                <Share2 className="h-4 w-4 mr-1.5" />
+                                Share
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={onEdit}
+                                className="h-11 px-3.5 bg-brand/25 hover:bg-brand/35 border-brand/40 text-brand-accent rounded-xl"
+                                title="Edit"
+                            >
+                                <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                                 variant="destructive"
@@ -874,6 +885,20 @@ export function PinoryDetailsView({
                         );
                     }}
                     title={displayPinory.name}
+                />
+
+                {/* Share Dialog */}
+                <SharePinoryDialog
+                    open={showShareDialog}
+                    onOpenChange={setShowShareDialog}
+                    pinory={{
+                        id: displayPinory.id,
+                        name:
+                            displayPinory.name ||
+                            displayPinory.placeName ||
+                            "Location",
+                        address: displayPinory.address,
+                    }}
                 />
             </>
         );
@@ -1103,11 +1128,19 @@ export function PinoryDetailsView({
                         </Button>
                         <Button
                             variant="outline"
-                            onClick={onEdit}
-                            className="flex-1 h-11 bg-secondary/80 hover:bg-accent border-border hover:border-border text-foreground font-semibold rounded-lg transition-all"
+                            onClick={() => setShowShareDialog(true)}
+                            className="flex-1 h-11 bg-green-600/20 hover:bg-green-600/30 border-green-600/40 hover:border-green-600/60 text-green-300 hover:text-green-200 font-semibold rounded-lg transition-all"
                         >
-                            <Edit className="h-4 w-4 mr-1.5" />
-                            Edit
+                            <Share2 className="h-4 w-4 mr-1.5" />
+                            Share
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={onEdit}
+                            className="h-11 px-4 bg-secondary/80 hover:bg-accent border-border hover:border-border text-foreground font-semibold rounded-lg transition-all"
+                            title="Edit"
+                        >
+                            <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                             variant="destructive"
@@ -1148,6 +1181,20 @@ export function PinoryDetailsView({
                     );
                 }}
                 title={displayPinory.name}
+            />
+
+            {/* Share Dialog */}
+            <SharePinoryDialog
+                open={showShareDialog}
+                onOpenChange={setShowShareDialog}
+                pinory={{
+                    id: displayPinory.id,
+                    name:
+                        displayPinory.name ||
+                        displayPinory.placeName ||
+                        "Location",
+                    address: displayPinory.address,
+                }}
             />
         </Dialog>
     );
