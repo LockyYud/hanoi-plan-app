@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90" fill="none">
   <defs>
     <filter id="textShadow">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
     </filter>
   </defs>
   
@@ -9,31 +9,31 @@
   <g filter="url(#textShadow)" transform="translate(-105, -20)">
     <!-- P -->
     <path d="M 115 35 L 115 85 M 115 35 L 135 35 C 142 35 147 40 147 47 C 147 54 142 59 135 59 L 115 59" 
-          stroke="#2c2c2c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          stroke="#f5f5f5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     
     <!-- i -->
-    <circle cx="165" cy="32" r="3.5" fill="#2c2c2c"/>
+    <circle cx="165" cy="32" r="3.5" fill="#f5f5f5"/>
     <path d="M 165 42 L 165 85" 
-          stroke="#2c2c2c" stroke-width="6" stroke-linecap="round"/>
+          stroke="#f5f5f5" stroke-width="6" stroke-linecap="round"/>
     
     <!-- n -->
     <path d="M 185 85 L 185 50 C 185 43 190 40 197 40 C 204 40 209 43 209 50 L 209 85" 
-          stroke="#2c2c2c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          stroke="#f5f5f5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     
     <!-- o (as a pin point/circle - special feature) -->
-    <circle cx="237" cy="62.5" r="15" fill="none" stroke="#ff9a76" stroke-width="6"/>
-    <circle cx="237" cy="62.5" r="5" fill="#ff9a76"/>
+    <circle cx="237" cy="62.5" r="15" fill="none" stroke="#ffb896" stroke-width="6"/>
+    <circle cx="237" cy="62.5" r="5" fill="#ffb896"/>
     
     <!-- r -->
     <path d="M 265 85 L 265 50 C 265 43 270 40 277 40" 
-          stroke="#2c2c2c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          stroke="#f5f5f5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     
     <!-- y -->
     <path d="M 295 50 L 303 85 M 311 50 L 303 85 L 299 98 C 297 103 293 105 288 105" 
-          stroke="#2c2c2c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          stroke="#f5f5f5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     
     <!-- Tagline -->
-    <text x="115" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#8c7a6b" letter-spacing="2">
+    <text x="115" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#c4b5a6" letter-spacing="2">
       PIN YOUR STORY
     </text>
   </g>
