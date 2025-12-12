@@ -3,6 +3,7 @@
 import { memo, useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import type { ClusterComposition } from "@/lib/types";
 
 // Random rotations for natural look
 const ROTATIONS = [
@@ -20,6 +21,7 @@ interface ClusterMarkerProps {
     onClick: () => void;
     imageUrls?: string[]; // Array of image URLs from locations in cluster
     rotationInterval?: number; // Interval in ms to rotate images (default: 3000)
+    composition?: ClusterComposition; // Cluster composition info (user/friend mix)
 }
 
 export const ClusterMarker = memo(
@@ -28,6 +30,7 @@ export const ClusterMarker = memo(
         onClick,
         imageUrls = [],
         rotationInterval = 3000,
+        composition,
     }: ClusterMarkerProps) => {
         // Random rotation for natural look
         const randomRotation = useMemo(() => {
@@ -54,46 +57,94 @@ export const ClusterMarker = memo(
             return imageUrls[currentImageIndex];
         }, [imageUrls, currentImageIndex]);
 
+        // Determine theme based on composition
+        const theme = useMemo(() => {
+            if (!composition) return "user";
+            switch (composition.type) {
+                case "friend-only":
+                    return "friend";
+                case "mixed":
+                    return "mixed";
+                default:
+                    return "user";
+            }
+        }, [composition]);
+
         // Size configuration based on point count
-        const getSizeConfig = (count: number) => {
+        const getSizeConfig = (count: number, clusterTheme: string) => {
+            // Base RGB colors for different themes
+            const themeColors = {
+                user: "239, 68, 68", // red
+                friend: "168, 85, 247", // purple
+                mixed: "59, 130, 246", // blue (for mixed)
+            };
+
+            const brandRgb =
+                themeColors[clusterTheme as keyof typeof themeColors] ||
+                themeColors.user;
+
             if (count < 10)
                 return {
                     container: "w-16 h-20",
                     image: "w-14 h-14",
                     imagePx: 56,
-                    border: "border-[3px] border-brand/80",
+                    border: `border-[3px]`,
+                    borderColor:
+                        clusterTheme === "friend"
+                            ? "border-purple-500/80"
+                            : clusterTheme === "mixed"
+                              ? "border-blue-500/80"
+                              : "border-brand/80",
                     badge: "w-6 h-6 text-xs",
-                    glow: "0 0 12px rgba(var(--brand-rgb, 239, 68, 68), 0.4)",
+                    glow: `0 0 12px rgba(${brandRgb}, 0.4)`,
                 };
             if (count < 50)
                 return {
                     container: "w-20 h-24",
                     image: "w-18 h-18",
                     imagePx: 72,
-                    border: "border-[3px] border-brand/80",
+                    border: `border-[3px]`,
+                    borderColor:
+                        clusterTheme === "friend"
+                            ? "border-purple-500/80"
+                            : clusterTheme === "mixed"
+                              ? "border-blue-500/80"
+                              : "border-brand/80",
                     badge: "w-7 h-7 text-sm",
-                    glow: "0 0 16px rgba(var(--brand-rgb, 239, 68, 68), 0.5)",
+                    glow: `0 0 16px rgba(${brandRgb}, 0.5)`,
                 };
             if (count < 100)
                 return {
                     container: "w-24 h-28",
                     image: "w-22 h-22",
                     imagePx: 88,
-                    border: "border-[3px] border-brand/80",
+                    border: `border-[3px]`,
+                    borderColor:
+                        clusterTheme === "friend"
+                            ? "border-purple-500/80"
+                            : clusterTheme === "mixed"
+                              ? "border-blue-500/80"
+                              : "border-brand/80",
                     badge: "w-8 h-8 text-base",
-                    glow: "0 0 20px rgba(var(--brand-rgb, 239, 68, 68), 0.5)",
+                    glow: `0 0 20px rgba(${brandRgb}, 0.5)`,
                 };
             return {
                 container: "w-28 h-32",
                 image: "w-26 h-26",
                 imagePx: 104,
-                border: "border-4 border-brand",
+                border: `border-4`,
+                borderColor:
+                    clusterTheme === "friend"
+                        ? "border-purple-500"
+                        : clusterTheme === "mixed"
+                          ? "border-blue-500"
+                          : "border-brand",
                 badge: "w-9 h-9 text-lg",
-                glow: "0 0 24px rgba(var(--brand-rgb, 239, 68, 68), 0.6)",
+                glow: `0 0 24px rgba(${brandRgb}, 0.6)`,
             };
         };
 
-        const config = getSizeConfig(pointCount);
+        const config = getSizeConfig(pointCount, theme);
 
         const handleClick = (e: React.MouseEvent) => {
             e.stopPropagation();
@@ -166,6 +217,7 @@ export const ClusterMarker = memo(
                         "relative bg-white rounded-sm overflow-hidden",
                         "transition-all duration-300 group-hover:shadow-2xl",
                         config.border,
+                        config.borderColor,
                         config.image
                     )}
                     style={{
@@ -184,12 +236,43 @@ export const ClusterMarker = memo(
                     ) : (
                         // Fallback gradient background if no images
                         <div
-                            className="w-full h-full bg-purple-400"
+                            className={cn(
+                                "w-full h-full",
+                                theme === "friend"
+                                    ? "bg-purple-400"
+                                    : theme === "mixed"
+                                      ? "bg-gradient-to-br from-red-400 to-purple-400"
+                                      : "bg-red-400"
+                            )}
                             style={{
                                 backgroundSize: "200% 200%",
                             }}
                         />
                     )}
+
+                    {/* Friend avatars overlay - show for friend-only or mixed clusters */}
+                    {composition &&
+                        composition.friendAvatars &&
+                        composition.friendAvatars.length > 0 && (
+                            <div className="absolute bottom-1 left-1 flex -space-x-1">
+                                {composition.friendAvatars.map(
+                                    (avatarUrl, idx) => (
+                                        <div
+                                            key={`avatar-${idx}`}
+                                            className="w-4 h-4 rounded-full border border-white overflow-hidden bg-white shadow-sm"
+                                        >
+                                            <Image
+                                                src={avatarUrl}
+                                                alt="Friend"
+                                                width={16}
+                                                height={16}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    )
+                                )}
+                            </div>
+                        )}
 
                     {/* Count badge in top-right corner */}
                     <div
@@ -198,7 +281,12 @@ export const ClusterMarker = memo(
                             "rounded-full border-2 border-white",
                             "flex items-center justify-center",
                             "shadow-xl group-hover:scale-110 transition-transform duration-300",
-                            "bg-brand text-white font-bold",
+                            "font-bold",
+                            theme === "friend"
+                                ? "bg-purple-500 text-white"
+                                : theme === "mixed"
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-brand text-white",
                             config.badge
                         )}
                     >
@@ -206,6 +294,14 @@ export const ClusterMarker = memo(
                             {pointCount}
                         </span>
                     </div>
+
+                    {/* Composition indicator for mixed clusters */}
+                    {composition && composition.type === "mixed" && (
+                        <div className="absolute top-1 left-1 flex gap-0.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-sm" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-sm" />
+                        </div>
+                    )}
 
                     {/* Image pagination dots - only show if multiple images */}
                     {imageUrls.length > 1 && (

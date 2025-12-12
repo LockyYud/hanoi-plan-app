@@ -13,15 +13,61 @@ import mapboxgl from "mapbox-gl";
 import Supercluster from "supercluster";
 import { createRoot } from "react-dom/client";
 import { CategoryType } from "@prisma/client";
-import type { Pinory } from "@/lib/types";
+import type { Pinory, ClusterComposition } from "@/lib/types";
 import type { UseMapMarkersReturn } from "../types/map.types";
 import { ClusterMarker } from "../markers/cluster-marker";
+import { FriendPinoryPin } from "@/components/friends/pinory/friend-pinory-pin";
 import {
     createMapPinElement,
     destroyMapPinElement,
     type ReactMapPinElement,
 } from "../markers/marker-helper";
 import { getClusterLeaves } from "../utils/mapClustering";
+
+/**
+ * Analyze cluster leaves to determine composition
+ */
+function analyzeClusterComposition(
+    clusterIndex: Supercluster<Pinory>,
+    clusterId: number
+): ClusterComposition {
+    const leaves = getClusterLeaves(clusterIndex, clusterId);
+
+    let userCount = 0;
+    let friendCount = 0;
+    const friendAvatars: string[] = [];
+
+    leaves.forEach((leaf) => {
+        const pinory = leaf.properties;
+        if (pinory.pinoryType === "friend") {
+            friendCount++;
+            if (pinory.creator?.avatarUrl && friendAvatars.length < 3) {
+                friendAvatars.push(pinory.creator.avatarUrl);
+            }
+        } else {
+            userCount++;
+        }
+    });
+
+    const totalCount = userCount + friendCount;
+    let type: "user-only" | "friend-only" | "mixed";
+
+    if (friendCount === 0) {
+        type = "user-only";
+    } else if (userCount === 0) {
+        type = "friend-only";
+    } else {
+        type = "mixed";
+    }
+
+    return {
+        userCount,
+        friendCount,
+        totalCount,
+        type,
+        friendAvatars: friendAvatars.length > 0 ? friendAvatars : undefined,
+    };
+}
 
 interface UseMapMarkersParams {
     mapRef: React.RefObject<mapboxgl.Map | null>;
@@ -131,10 +177,19 @@ export function useMapMarkers(
                     const root = createRoot(clusterElement);
                     const mapRefCurrent = mapRef.current;
 
-                    // Get image URLs from cluster leaves
+                    // Analyze cluster composition
                     let imageUrls: string[] = [];
+                    let composition: ClusterComposition | undefined;
+
                     if (clusterIndex) {
                         try {
+                            // Get composition (user vs friend counts)
+                            composition = analyzeClusterComposition(
+                                clusterIndex,
+                                clusterId
+                            );
+
+                            // Get image URLs from cluster leaves
                             const leaves = getClusterLeaves(
                                 clusterIndex,
                                 clusterId
@@ -146,10 +201,7 @@ export function useMapMarkers(
                                 })
                                 .filter(Boolean) as string[];
                         } catch (error) {
-                            console.error(
-                                "Error getting cluster leaves:",
-                                error
-                            );
+                            console.error("Error analyzing cluster:", error);
                         }
                     }
 
@@ -157,6 +209,7 @@ export function useMapMarkers(
                         <ClusterMarker
                             pointCount={pointCount}
                             imageUrls={imageUrls}
+                            composition={composition}
                             onClick={() => {
                                 if (!mapRefCurrent || !clusterIndex) return;
 
@@ -219,13 +272,47 @@ export function useMapMarkers(
                         existingMarker.remove();
                     }
 
-                    // Create new marker with updated state
-                    const markerElement = createMapPinElement({
-                        note: note,
-                        mood: note.mood,
-                        isSelected: !!isSelected,
-                        onClick: () => onMarkerClick(note),
-                    });
+                    // Create new marker based on pinoryType
+                    let markerElement: HTMLElement;
+
+                    if (note.pinoryType === "friend") {
+                        // Render FriendPinoryPin for friend pinories
+                        markerElement = document.createElement("div");
+                        const root = createRoot(markerElement);
+
+                        const imageUrl =
+                            note.images?.[0] ||
+                            (note.media && note.media.length > 0
+                                ? note.media[0].url
+                                : undefined);
+
+                        root.render(
+                            <FriendPinoryPin
+                                friendName={
+                                    note.creator?.name ||
+                                    note.creator?.email ||
+                                    "Friend"
+                                }
+                                friendAvatarUrl={note.creator?.avatarUrl}
+                                imageUrl={imageUrl}
+                                category={
+                                    note.category as CategoryType | undefined
+                                }
+                                mood={note.note ? undefined : "📍"}
+                                onClick={() => onMarkerClick(note)}
+                            />
+                        );
+
+                        (markerElement as ReactMapPinElement)._reactRoot = root;
+                    } else {
+                        // Render standard MapPin for user pinories
+                        markerElement = createMapPinElement({
+                            note: note,
+                            mood: note.mood,
+                            isSelected: !!isSelected,
+                            onClick: () => onMarkerClick(note),
+                        });
+                    }
 
                     // Final safety check before adding individual marker
                     if (!mapRef.current) {

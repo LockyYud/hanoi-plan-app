@@ -74,13 +74,13 @@ export const sizeConfig = {
 // Theme colors for different pin variants
 export const themeConfig = {
     default: {
-        ring: "ring-white group-hover:ring-brand",
+        ring: "ring-2 ring-background/80", // Subtle ring for user's pins
         focusRing: "focus:ring-brand",
         shadow: "rgba(0, 0, 0, 0.25)",
         hoverOverlay: "from-black/20",
     },
     friend: {
-        ring: "ring-purple-300 group-hover:ring-purple-500",
+        ring: "ring-2 ring-purple-400/60 group-hover:ring-purple-500/80", // Purple glow for friend pins
         focusRing: "focus:ring-purple-500",
         shadow: "rgba(147, 51, 234, 0.3)",
         hoverOverlay: "from-purple-500/20",
@@ -274,13 +274,12 @@ export function PinBase({
                 />
             </div>
 
-            {/* Photo container with thin border */}
+            {/* Photo container with subtle ring glow */}
             <div
                 className={cn(
                     "relative bg-white rounded-sm overflow-hidden",
                     "transition-all duration-300 group-hover:shadow-2xl",
-                    "border border-border",
-                    config.border,
+                    themeStyles.ring,
                     config.image
                 )}
             >

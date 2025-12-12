@@ -76,6 +76,10 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
     const [showEditForm, setShowEditForm] = useState(false);
     const [showDetailsDialog, setShowDetailsDialog] = useState(false);
     const [showJourneyDialog, setShowJourneyDialog] = useState(false);
+    const [showFriendDetailsDialog, setShowFriendDetailsDialog] =
+        useState(false);
+    const [selectedFriendPinory, setSelectedFriendPinory] =
+        useState<Pinory | null>(null);
     const [editingNote, setEditingNote] = useState<Pinory | null>(null);
     const [showDirectionPopup, setShowDirectionPopup] = useState(false);
     const [directionInfo, setDirectionInfo] = useState<any>(null);
@@ -109,20 +113,47 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
     // 5. User location marker
     useUserLocation(mapInit.mapRef, mapInit.mapLoaded, session);
 
-    // 6. Friend locations
-    const friendLocations = useFriendLocations(
-        mapInit.mapRef,
-        mapInit.mapLoaded,
+    // 6. Fetch friend pinories (but don't render separately anymore)
+    useEffect(() => {
+        if (showFriendsLayer && session) {
+            fetchFriendPinories();
+        }
+    }, [showFriendsLayer, session, fetchFriendPinories]);
+
+    // 7. UNIFIED PINORIES: Merge user + friend pinories for clustering
+    const unifiedPinories = useMemo(() => {
+        // Tag user pinories
+        const userPinories = pinoriesManager.pinories.map((p) => ({
+            ...p,
+            pinoryType: "user" as const,
+        }));
+
+        // Tag and filter friend pinories
+        const taggedFriendPinories = showFriendsLayer
+            ? friendPinories.map((p) => ({
+                  ...p,
+                  pinoryType: "friend" as const,
+              }))
+            : [];
+
+        // Apply selectedFriendId filter if set
+        const filteredFriendPinories = selectedFriendId
+            ? taggedFriendPinories.filter(
+                  (p) => p.creator?.id === selectedFriendId
+              )
+            : taggedFriendPinories;
+
+        return [...userPinories, ...filteredFriendPinories];
+    }, [
+        pinoriesManager.pinories,
+        friendPinories,
         showFriendsLayer,
         selectedFriendId,
-        friendPinories,
-        fetchFriendPinories,
-        session
-    );
+    ]);
 
-    // 7. Create cluster index from location notes
+    // 8. Create unified cluster index
     const points = useMemo(() => {
-        return pinoriesManager.pinories.map((note) => ({
+        return unifiedPinories.map((note) => ({
             type: "Feature" as const,
             properties: note,
             geometry: {
@@ -130,7 +161,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
                 coordinates: [note.lng, note.lat] as [number, number],
             },
         }));
-    }, [pinoriesManager.pinories]);
+    }, [unifiedPinories]);
 
     const [clusterIndex, setClusterIndex] =
         useState<Supercluster<Pinory> | null>(null);
@@ -144,7 +175,7 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         setClusterIndex(index);
     }, [points]);
 
-    // 8. Auto-zoom when pinory is selected (from marker or sidebar)
+    // 9. Auto-zoom when pinory is selected (from marker or sidebar)
     useSelectedPinoryZoom({
         mapRef: mapInit.mapRef,
         mapLoaded: mapInit.mapLoaded,
@@ -153,26 +184,39 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
         duration: 1000,
     });
 
-    // 9. Handle marker clicks
+    // 10. Handle marker clicks (works for both user and friend pinories)
     const handleMarkerClick = useCallback(
         (pinory: Pinory) => {
-            setSelectedPinory(pinory);
-            friendLocations.setSelectedFriendPinory(null);
+            // Check if it's a friend pinory
+            if (pinory.pinoryType === "friend") {
+                setSelectedFriendPinory(pinory);
+                setSelectedPinory(null);
 
-            if (globalThis.innerWidth < 768) {
-                setTimeout(() => {
-                    setShowDetailsDialog(true);
-                }, 50);
+                if (globalThis.innerWidth < 768) {
+                    setTimeout(() => {
+                        setShowFriendDetailsDialog(true);
+                    }, 50);
+                }
+            } else {
+                // User pinory
+                setSelectedPinory(pinory);
+                setSelectedFriendPinory(null);
+
+                if (globalThis.innerWidth < 768) {
+                    setTimeout(() => {
+                        setShowDetailsDialog(true);
+                    }, 50);
+                }
             }
         },
-        [setSelectedPinory, friendLocations]
+        [setSelectedPinory]
     );
 
-    // 10. Render markers with clustering
+    // 10. Render UNIFIED markers with clustering
     useMapMarkers({
         mapRef: mapInit.mapRef,
         mapLoaded: mapInit.mapLoaded,
-        pinories: pinoriesManager.pinories,
+        pinories: unifiedPinories,
         mapBounds: boundsInfo.mapBounds,
         currentZoom: boundsInfo.currentZoom,
         selectedPinory,
@@ -305,14 +349,10 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
                         removeRouteFromMap(mapInit.mapRef.current);
                     }
                 }}
-                selectedFriendPinory={friendLocations.selectedFriendPinory}
+                selectedFriendPinory={selectedFriendPinory}
                 isMobile={isMobile}
-                onCloseFriendPinory={() =>
-                    friendLocations.setSelectedFriendPinory(null)
-                }
-                onViewFriendDetails={() =>
-                    friendLocations.setShowFriendDetailsDialog(true)
-                }
+                onCloseFriendPinory={() => setSelectedFriendPinory(null)}
+                onViewFriendDetails={() => setShowFriendDetailsDialog(true)}
                 mapRef={mapInit.mapRef}
             />
 
@@ -354,32 +394,27 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
                         selectedPinory?.id
                     );
                 }}
-                showFriendDetailsDialog={
-                    friendLocations.showFriendDetailsDialog
-                }
-                selectedFriendPinory={friendLocations.selectedFriendPinory}
+                showFriendDetailsDialog={showFriendDetailsDialog}
+                selectedFriendPinory={selectedFriendPinory}
                 onCloseFriendDetailsDialog={() => {
-                    friendLocations.setShowFriendDetailsDialog(false);
-                    friendLocations.setSelectedFriendPinory(null);
+                    setShowFriendDetailsDialog(false);
+                    setSelectedFriendPinory(null);
                 }}
                 onAddToFavorites={async () => {
-                    if (friendLocations.selectedFriendPinory) {
+                    if (selectedFriendPinory) {
                         try {
                             const response = await fetch("/api/favorites", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
-                                    placeId:
-                                        friendLocations.selectedFriendPinory.id,
+                                    placeId: selectedFriendPinory.id,
                                 }),
                                 credentials: "include",
                             });
                             if (response.ok) {
                                 alert("Added to favorites!");
-                                friendLocations.setShowFriendDetailsDialog(
-                                    false
-                                );
-                                friendLocations.setSelectedFriendPinory(null);
+                                setShowFriendDetailsDialog(false);
+                                setSelectedFriendPinory(null);
                             }
                         } catch (error) {
                             console.error("Failed to add to favorites:", error);

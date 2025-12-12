@@ -283,7 +283,7 @@ function PanelContent({
                     </motion.div>
                 )}
 
-                {/* Show/Hide Toggle */}
+                {/* Show/Hide Toggle - Now controls visibility of friend pinories */}
                 <motion.div
                     className="flex items-center justify-between py-3 px-3 rounded-lg border mt-3"
                     style={{
@@ -297,15 +297,20 @@ function PanelContent({
                         backgroundColor: "var(--accent)",
                     }}
                 >
-                    <Label
-                        htmlFor="show-friends-layer"
-                        className="text-sm font-semibold cursor-pointer"
-                        style={{
-                            color: "var(--foreground)",
-                        }}
-                    >
-                        Show on map
-                    </Label>
+                    <div className="flex flex-col gap-0.5">
+                        <Label
+                            htmlFor="show-friends-layer"
+                            className="text-sm font-semibold cursor-pointer"
+                            style={{
+                                color: "var(--foreground)",
+                            }}
+                        >
+                            Show friends&apos; pinories
+                        </Label>
+                        <span className="text-xs text-muted-foreground">
+                            Displays alongside your pinories
+                        </span>
+                    </div>
                     <Switch
                         id="show-friends-layer"
                         checked={showFriendsLayer}
@@ -332,8 +337,11 @@ function PanelContent({
                                 color: "var(--muted-foreground)",
                             }}
                         >
-                            Filter by friend
+                            Filter friends
                         </Label>
+                        <p className="text-xs text-muted-foreground mb-2">
+                            Filter by specific friend or show all
+                        </p>
                         <div className="space-y-1.5">
                             <motion.button
                                 initial={{ opacity: 0, x: -20 }}

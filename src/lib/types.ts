@@ -277,6 +277,9 @@ export interface Pinory {
     note?: string // Alias for content
     mood?: string // Emoji or mood indicator
 
+    // Ownership type (for unified clustering)
+    pinoryType?: 'user' | 'friend' // Discriminator for rendering logic
+
     // Media
     images?: string[]
     hasImages?: boolean
@@ -315,6 +318,17 @@ export interface Pinory {
     creator?: User
     tags?: PlaceTag[]
     favorites?: Favorite[]
+}
+
+// Unified Clustering Types
+export type PinoryType = 'user' | 'friend'
+
+export interface ClusterComposition {
+    userCount: number
+    friendCount: number
+    totalCount: number
+    type: 'user-only' | 'friend-only' | 'mixed'
+    friendAvatars?: string[] // Avatar URLs for friend pinories in cluster
 }
 
 // Friend System Types
