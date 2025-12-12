@@ -289,10 +289,10 @@ export function ImageLightbox({
                     <h3
                         className="text-gray-800 font-medium truncate"
                         style={{
-                            fontSize: "clamp(14px, 3.5vw, 18px)",
-                            fontFamily:
-                                'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
-                            letterSpacing: "0.01em",
+                            fontSize: "clamp(16px, 4vw, 22px)",
+                            fontFamily: "var(--font-caveat), cursive",
+                            letterSpacing: "0.02em",
+                            fontWeight: 600,
                         }}
                     >
                         {title || "Photo"}
@@ -301,11 +301,11 @@ export function ImageLightbox({
                     {/* Counter & Navigation dots */}
                     <div className="flex items-center justify-between mt-2">
                         <p
-                            className="text-gray-400"
+                            className="text-gray-500 font-medium"
                             style={{
                                 fontSize: "clamp(11px, 2.5vw, 13px)",
-                                fontFamily:
-                                    'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+                                fontFamily: "var(--font-inter), sans-serif",
+                                letterSpacing: "0.02em",
                             }}
                         >
                             {currentIndex + 1} / {images.length}

@@ -81,11 +81,14 @@ export function FriendPinoryShareView({
             <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-xl border-b border-border">
                 <div className="max-w-4xl mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="text-2xl">📍</div>
-                            <span className="font-bold text-xl text-brand-accent">
-                                Pinory
-                            </span>
+                        <div className="flex items-center">
+                            <Image
+                                src="/pinory-logo-full.svg"
+                                alt="Pinory"
+                                width={120}
+                                height={48}
+                                className="h-8 w-auto"
+                            />
                         </div>
                         <Link href="/">
                             <Button variant="ghost" size="sm">

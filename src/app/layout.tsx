@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Caveat } from "next/font/google";
 import "./globals.css";
 import { Providers, ErrorBoundary } from "@/components/common";
 import { Toaster } from "@/components/ui/sonner";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+
 const inter = Inter({
-    subsets: ["latin"],
+    subsets: ["latin", "vietnamese"],
     variable: "--font-inter",
+});
+
+const caveat = Caveat({
+    subsets: ["latin", "vietnamese"],
+    variable: "--font-caveat",
+    weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -91,7 +98,7 @@ export default function RootLayout({
                 <link rel="icon" href="/icon.svg" type="image/svg+xml" />
             </head>
             <body
-                className={`${inter.variable} font-sans antialiased`}
+                className={`${inter.variable} ${caveat.variable} font-sans antialiased`}
                 suppressHydrationWarning
             >
                 <ErrorBoundary>
