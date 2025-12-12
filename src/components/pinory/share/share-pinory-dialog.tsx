@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -21,8 +21,6 @@ import {
     Lock,
     ExternalLink,
     Loader2,
-    XCircle,
-    AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ShareVisibility } from "@prisma/client";
@@ -81,15 +79,43 @@ export function SharePinoryDialog({
     const [shareData, setShareData] = useState<ShareData | null>(null);
     const [selectedVisibility, setSelectedVisibility] =
         useState<ShareVisibility>("friends");
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [isRevoking, setIsRevoking] = useState(false);
+    const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
+    const [isLoadingExisting, setIsLoadingExisting] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const generateShareLink = async () => {
-        setIsGenerating(true);
+    // Fetch or create share link when dialog opens
+    useEffect(() => {
+        if (open && pinory.id) {
+            fetchOrCreateShare();
+        } else if (!open) {
+            // Reset state when dialog closes
+            setCopied(false);
+        }
+    }, [open, pinory.id]);
 
+    const fetchOrCreateShare = async () => {
+        setIsLoadingExisting(true);
         try {
-            const response = await fetch("/api/pinory/share", {
+            // First, try to get existing share
+            const getResponse = await fetch(
+                `/api/pinory/share?placeId=${pinory.id}`,
+                {
+                    method: "GET",
+                }
+            );
+
+            if (getResponse.ok) {
+                const data = await getResponse.json();
+                if (data.share) {
+                    setShareData(data.share);
+                    setSelectedVisibility(data.share.visibility);
+                    setIsLoadingExisting(false);
+                    return;
+                }
+            }
+
+            // If no existing share, create one automatically with default visibility
+            const createResponse = await fetch("/api/pinory/share", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -98,23 +124,16 @@ export function SharePinoryDialog({
                 }),
             });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || "Failed to create share link");
+            if (createResponse.ok) {
+                const data = await createResponse.json();
+                setShareData(data);
+                setSelectedVisibility(data.visibility);
             }
-
-            const data = await response.json();
-            setShareData(data);
-            toast.success("Share link created!");
         } catch (error) {
-            console.error("Error creating share link:", error);
-            toast.error(
-                error instanceof Error
-                    ? error.message
-                    : "Could not create share link"
-            );
+            console.error("Error fetching or creating share:", error);
+            toast.error("Could not load share link");
         } finally {
-            setIsGenerating(false);
+            setIsLoadingExisting(false);
         }
     };
 
@@ -137,54 +156,37 @@ export function SharePinoryDialog({
         window.open(shareData.shareUrl, "_blank");
     };
 
-    const handleVisibilityChange = (visibility: ShareVisibility) => {
+    const handleVisibilityChange = async (visibility: ShareVisibility) => {
         setSelectedVisibility(visibility);
-        // Reset share data when visibility changes
-        setShareData(null);
-    };
 
-    const handleRevokeShare = async () => {
-        if (!shareData?.shareSlug) return;
-
-        // Confirm action
-        if (
-            !confirm(
-                "Are you sure you want to revoke this share link? It will no longer be accessible."
-            )
-        ) {
-            return;
-        }
-
-        setIsRevoking(true);
-
-        try {
-            const response = await fetch(
-                `/api/pinory/share/${shareData.shareSlug}`,
-                {
-                    method: "PATCH",
+        // If share link already exists, update it automatically
+        if (shareData) {
+            setIsUpdatingVisibility(true);
+            try {
+                const response = await fetch("/api/pinory/share", {
+                    method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        action: "revoke",
+                        placeId: pinory.id,
+                        visibility: visibility,
                     }),
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to update visibility");
                 }
-            );
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || "Failed to revoke share");
+                const data = await response.json();
+                setShareData(data);
+                toast.success(`Visibility updated to ${visibility}`);
+            } catch (error) {
+                console.error("Error updating visibility:", error);
+                toast.error("Could not update visibility");
+                // Reset share data on error so user can try again
+                setShareData(null);
+            } finally {
+                setIsUpdatingVisibility(false);
             }
-
-            toast.success("Share link revoked successfully");
-            setShareData(null); // Clear share data
-        } catch (error) {
-            console.error("Error revoking share:", error);
-            toast.error(
-                error instanceof Error
-                    ? error.message
-                    : "Could not revoke share"
-            );
-        } finally {
-            setIsRevoking(false);
         }
     };
 
@@ -218,11 +220,12 @@ export function SharePinoryDialog({
                                         onClick={() =>
                                             handleVisibilityChange(option.value)
                                         }
+                                        disabled={isUpdatingVisibility}
                                         className={`flex items-start gap-3 p-3 rounded-lg border-2 transition-all ${
                                             isSelected
                                                 ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
                                                 : "border-border hover:border-blue-300"
-                                        }`}
+                                        } ${isUpdatingVisibility ? "opacity-50 cursor-not-allowed" : ""}`}
                                     >
                                         <Icon
                                             className={`h-5 w-5 mt-0.5 ${
@@ -239,8 +242,12 @@ export function SharePinoryDialog({
                                                 {option.description}
                                             </div>
                                         </div>
-                                        {isSelected && (
-                                            <Check className="h-5 w-5 text-blue-500" />
+                                        {isSelected &&
+                                            !isUpdatingVisibility && (
+                                                <Check className="h-5 w-5 text-blue-500" />
+                                            )}
+                                        {isSelected && isUpdatingVisibility && (
+                                            <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
                                         )}
                                     </button>
                                 );
@@ -251,8 +258,13 @@ export function SharePinoryDialog({
                     {/* Share Link */}
                     <div className="space-y-2">
                         <Label>Share link</Label>
-                        {shareData ? (
-                            <div className="space-y-2">
+                        {isLoadingExisting ? (
+                            <div className="flex items-center justify-center p-8 text-muted-foreground">
+                                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                                <span>Loading share link...</span>
+                            </div>
+                        ) : shareData ? (
+                            <div className="space-y-3">
                                 <div className="flex gap-2">
                                     <Input
                                         value={shareData.shareUrl}
@@ -280,79 +292,37 @@ export function SharePinoryDialog({
                                 </div>
 
                                 {/* Stats */}
-                                <div className="pt-2 border-t space-y-3">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground">
-                                            {formatShareStats(
-                                                shareData.viewCount,
-                                                shareData.createdAt
-                                            )}
-                                        </span>
-                                        <Badge variant="secondary">
-                                            {shareData.visibility}
-                                        </Badge>
-                                    </div>
+                                <div className="flex items-center justify-between text-sm pt-2 border-t">
+                                    <span className="text-muted-foreground">
+                                        {formatShareStats(
+                                            shareData.viewCount,
+                                            shareData.createdAt
+                                        )}
+                                    </span>
                                     {shareData.expiresAt && (
-                                        <div className="text-xs text-muted-foreground">
+                                        <span className="text-xs text-muted-foreground">
                                             Expires:{" "}
                                             {new Date(
                                                 shareData.expiresAt
                                             ).toLocaleDateString()}
-                                        </div>
+                                        </span>
                                     )}
-
-                                    {/* Revoke Button */}
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={handleRevokeShare}
-                                        disabled={isRevoking}
-                                        className="w-full"
-                                    >
-                                        {isRevoking ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                                Revoking...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <XCircle className="h-4 w-4 mr-2" />
-                                                Revoke Share Link
-                                            </>
-                                        )}
-                                    </Button>
                                 </div>
                             </div>
-                        ) : (
-                            <Button
-                                onClick={generateShareLink}
-                                disabled={isGenerating}
-                                className="w-full"
-                            >
-                                {isGenerating ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Creating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Share2 className="h-4 w-4 mr-2" />
-                                        Create share link
-                                    </>
-                                )}
-                            </Button>
-                        )}
+                        ) : null}
                     </div>
 
                     {/* Info */}
                     <div className="text-xs text-muted-foreground p-3 bg-muted rounded-lg">
                         <p>
-                            💡 <strong>Tip:</strong> Share links expire after 30
-                            days.
-                            {selectedVisibility === "friends" &&
-                                " Only people you've added as friends can view this."}
+                            💡 <strong>Tip:</strong>{" "}
                             {selectedVisibility === "public" &&
-                                " Anyone with this link can view your pinory."}
+                                "Anyone with this link can view your pinory."}
+                            {selectedVisibility === "friends" &&
+                                "Only people you've added as friends can view this."}
+                            {selectedVisibility === "private" &&
+                                "Only you can view this pinory. Others will see an access denied message."}{" "}
+                            Share links expire after 30 days.
                         </p>
                     </div>
                 </div>

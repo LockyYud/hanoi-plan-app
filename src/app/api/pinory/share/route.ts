@@ -104,7 +104,32 @@ export async function POST(request: NextRequest) {
         });
 
         if (existingShare) {
-            // Return existing active share link with full URL
+            // If visibility has changed, update it
+            if (existingShare.visibility !== validVisibility) {
+                const updatedShare = await prisma.pinoryShare.update({
+                    where: { id: existingShare.id },
+                    data: {
+                        visibility: validVisibility,
+                        // Optionally update expiresAt if provided
+                        ...(expiresAt && { expiresAt: new Date(expiresAt) }),
+                    },
+                });
+
+                const baseUrl = getBaseUrl(request);
+                const shareUrl = formatShareUrl(updatedShare.shareSlug, baseUrl);
+                return NextResponse.json({
+                    id: updatedShare.id,
+                    shareSlug: updatedShare.shareSlug,
+                    shareUrl,
+                    visibility: updatedShare.visibility,
+                    expiresAt: updatedShare.expiresAt,
+                    viewCount: updatedShare.viewCount,
+                    isActive: updatedShare.isActive,
+                    createdAt: updatedShare.createdAt,
+                });
+            }
+
+            // Return existing active share link with full URL (no changes needed)
             const baseUrl = getBaseUrl(request);
             const shareUrl = formatShareUrl(existingShare.shareSlug, baseUrl);
             return NextResponse.json({
@@ -183,7 +208,7 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/pinory/share
- * Get all shares created by current user
+ * Get all shares created by current user OR get specific share by placeId
  */
 export async function GET(request: NextRequest) {
     try {
@@ -202,6 +227,46 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        // Check if placeId query param is provided
+        const { searchParams } = new URL(request.url);
+        const placeId = searchParams.get("placeId");
+
+        // If placeId is provided, return specific share for that place
+        if (placeId) {
+            const share = await prisma.pinoryShare.findFirst({
+                where: {
+                    placeId: placeId,
+                    createdBy: session.user.id,
+                    isActive: true,
+                },
+            });
+
+            if (!share) {
+                return NextResponse.json(
+                    { share: null },
+                    { status: 200 }
+                );
+            }
+
+            // Return share with full URL
+            const baseUrl = getBaseUrl(request);
+            const shareUrl = formatShareUrl(share.shareSlug, baseUrl);
+
+            return NextResponse.json({
+                share: {
+                    id: share.id,
+                    shareSlug: share.shareSlug,
+                    shareUrl,
+                    visibility: share.visibility,
+                    expiresAt: share.expiresAt,
+                    viewCount: share.viewCount,
+                    isActive: share.isActive,
+                    createdAt: share.createdAt,
+                },
+            });
+        }
+
+        // Otherwise, return all shares
         const shares = await prisma.pinoryShare.findMany({
             where: {
                 createdBy: session.user.id,
