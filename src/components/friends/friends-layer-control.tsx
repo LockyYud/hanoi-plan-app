@@ -78,10 +78,10 @@ function PanelContent({
     isMobile,
 }: PanelContentProps) {
     return (
-        <div className="p-4 space-y-3">
+        <div className="flex flex-col h-full">
             {/* Header */}
             <div
-                className="flex items-center justify-between pb-3 border-b-2"
+                className="flex-shrink-0 flex items-center justify-between p-4 pb-3 border-b-2"
                 style={{
                     borderColor: "var(--border)",
                 }}
@@ -162,260 +162,183 @@ function PanelContent({
                 </div>
             </div>
 
-            {/* Friend Requests Section */}
-            {friendRequests.length > 0 && (
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto px-4 pb-4 friends-scrollbar">
+                {/* Friend Requests Section */}
+                {friendRequests.length > 0 && (
+                    <motion.div
+                        className="space-y-2 pt-3"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                    >
+                        <div className="flex items-center gap-2 px-1">
+                            <Bell className="w-4 h-4 text-yellow-500" />
+                            <Label className="text-xs font-bold uppercase tracking-wider text-yellow-500">
+                                Friend requests ({friendRequests.length})
+                            </Label>
+                        </div>
+                        <div className="space-y-2">
+                            {friendRequests.map((request, index) => (
+                                <motion.div
+                                    key={request.id}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.15 + index * 0.05 }}
+                                    className="flex items-center gap-3 p-3 rounded-lg border-2"
+                                    style={{
+                                        backgroundColor:
+                                            "rgba(234, 179, 8, 0.1)",
+                                        borderColor: "rgba(234, 179, 8, 0.3)",
+                                    }}
+                                >
+                                    {request.requester.avatarUrl ? (
+                                        <Image
+                                            src={request.requester.avatarUrl}
+                                            alt={
+                                                request.requester.name ||
+                                                request.requester.email
+                                            }
+                                            width={36}
+                                            height={36}
+                                            className="rounded-full"
+                                        />
+                                    ) : (
+                                        <div
+                                            className="w-9 h-9 rounded-full flex items-center justify-center"
+                                            style={{
+                                                backgroundColor:
+                                                    "rgba(234, 179, 8, 0.2)",
+                                            }}
+                                        >
+                                            <UserCircle2 className="w-5 h-5 text-yellow-500" />
+                                        </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <p
+                                            className="text-sm font-medium truncate"
+                                            style={{
+                                                color: "var(--foreground)",
+                                            }}
+                                        >
+                                            {request.requester.name ||
+                                                request.requester.email}
+                                        </p>
+                                        <p
+                                            className="text-xs"
+                                            style={{
+                                                color: "var(--muted-foreground)",
+                                            }}
+                                        >
+                                            Wants to be friends
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-1.5">
+                                        <motion.div
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                        >
+                                            <Button
+                                                size="icon"
+                                                className="h-8 w-8 bg-green-600 hover:bg-green-700"
+                                                onClick={() =>
+                                                    onAcceptRequest(request.id)
+                                                }
+                                                disabled={
+                                                    processingRequest ===
+                                                    request.id
+                                                }
+                                            >
+                                                <Check className="w-4 h-4 text-white" />
+                                            </Button>
+                                        </motion.div>
+                                        <motion.div
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                        >
+                                            <Button
+                                                size="icon"
+                                                variant="outline"
+                                                className="h-8 w-8"
+                                                style={{
+                                                    borderColor:
+                                                        "var(--border)",
+                                                    color: "var(--muted-foreground)",
+                                                }}
+                                                onClick={() =>
+                                                    onRejectRequest(request.id)
+                                                }
+                                                disabled={
+                                                    processingRequest ===
+                                                    request.id
+                                                }
+                                            >
+                                                <UserX className="w-4 h-4" />
+                                            </Button>
+                                        </motion.div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Show/Hide Toggle */}
                 <motion.div
-                    className="space-y-2"
+                    className="flex items-center justify-between py-3 px-3 rounded-lg border mt-3"
+                    style={{
+                        backgroundColor: "var(--secondary)",
+                        borderColor: "var(--border)",
+                    }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                >
-                    <div className="flex items-center gap-2 px-1">
-                        <Bell className="w-4 h-4 text-yellow-500" />
-                        <Label className="text-xs font-bold uppercase tracking-wider text-yellow-500">
-                            Friend requests ({friendRequests.length})
-                        </Label>
-                    </div>
-                    <div className="space-y-2">
-                        {friendRequests.map((request, index) => (
-                            <motion.div
-                                key={request.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.15 + index * 0.05 }}
-                                className="flex items-center gap-3 p-3 rounded-lg border-2"
-                                style={{
-                                    backgroundColor: "rgba(234, 179, 8, 0.1)",
-                                    borderColor: "rgba(234, 179, 8, 0.3)",
-                                }}
-                            >
-                                {request.requester.avatarUrl ? (
-                                    <Image
-                                        src={request.requester.avatarUrl}
-                                        alt={
-                                            request.requester.name ||
-                                            request.requester.email
-                                        }
-                                        width={36}
-                                        height={36}
-                                        className="rounded-full"
-                                    />
-                                ) : (
-                                    <div
-                                        className="w-9 h-9 rounded-full flex items-center justify-center"
-                                        style={{
-                                            backgroundColor:
-                                                "rgba(234, 179, 8, 0.2)",
-                                        }}
-                                    >
-                                        <UserCircle2 className="w-5 h-5 text-yellow-500" />
-                                    </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                    <p
-                                        className="text-sm font-medium truncate"
-                                        style={{ color: "var(--foreground)" }}
-                                    >
-                                        {request.requester.name ||
-                                            request.requester.email}
-                                    </p>
-                                    <p
-                                        className="text-xs"
-                                        style={{
-                                            color: "var(--muted-foreground)",
-                                        }}
-                                    >
-                                        Wants to be friends
-                                    </p>
-                                </div>
-                                <div className="flex gap-1.5">
-                                    <motion.div
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                    >
-                                        <Button
-                                            size="icon"
-                                            className="h-8 w-8 bg-green-600 hover:bg-green-700"
-                                            onClick={() =>
-                                                onAcceptRequest(request.id)
-                                            }
-                                            disabled={
-                                                processingRequest === request.id
-                                            }
-                                        >
-                                            <Check className="w-4 h-4 text-white" />
-                                        </Button>
-                                    </motion.div>
-                                    <motion.div
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                    >
-                                        <Button
-                                            size="icon"
-                                            variant="outline"
-                                            className="h-8 w-8"
-                                            style={{
-                                                borderColor: "var(--border)",
-                                                color: "var(--muted-foreground)",
-                                            }}
-                                            onClick={() =>
-                                                onRejectRequest(request.id)
-                                            }
-                                            disabled={
-                                                processingRequest === request.id
-                                            }
-                                        >
-                                            <UserX className="w-4 h-4" />
-                                        </Button>
-                                    </motion.div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
-            )}
-
-            {/* Show/Hide Toggle */}
-            <motion.div
-                className="flex items-center justify-between py-3 px-3 rounded-lg border"
-                style={{
-                    backgroundColor: "var(--secondary)",
-                    borderColor: "var(--border)",
-                }}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                whileHover={{
-                    backgroundColor: "var(--accent)",
-                }}
-            >
-                <Label
-                    htmlFor="show-friends-layer"
-                    className="text-sm font-semibold cursor-pointer"
-                    style={{
-                        color: "var(--foreground)",
+                    whileHover={{
+                        backgroundColor: "var(--accent)",
                     }}
-                >
-                    Show on map
-                </Label>
-                <Switch
-                    id="show-friends-layer"
-                    checked={showFriendsLayer}
-                    onCheckedChange={(checked) => {
-                        setShowFriendsLayer(checked);
-                        if (!checked) {
-                            setSelectedFriendId(null);
-                        }
-                    }}
-                />
-            </motion.div>
-
-            {/* Friend Filter */}
-            {showFriendsLayer && friends.length > 0 && (
-                <motion.div
-                    className="space-y-2 pt-1"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
                 >
                     <Label
-                        className="text-xs font-bold uppercase tracking-wider"
+                        htmlFor="show-friends-layer"
+                        className="text-sm font-semibold cursor-pointer"
                         style={{
-                            color: "var(--muted-foreground)",
+                            color: "var(--foreground)",
                         }}
                     >
-                        Filter by friend
+                        Show on map
                     </Label>
-                    <div
-                        className={`space-y-1.5 overflow-y-auto pr-1 custom-scrollbar ${
-                            isMobile ? "max-h-48" : "max-h-64"
-                        }`}
-                    >
-                        <motion.button
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 }}
-                            whileHover={{
-                                scale: 1.02,
-                                x: 2,
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                            className="w-full text-left p-3 rounded-lg transition-colors duration-200 border-2"
-                            style={{
-                                backgroundColor:
-                                    selectedFriendId === null
-                                        ? "var(--accent)"
-                                        : "var(--card)",
-                                borderColor:
-                                    selectedFriendId === null
-                                        ? "var(--color-primary-500)"
-                                        : "var(--border)",
-                                boxShadow:
-                                    selectedFriendId === null
-                                        ? "var(--shadow-sm)"
-                                        : "none",
-                            }}
-                            onClick={() => setSelectedFriendId(null)}
-                        >
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
-                                    style={{
-                                        background: "var(--color-primary-500)",
-                                    }}
-                                >
-                                    <Users
-                                        className="w-4 h-4"
-                                        style={{
-                                            color: "var(--primary-foreground)",
-                                        }}
-                                    />
-                                </div>
-                                <span
-                                    className="text-sm font-bold"
-                                    style={{
-                                        color: "var(--foreground)",
-                                    }}
-                                >
-                                    All Friends
-                                </span>
-                                <motion.span
-                                    className="ml-auto text-xs font-bold rounded-full px-2.5 py-1 min-w-[28px] text-center"
-                                    style={{
-                                        backgroundColor:
-                                            "var(--color-primary-500)",
-                                        color: "var(--primary-foreground)",
-                                    }}
-                                    key={friendPinories.length}
-                                    initial={{ scale: 1.3 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{
-                                        type: "spring",
-                                        stiffness: 500,
-                                    }}
-                                >
-                                    {friendPinories.length}
-                                </motion.span>
-                            </div>
-                        </motion.button>
+                    <Switch
+                        id="show-friends-layer"
+                        checked={showFriendsLayer}
+                        onCheckedChange={(checked) => {
+                            setShowFriendsLayer(checked);
+                            if (!checked) {
+                                setSelectedFriendId(null);
+                            }
+                        }}
+                    />
+                </motion.div>
 
-                        {friends.map((friend, index) => (
+                {/* Friend Filter */}
+                {showFriendsLayer && friends.length > 0 && (
+                    <motion.div
+                        className="space-y-2 pt-3"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <Label
+                            className="text-xs font-bold uppercase tracking-wider"
+                            style={{
+                                color: "var(--muted-foreground)",
+                            }}
+                        >
+                            Filter by friend
+                        </Label>
+                        <div className="space-y-1.5">
                             <motion.button
-                                key={friend.id}
-                                initial={{
-                                    opacity: 0,
-                                    x: -20,
-                                }}
-                                animate={{
-                                    opacity: 1,
-                                    x: 0,
-                                }}
-                                transition={{
-                                    delay: 0.35 + index * 0.05,
-                                    type: "spring",
-                                    stiffness: 300,
-                                    damping: 25,
-                                }}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.3 }}
                                 whileHover={{
                                     scale: 1.02,
                                     x: 2,
@@ -424,166 +347,252 @@ function PanelContent({
                                 className="w-full text-left p-3 rounded-lg transition-colors duration-200 border-2"
                                 style={{
                                     backgroundColor:
-                                        selectedFriendId === friend.id
+                                        selectedFriendId === null
                                             ? "var(--accent)"
                                             : "var(--card)",
                                     borderColor:
-                                        selectedFriendId === friend.id
+                                        selectedFriendId === null
                                             ? "var(--color-primary-500)"
                                             : "var(--border)",
                                     boxShadow:
-                                        selectedFriendId === friend.id
+                                        selectedFriendId === null
                                             ? "var(--shadow-sm)"
                                             : "none",
                                 }}
-                                onClick={() => setSelectedFriendId(friend.id)}
+                                onClick={() => setSelectedFriendId(null)}
                             >
                                 <div className="flex items-center gap-3">
-                                    {friend.avatarUrl ? (
-                                        <motion.div
-                                            whileHover={{
-                                                rotate: 5,
-                                            }}
-                                            transition={{
-                                                type: "spring",
-                                                stiffness: 300,
-                                            }}
-                                        >
-                                            <Image
-                                                src={friend.avatarUrl}
-                                                alt={
-                                                    friend.name || friend.email
-                                                }
-                                                width={32}
-                                                height={32}
-                                                className="rounded-full border-2 shadow-sm"
-                                                style={{
-                                                    borderColor:
-                                                        "var(--border)",
-                                                }}
-                                            />
-                                        </motion.div>
-                                    ) : (
-                                        <motion.div
-                                            className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
+                                    <div
+                                        className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
+                                        style={{
+                                            background:
+                                                "var(--color-primary-500)",
+                                        }}
+                                    >
+                                        <Users
+                                            className="w-4 h-4"
                                             style={{
-                                                background:
-                                                    "var(--muted-foreground)",
+                                                color: "var(--primary-foreground)",
                                             }}
-                                            whileHover={{
-                                                rotate: 5,
-                                            }}
-                                            transition={{
-                                                type: "spring",
-                                                stiffness: 300,
-                                            }}
-                                        >
-                                            <UserCircle2
-                                                className="w-5 h-5"
-                                                style={{
-                                                    color: "var(--card)",
-                                                }}
-                                            />
-                                        </motion.div>
-                                    )}
+                                        />
+                                    </div>
                                     <span
-                                        className="text-sm font-semibold truncate flex-1"
+                                        className="text-sm font-bold"
                                         style={{
                                             color: "var(--foreground)",
                                         }}
                                     >
-                                        {friend.name || friend.email}
+                                        All Friends
                                     </span>
-                                    {friend.pinoriesCount > 0 && (
-                                        <motion.span
-                                            className="text-xs font-bold rounded-full px-2.5 py-1 min-w-[28px] text-center"
-                                            style={{
-                                                backgroundColor:
-                                                    "var(--secondary)",
-                                                color: "var(--muted-foreground)",
-                                            }}
-                                            key={friend.pinoriesCount}
-                                            initial={{
-                                                scale: 1.3,
-                                            }}
-                                            animate={{
-                                                scale: 1,
-                                            }}
-                                            transition={{
-                                                type: "spring",
-                                                stiffness: 500,
-                                            }}
-                                        >
-                                            {friend.pinoriesCount}
-                                        </motion.span>
-                                    )}
+                                    <motion.span
+                                        className="ml-auto text-xs font-bold rounded-full px-2.5 py-1 min-w-[28px] text-center"
+                                        style={{
+                                            backgroundColor:
+                                                "var(--color-primary-500)",
+                                            color: "var(--primary-foreground)",
+                                        }}
+                                        key={friendPinories.length}
+                                        initial={{ scale: 1.3 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{
+                                            type: "spring",
+                                            stiffness: 500,
+                                        }}
+                                    >
+                                        {friendPinories.length}
+                                    </motion.span>
                                 </div>
                             </motion.button>
-                        ))}
-                    </div>
-                </motion.div>
-            )}
 
-            {/* No Friends Message */}
-            {showFriendsLayer && friends.length === 0 && (
-                <motion.div
-                    className="text-center py-8 rounded-lg border-2"
-                    style={{
-                        backgroundColor: "var(--secondary)",
-                        borderColor: "var(--border)",
-                    }}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{
-                        delay: 0.2,
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 25,
-                    }}
-                >
-                    <motion.div
-                        className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-md"
-                        style={{
-                            background: "var(--muted-foreground)",
-                        }}
-                        animate={{
-                            rotate: [0, 10, -10, 10, 0],
-                        }}
-                        transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            repeatDelay: 3,
-                        }}
-                    >
-                        <Users
-                            className="w-6 h-6"
-                            style={{ color: "var(--card)" }}
-                        />
+                            {friends.map((friend, index) => (
+                                <motion.button
+                                    key={friend.id}
+                                    initial={{
+                                        opacity: 0,
+                                        x: -20,
+                                    }}
+                                    animate={{
+                                        opacity: 1,
+                                        x: 0,
+                                    }}
+                                    transition={{
+                                        delay: 0.35 + index * 0.05,
+                                        type: "spring",
+                                        stiffness: 300,
+                                        damping: 25,
+                                    }}
+                                    whileHover={{
+                                        scale: 1.02,
+                                        x: 2,
+                                    }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="w-full text-left p-3 rounded-lg transition-colors duration-200 border-2"
+                                    style={{
+                                        backgroundColor:
+                                            selectedFriendId === friend.id
+                                                ? "var(--accent)"
+                                                : "var(--card)",
+                                        borderColor:
+                                            selectedFriendId === friend.id
+                                                ? "var(--color-primary-500)"
+                                                : "var(--border)",
+                                        boxShadow:
+                                            selectedFriendId === friend.id
+                                                ? "var(--shadow-sm)"
+                                                : "none",
+                                    }}
+                                    onClick={() =>
+                                        setSelectedFriendId(friend.id)
+                                    }
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {friend.avatarUrl ? (
+                                            <motion.div
+                                                whileHover={{
+                                                    rotate: 5,
+                                                }}
+                                                transition={{
+                                                    type: "spring",
+                                                    stiffness: 300,
+                                                }}
+                                            >
+                                                <Image
+                                                    src={friend.avatarUrl}
+                                                    alt={
+                                                        friend.name ||
+                                                        friend.email
+                                                    }
+                                                    width={32}
+                                                    height={32}
+                                                    className="rounded-full border-2 shadow-sm"
+                                                    style={{
+                                                        borderColor:
+                                                            "var(--border)",
+                                                    }}
+                                                />
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
+                                                style={{
+                                                    background:
+                                                        "var(--muted-foreground)",
+                                                }}
+                                                whileHover={{
+                                                    rotate: 5,
+                                                }}
+                                                transition={{
+                                                    type: "spring",
+                                                    stiffness: 300,
+                                                }}
+                                            >
+                                                <UserCircle2
+                                                    className="w-5 h-5"
+                                                    style={{
+                                                        color: "var(--card)",
+                                                    }}
+                                                />
+                                            </motion.div>
+                                        )}
+                                        <span
+                                            className="text-sm font-semibold truncate flex-1"
+                                            style={{
+                                                color: "var(--foreground)",
+                                            }}
+                                        >
+                                            {friend.name || friend.email}
+                                        </span>
+                                        {friend.pinoriesCount > 0 && (
+                                            <motion.span
+                                                className="text-xs font-bold rounded-full px-2.5 py-1 min-w-[28px] text-center"
+                                                style={{
+                                                    backgroundColor:
+                                                        "var(--secondary)",
+                                                    color: "var(--muted-foreground)",
+                                                }}
+                                                key={friend.pinoriesCount}
+                                                initial={{
+                                                    scale: 1.3,
+                                                }}
+                                                animate={{
+                                                    scale: 1,
+                                                }}
+                                                transition={{
+                                                    type: "spring",
+                                                    stiffness: 500,
+                                                }}
+                                            >
+                                                {friend.pinoriesCount}
+                                            </motion.span>
+                                        )}
+                                    </div>
+                                </motion.button>
+                            ))}
+                        </div>
                     </motion.div>
-                    <motion.p
-                        className="font-bold text-sm"
+                )}
+
+                {/* No Friends Message */}
+                {showFriendsLayer && friends.length === 0 && (
+                    <motion.div
+                        className="text-center py-8 rounded-lg border-2 mt-3"
                         style={{
-                            color: "var(--foreground)",
+                            backgroundColor: "var(--secondary)",
+                            borderColor: "var(--border)",
                         }}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        No friends yet
-                    </motion.p>
-                    <motion.p
-                        className="text-xs mt-1 font-medium"
-                        style={{
-                            color: "var(--muted-foreground)",
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{
+                            delay: 0.2,
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 25,
                         }}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
                     >
-                        Add friends to see their locations
-                    </motion.p>
-                </motion.div>
-            )}
+                        <motion.div
+                            className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-md"
+                            style={{
+                                background: "var(--muted-foreground)",
+                            }}
+                            animate={{
+                                rotate: [0, 10, -10, 10, 0],
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                repeatDelay: 3,
+                            }}
+                        >
+                            <Users
+                                className="w-6 h-6"
+                                style={{ color: "var(--card)" }}
+                            />
+                        </motion.div>
+                        <motion.p
+                            className="font-bold text-sm"
+                            style={{
+                                color: "var(--foreground)",
+                            }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            No friends yet
+                        </motion.p>
+                        <motion.p
+                            className="text-xs mt-1 font-medium"
+                            style={{
+                                color: "var(--muted-foreground)",
+                            }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                        >
+                            Add friends to see their locations
+                        </motion.p>
+                    </motion.div>
+                )}
+            </div>
         </div>
     );
 }
@@ -877,14 +886,8 @@ export function FriendsLayerControl() {
                                     />
                                 </div>
 
-                                {/* Scrollable Content */}
-                                <div
-                                    className="flex-1 overflow-y-auto overscroll-contain"
-                                    style={{
-                                        paddingBottom:
-                                            "env(safe-area-inset-bottom, 20px)",
-                                    }}
-                                >
+                                {/* Scrollable Content - Full height */}
+                                <div className="flex-1 min-h-0">
                                     <PanelContent
                                         friendPinories={friendPinories}
                                         showFriendsLayer={showFriendsLayer}

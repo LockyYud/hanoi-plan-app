@@ -77,7 +77,7 @@ export function FriendPinoryPin({
     // Tooltip showing friend name
     const tooltip = (
         <div className="bg-purple-900 text-white text-xs py-1 px-2 rounded shadow-lg">
-            {friendName}&apos;s location
+            {friendName}&apos;s pinory
         </div>
     );
 
@@ -89,7 +89,7 @@ export function FriendPinoryPin({
             theme="friend"
             className={className}
             onClick={onClick}
-            imageAlt={`${friendName}'s location`}
+            imageAlt={`${friendName}'s pinory`}
             placeholder={friendPlaceholder}
             additionalBadges={avatarBadge}
             tooltip={tooltip}

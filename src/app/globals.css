@@ -474,6 +474,48 @@ body {
   scrollbar-color: rgba(59, 130, 246, 0.4) rgba(229, 231, 235, 0.5);
 }
 
+/* Friends panel scrollbar - modern gradient style */
+.friends-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.friends-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.friends-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, 
+    rgba(var(--color-primary-500-rgb, 59, 130, 246), 0.3),
+    rgba(var(--color-primary-500-rgb, 59, 130, 246), 0.6)
+  );
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+.friends-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, 
+    rgba(var(--color-primary-500-rgb, 59, 130, 246), 0.6),
+    rgba(var(--color-primary-500-rgb, 59, 130, 246), 0.8)
+  );
+  border-width: 1px;
+}
+
+.friends-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, 
+    rgba(var(--color-primary-500-rgb, 59, 130, 246), 0.7),
+    rgba(var(--color-primary-500-rgb, 59, 130, 246), 0.9)
+  );
+}
+
+/* For Firefox */
+.friends-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-primary-500-rgb, 59, 130, 246), 0.5) transparent;
+}
+
 /* Hide scrollbar but allow scrolling */
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE and Edge */

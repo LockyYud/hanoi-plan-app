@@ -92,7 +92,7 @@ export function FriendLocationPopup({
                 {/* Note */}
                 {note && (
                     <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-700/30">
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <p className="text-sm text-foreground">
                             &quot;{note}&quot;
                         </p>
                     </div>
