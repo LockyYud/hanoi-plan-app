@@ -19,6 +19,7 @@ export async function middleware(req: NextRequest) {
         '/login',         // Login page
         '/public',        // Public page
         '/share',         // Share pages (will be checked in detail below)
+        '/p',             // Public share links /p/[shareSlug]
     ]
 
     // Check if pathname starts with any public route
