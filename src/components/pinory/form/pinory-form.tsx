@@ -619,11 +619,26 @@ export function PinoryForm({
                         <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
                                 <DialogTitle asChild>
-                                    <Input
-                                        {...register("placeName")}
-                                        placeholder="Place name"
-                                        className="text-xl font-semibold text-[var(--foreground)] mb-2 h-auto py-2 px-3 bg-transparent border-transparent hover:border-border focus:border-[var(--color-primary-500)] focus:bg-secondary rounded-lg transition-all"
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            {...register("placeName")}
+                                            placeholder="Place name"
+                                            className="text-xl font-semibold text-[var(--foreground)] mb-2 h-auto py-2 px-3 pr-10 bg-transparent border-transparent hover:border-border focus:border-[var(--color-primary-500)] focus:bg-secondary rounded-lg transition-all"
+                                        />
+                                        {watch("placeName") && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() =>
+                                                    setValue("placeName", "")
+                                                }
+                                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent/50 rounded-full mb-1"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
                                 </DialogTitle>
                                 <div className="flex items-center gap-2">
                                     <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -633,16 +648,6 @@ export function PinoryForm({
                                     </span>
                                 </div>
                             </div>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleClose}
-                                className="text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent p-2 h-10 w-10"
-                            >
-                                <X className="h-4 w-4" />
-                                <span className="sr-only">Close</span>
-                            </Button>
                         </div>
                     </div>
 

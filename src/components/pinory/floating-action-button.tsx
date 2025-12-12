@@ -199,7 +199,7 @@ export function FloatingActionButton({
                     </button>
 
                     {/* Option 2: Create Journey */}
-                    <button
+                    {/* <button
                         onClick={handleCreateJourney}
                         className={cn(
                             "group flex items-center gap-2 sm:gap-3 transition-all duration-200 cursor-pointer",
@@ -212,7 +212,6 @@ export function FloatingActionButton({
                         }}
                         title="Create new journey (J)"
                     >
-                        {/* Label - Hidden on mobile */}
                         <div className="hidden sm:block bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                             <span className="text-sm font-medium text-neutral-800">
                                 Create journey
@@ -222,11 +221,10 @@ export function FloatingActionButton({
                             </span>
                         </div>
 
-                        {/* Button */}
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white hover:bg-neutral-50 shadow-lg flex items-center justify-center transition-all duration-200 hover:shadow-xl hover:scale-110">
                             <Route className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
                         </div>
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* Main FAB Button */}
