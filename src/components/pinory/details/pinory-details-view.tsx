@@ -1058,7 +1058,7 @@ export function PinoryDetailsView({
                                     <div className="h-1 w-1 rounded-full bg-blue-500"></div>
                                     <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
                                         <Tag className="h-4 w-4" />
-                                        Thông tin
+                                        Information
                                     </h3>
                                 </div>
                                 <div className="flex flex-wrap gap-2">

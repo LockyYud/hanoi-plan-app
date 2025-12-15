@@ -1,6 +1,5 @@
 import { createRoot, type Root } from "react-dom/client";
-import { MapPin } from "./map-pin";
-import { CategoryType } from "@prisma/client";
+import { PinoryPin } from "./pinory-pin";
 import type { Pinory } from "@/lib/types";
 
 // Legacy export for backward compatibility
@@ -29,7 +28,7 @@ export function createMapPinElement(
 
     const root = createRoot(container);
     root.render(
-        <MapPin
+        <PinoryPin
             pinory={props.note}
             mood={props.mood}
             isSelected={props.isSelected}

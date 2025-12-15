@@ -5,10 +5,13 @@
  */
 
 export { PinBase } from "./pin-base";
-export { MapPin } from "./map-pin";
-export { PhotoPin } from "./photo-pin";
-// IconPin is currently disabled (entire file is commented out)
-// export { IconPin } from "./icon-pin";
+export { PinoryPin } from "./pinory-pin";
 export { PushPinIcon } from "./push-pin-icon";
 export { ClusterMarker } from "./cluster-marker";
 export { createMapPinElement, destroyMapPinElement, type ReactMapPinElement } from "./marker-helper";
+
+// Legacy exports for backward compatibility
+/** @deprecated Use PinoryPin instead */
+export { PinoryPin as MapPin } from "./pinory-pin";
+/** @deprecated Use PinoryPin instead */
+export { PinoryPin as PhotoPin } from "./pinory-pin";

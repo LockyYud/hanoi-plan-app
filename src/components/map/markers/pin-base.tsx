@@ -240,6 +240,55 @@ export function PinBase({
         }
     };
 
+    // Default placeholder when no image and no custom placeholder provided
+    const defaultPlaceholder = (
+        <div className="w-full h-full bg-gradient-to-br from-brand/10 via-brand/20 to-brand/30 flex items-center justify-center relative overflow-hidden">
+            {/* Decorative background pattern */}
+            <div className="absolute inset-0 opacity-10">
+                <svg
+                    className="w-full h-full"
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="none"
+                >
+                    <defs>
+                        <pattern
+                            id="grid"
+                            width="10"
+                            height="10"
+                            patternUnits="userSpaceOnUse"
+                        >
+                            <path
+                                d="M 10 0 L 0 0 0 10"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="0.5"
+                            />
+                        </pattern>
+                    </defs>
+                    <rect width="100" height="100" fill="url(#grid)" />
+                </svg>
+            </div>
+
+            {/* Center icon/emoji */}
+            {mood ? (
+                <span className="text-4xl z-10 drop-shadow-sm">{mood}</span>
+            ) : (
+                <svg
+                    className="w-8 h-8 text-brand/40 z-10 drop-shadow-sm"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+            )}
+        </div>
+    );
+
     return (
         <button
             type="button"
@@ -295,7 +344,7 @@ export function PinBase({
                         onError={onError}
                     />
                 ) : (
-                    placeholder
+                    placeholder || defaultPlaceholder
                 )}
 
                 {/* Additional badges (e.g., friend avatar) */}
