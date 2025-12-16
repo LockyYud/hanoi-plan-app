@@ -254,6 +254,22 @@ export function MapContainer({ className }: Readonly<MapContainerProps>) {
             );
     }, []);
 
+    // Handle opening pinory details (from pinories list on mobile)
+    useEffect(() => {
+        const handleOpenPinoryDetails = () => {
+            setShowDetailsDialog(true);
+        };
+        globalThis.addEventListener(
+            "openPinoryDetails",
+            handleOpenPinoryDetails as EventListener
+        );
+        return () =>
+            globalThis.removeEventListener(
+                "openPinoryDetails",
+                handleOpenPinoryDetails as EventListener
+            );
+    }, []);
+
     // Render error state
     if (mapInit.mapError || !mapInit.hasMapboxToken) {
         return (

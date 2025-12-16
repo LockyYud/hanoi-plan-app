@@ -462,6 +462,17 @@ function PanelContent({
                                                                 setIsOpen(
                                                                     false
                                                                 );
+                                                                // Dispatch event to open details view on mobile
+                                                                setTimeout(
+                                                                    () => {
+                                                                        globalThis.dispatchEvent(
+                                                                            new CustomEvent(
+                                                                                "openPinoryDetails"
+                                                                            )
+                                                                        );
+                                                                    },
+                                                                    50
+                                                                );
                                                             }
                                                         }}
                                                     >
