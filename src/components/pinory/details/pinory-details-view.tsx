@@ -1154,6 +1154,7 @@ export function PinoryDetailsView({
                                 }
                             }}
                             className="h-11 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all"
+                            title="Delete"
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>

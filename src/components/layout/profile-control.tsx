@@ -218,6 +218,7 @@ export function ProfileControl() {
                             borderColor: "var(--border)",
                             backgroundColor: "var(--card)",
                         }}
+                        title="Profile"
                     >
                         {session?.user?.image ? (
                             <img

@@ -155,6 +155,7 @@ function PanelContent({
                                 e.currentTarget.style.backgroundColor =
                                     "transparent";
                             }}
+                            title="Close"
                         >
                             <X className="w-5 h-5" />
                         </Button>
@@ -248,6 +249,7 @@ function PanelContent({
                                                     processingRequest ===
                                                     request.id
                                                 }
+                                                title="Accept friend request"
                                             >
                                                 <Check className="w-4 h-4 text-white" />
                                             </Button>
@@ -272,6 +274,7 @@ function PanelContent({
                                                     processingRequest ===
                                                     request.id
                                                 }
+                                                title="Reject friend request"
                                             >
                                                 <UserX className="w-4 h-4" />
                                             </Button>

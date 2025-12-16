@@ -287,6 +287,7 @@ function PanelContent({
                         onClick={() => setIsOpen(false)}
                         className="h-8 w-8"
                         style={{ color: "var(--muted-foreground)" }}
+                        title="Close"
                     >
                         <X className="w-5 h-5" />
                     </Button>
@@ -298,24 +299,29 @@ function PanelContent({
                 className="p-4 border-b"
                 style={{ borderColor: "var(--border)" }}
             >
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search memories..."
-                        value={filter.query || ""}
-                        onChange={(e) =>
-                            setFilter({ ...filter, query: e.target.value })
-                        }
-                        className="pl-10 pr-10 h-10 bg-secondary border-border"
-                    />
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search memories..."
+                            value={filter.query || ""}
+                            onChange={(e) =>
+                                setFilter({ ...filter, query: e.target.value })
+                            }
+                            className="pl-10 h-10 bg-secondary border-border"
+                        />
+                    </div>
                     <Button
-                        variant="ghost"
-                        size="sm"
+                        variant="outline"
+                        size="icon"
                         onClick={() => setShowFilterPopover(!showFilterPopover)}
                         className={cn(
-                            "absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0",
-                            showFilterPopover && "bg-accent"
+                            "h-10 w-10 flex-shrink-0 transition-all duration-200 cursor-pointer",
+                            showFilterPopover
+                                ? "bg-primary text-primary-foreground hover:bg-primary/90 border-primary"
+                                : "hover:bg-accent hover:scale-105 active:scale-95"
                         )}
+                        title="Filter"
                     >
                         <Filter className="h-4 w-4" />
                     </Button>
@@ -503,25 +509,35 @@ function PanelContent({
                                                                 </span>
                                                                 {/* Navigation button - show if no address */}
                                                                 {!pinory.address && (
-                                                                    <Button
-                                                                        size="icon"
-                                                                        variant="ghost"
-                                                                        className="h-6 w-6 rounded-full hover:bg-secondary transition-colors"
-                                                                        onClick={(
-                                                                            e
-                                                                        ) => {
-                                                                            e.stopPropagation();
-                                                                            handleGetDirections(
-                                                                                pinory
-                                                                            );
+                                                                    <motion.div
+                                                                        whileHover={{
+                                                                            scale: 1.15,
                                                                         }}
-                                                                        disabled={
-                                                                            isGettingDirections ===
-                                                                            pinory.id
-                                                                        }
+                                                                        whileTap={{
+                                                                            scale: 0.9,
+                                                                        }}
                                                                     >
-                                                                        <Navigation className="h-3.5 w-3.5" />
-                                                                    </Button>
+                                                                        <Button
+                                                                            size="icon"
+                                                                            variant="ghost"
+                                                                            className="h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                                                                            onClick={(
+                                                                                e
+                                                                            ) => {
+                                                                                e.stopPropagation();
+                                                                                handleGetDirections(
+                                                                                    pinory
+                                                                                );
+                                                                            }}
+                                                                            disabled={
+                                                                                isGettingDirections ===
+                                                                                pinory.id
+                                                                            }
+                                                                            title="Get directions"
+                                                                        >
+                                                                            <Navigation className="h-3.5 w-3.5" />
+                                                                        </Button>
+                                                                    </motion.div>
                                                                 )}
                                                             </div>
 
@@ -536,25 +552,35 @@ function PanelContent({
                                                                         </span>
                                                                     </div>
                                                                     {/* Navigation button */}
-                                                                    <Button
-                                                                        size="icon"
-                                                                        variant="ghost"
-                                                                        className="h-6 w-6 flex-shrink-0 rounded-full hover:bg-secondary transition-colors"
-                                                                        onClick={(
-                                                                            e
-                                                                        ) => {
-                                                                            e.stopPropagation();
-                                                                            handleGetDirections(
-                                                                                pinory
-                                                                            );
+                                                                    <motion.div
+                                                                        whileHover={{
+                                                                            scale: 1.15,
                                                                         }}
-                                                                        disabled={
-                                                                            isGettingDirections ===
-                                                                            pinory.id
-                                                                        }
+                                                                        whileTap={{
+                                                                            scale: 0.9,
+                                                                        }}
                                                                     >
-                                                                        <Navigation className="h-3.5 w-3.5" />
-                                                                    </Button>
+                                                                        <Button
+                                                                            size="icon"
+                                                                            variant="ghost"
+                                                                            className="h-6 w-6 flex-shrink-0 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                                                                            onClick={(
+                                                                                e
+                                                                            ) => {
+                                                                                e.stopPropagation();
+                                                                                handleGetDirections(
+                                                                                    pinory
+                                                                                );
+                                                                            }}
+                                                                            disabled={
+                                                                                isGettingDirections ===
+                                                                                pinory.id
+                                                                            }
+                                                                            title="Get directions"
+                                                                        >
+                                                                            <Navigation className="h-3.5 w-3.5" />
+                                                                        </Button>
+                                                                    </motion.div>
                                                                 </div>
                                                             )}
                                                         </div>
