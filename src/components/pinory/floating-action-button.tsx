@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, MapPin, Route, X } from "lucide-react";
+import { Plus, MapPin, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCurrentLocation } from "@/lib/geolocation";
 import { toast } from "sonner";
@@ -124,22 +124,28 @@ export function FloatingActionButton({
         setIsOpen((prev) => !prev);
     };
 
-    const handleCreateJourney = () => {
-        onCreateJourney();
-        setIsOpen(false);
-    };
-
     return (
         <>
-            {/* Backdrop with blur effect */}
-            {isOpen && (
-                <button
-                    type="button"
-                    aria-label="Close menu"
-                    className="fixed inset-0 z-40 transition-all duration-300 backdrop-blur-[2px] bg-black/20 border-0 cursor-default"
-                    onClick={() => setIsOpen(false)}
-                />
-            )}
+            {/* Backdrop overlay - Pre-mounted for smooth transition */}
+            <button
+                type="button"
+                aria-label="Close menu"
+                className={cn(
+                    "fixed inset-0 z-40 border-0 cursor-default",
+                    // GPU acceleration hint
+                    "transform-gpu will-change-[opacity]",
+                    // Smooth gradient overlay instead of blur
+                    "bg-gradient-to-t from-black/40 via-black/25 to-black/10",
+                    // Specific transition for opacity only
+                    "transition-opacity duration-200 ease-out",
+                    // Toggle visibility
+                    isOpen
+                        ? "opacity-100 pointer-events-auto"
+                        : "opacity-0 pointer-events-none"
+                )}
+                onClick={() => setIsOpen(false)}
+                tabIndex={isOpen ? 0 : -1}
+            />
 
             {/* FAB Container */}
             <div
@@ -149,7 +155,11 @@ export function FloatingActionButton({
                 {/* Speed Dial Options */}
                 <div
                     className={cn(
-                        "flex flex-col gap-3 transition-all duration-300 ease-out",
+                        "flex flex-col gap-3",
+                        // GPU acceleration
+                        "transform-gpu will-change-[opacity,transform]",
+                        // Specific transitions only for animated properties
+                        "transition-[opacity,transform] duration-250 ease-out",
                         isOpen
                             ? "opacity-100 translate-y-0 pointer-events-auto"
                             : "opacity-0 translate-y-4 pointer-events-none"
@@ -160,18 +170,20 @@ export function FloatingActionButton({
                         onClick={handleCreateNoteAtLocation}
                         disabled={isGettingLocation}
                         className={cn(
-                            "group flex items-center gap-2 sm:gap-3 transition-all duration-200 cursor-pointer",
+                            "group flex items-center gap-2 sm:gap-3 cursor-pointer",
+                            // GPU acceleration
+                            "transform-gpu",
                             isOpen
                                 ? "animate-fade-in-up delay-75"
                                 : "animate-fade-out-down"
                         )}
                         style={{
-                            animationDelay: isOpen ? "50ms" : "0ms",
+                            animationDelay: isOpen ? "25ms" : "0ms",
                         }}
                         title="Add pinory at current location (N)"
                     >
                         {/* Label - Hidden on mobile */}
-                        <div className="hidden sm:block bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                        <div className="hidden sm:block bg-white/95 px-4 py-2 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap transform-gpu">
                             <span className="text-sm font-medium text-neutral-800">
                                 Add pinory here
                             </span>
@@ -183,8 +195,12 @@ export function FloatingActionButton({
                         {/* Button */}
                         <div
                             className={cn(
-                                "w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200",
-                                "bg-white hover:bg-neutral-50 hover:shadow-xl hover:scale-110",
+                                "w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center",
+                                "bg-white hover:bg-neutral-50",
+                                // GPU acceleration and specific transitions
+                                "transform-gpu will-change-[transform,box-shadow]",
+                                "transition-[transform,box-shadow,background-color] duration-200 ease-out",
+                                "hover:shadow-xl hover:scale-110",
                                 isGettingLocation &&
                                     "opacity-50 cursor-not-allowed"
                             )}
@@ -231,8 +247,12 @@ export function FloatingActionButton({
                 <button
                     onClick={handleToggle}
                     className={cn(
-                        "w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 relative overflow-hidden group cursor-pointer",
+                        "w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-xl flex items-center justify-center relative overflow-hidden group cursor-pointer",
                         "bg-brand",
+                        // GPU acceleration
+                        "transform-gpu will-change-[transform,box-shadow]",
+                        // Specific transitions for better performance
+                        "transition-[transform,box-shadow] duration-200 ease-in-out",
                         "hover:shadow-2xl hover:scale-105",
                         "active:scale-95",
                         isOpen && "rotate-45"
@@ -241,57 +261,66 @@ export function FloatingActionButton({
                     aria-label={isOpen ? "Close menu" : "Create new"}
                     aria-expanded={isOpen}
                 >
-                    {/* Pulse effect when closed */}
-                    {!isOpen && (
-                        <div className="absolute inset-0 rounded-full bg-brand animate-ping opacity-20" />
-                    )}
+                    {/* Pulse effect when closed - Pre-mounted with conditional opacity */}
+                    <div
+                        className={cn(
+                            "absolute inset-0 rounded-full bg-brand animate-ping",
+                            "transform-gpu",
+                            isOpen ? "opacity-0" : "opacity-20"
+                        )}
+                    />
 
                     {/* Icon */}
-                    <div className="relative z-10">
+                    <div className="relative z-10 transform-gpu">
                         {isOpen ? (
-                            <X className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-300" />
+                            <X className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-200" />
                         ) : (
-                            <Plus className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-300" />
+                            <Plus className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-200" />
                         )}
                     </div>
 
                     {/* Hover glow effect */}
-                    <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                    <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-200 transform-gpu" />
                 </button>
             </div>
 
-            {/* Global styles for animations */}
+            {/* Global styles for animations - Optimized for performance */}
             <style
                 dangerouslySetInnerHTML={{
                     __html: `
                     @keyframes fade-in-up {
                         from {
                             opacity: 0;
-                            transform: translateY(16px);
+                            transform: translate3d(0, 12px, 0);
                         }
                         to {
                             opacity: 1;
-                            transform: translateY(0);
+                            transform: translate3d(0, 0, 0);
                         }
                     }
 
                     @keyframes fade-out-down {
                         from {
                             opacity: 1;
-                            transform: translateY(0);
+                            transform: translate3d(0, 0, 0);
                         }
                         to {
                             opacity: 0;
-                            transform: translateY(16px);
+                            transform: translate3d(0, 12px, 0);
                         }
                     }
 
                     .animate-fade-in-up {
-                        animation: fade-in-up 0.3s ease-out forwards;
+                        animation: fade-in-up 0.25s ease-out forwards;
+                        /* Force GPU acceleration */
+                        backface-visibility: hidden;
+                        perspective: 1000px;
                     }
 
                     .animate-fade-out-down {
-                        animation: fade-out-down 0.2s ease-in forwards;
+                        animation: fade-out-down 0.15s ease-in forwards;
+                        backface-visibility: hidden;
+                        perspective: 1000px;
                     }
                 `,
                 }}
