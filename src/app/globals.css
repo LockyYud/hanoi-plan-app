@@ -116,6 +116,21 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Action Button Colors - Light Mode */
+  --action-blue-bg: rgba(59, 130, 246, 0.1);
+  --action-blue-bg-hover: rgba(59, 130, 246, 0.15);
+  --action-blue-border: rgba(59, 130, 246, 0.3);
+  --action-blue-border-hover: rgba(59, 130, 246, 0.4);
+  --action-blue-text: #1d4ed8;
+  --action-blue-text-hover: #1e40af;
+
+  --action-green-bg: rgba(34, 197, 94, 0.1);
+  --action-green-bg-hover: rgba(34, 197, 94, 0.15);
+  --action-green-border: rgba(34, 197, 94, 0.3);
+  --action-green-border-hover: rgba(34, 197, 94, 0.4);
+  --action-green-text: #15803d;
+  --action-green-text-hover: #166534;
 }
 
 .dark {
@@ -173,6 +188,21 @@
   --color-neutral-800: #262626;
   --color-neutral-900: #171717;
   --color-neutral-950: #0a0a0a;
+
+  /* Action Button Colors - Dark Mode */
+  --action-blue-bg: rgba(37, 99, 235, 0.2);
+  --action-blue-bg-hover: rgba(37, 99, 235, 0.3);
+  --action-blue-border: rgba(59, 130, 246, 0.4);
+  --action-blue-border-hover: rgba(59, 130, 246, 0.6);
+  --action-blue-text: #93c5fd;
+  --action-blue-text-hover: #dbeafe;
+
+  --action-green-bg: rgba(34, 197, 94, 0.2);
+  --action-green-bg-hover: rgba(34, 197, 94, 0.3);
+  --action-green-border: rgba(34, 197, 94, 0.4);
+  --action-green-border-hover: rgba(34, 197, 94, 0.6);
+  --action-green-text: #86efac;
+  --action-green-text-hover: #dcfce7;
 }
 
 @theme inline {
@@ -201,6 +231,19 @@
   --color-brand-secondary: var(--brand-secondary);
   --color-brand-secondary-hover: var(--brand-secondary-hover);
   --color-brand-accent: var(--brand-accent);
+  /* Action Button Colors */
+  --color-action-blue-bg: var(--action-blue-bg);
+  --color-action-blue-bg-hover: var(--action-blue-bg-hover);
+  --color-action-blue-border: var(--action-blue-border);
+  --color-action-blue-border-hover: var(--action-blue-border-hover);
+  --color-action-blue-text: var(--action-blue-text);
+  --color-action-blue-text-hover: var(--action-blue-text-hover);
+  --color-action-green-bg: var(--action-green-bg);
+  --color-action-green-bg-hover: var(--action-green-bg-hover);
+  --color-action-green-border: var(--action-green-border);
+  --color-action-green-border-hover: var(--action-green-border-hover);
+  --color-action-green-text: var(--action-green-text);
+  --color-action-green-text-hover: var(--action-green-text-hover);
   --radius: var(--radius);
 }
 
@@ -225,6 +268,21 @@
     --border: #262626;
     --input: #262626;
     --ring: #d4d4d4;
+
+    /* Action Button Colors - Dark Mode */
+    --action-blue-bg: rgba(37, 99, 235, 0.2);
+    --action-blue-bg-hover: rgba(37, 99, 235, 0.3);
+    --action-blue-border: rgba(59, 130, 246, 0.4);
+    --action-blue-border-hover: rgba(59, 130, 246, 0.6);
+    --action-blue-text: #93c5fd;
+    --action-blue-text-hover: #dbeafe;
+
+    --action-green-bg: rgba(34, 197, 94, 0.2);
+    --action-green-bg-hover: rgba(34, 197, 94, 0.3);
+    --action-green-border: rgba(34, 197, 94, 0.4);
+    --action-green-border-hover: rgba(34, 197, 94, 0.6);
+    --action-green-text: #86efac;
+    --action-green-text-hover: #dcfce7;
   }
 }
 

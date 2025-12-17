@@ -821,7 +821,28 @@ export function PinoryDetailsView({
                                 variant="outline"
                                 onClick={handleGetDirections}
                                 disabled={isGettingDirections}
-                                className="flex-1 h-11 bg-blue-900/50 hover:bg-blue-800/60 border-blue-700/50 text-blue-300 font-semibold text-sm rounded-xl"
+                                className="flex-1 h-11 font-semibold text-sm rounded-xl"
+                                style={{
+                                    backgroundColor: "var(--action-blue-bg)",
+                                    borderColor: "var(--action-blue-border)",
+                                    color: "var(--action-blue-text)",
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--action-blue-bg-hover)";
+                                    e.currentTarget.style.borderColor =
+                                        "var(--action-blue-border-hover)";
+                                    e.currentTarget.style.color =
+                                        "var(--action-blue-text-hover)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--action-blue-bg)";
+                                    e.currentTarget.style.borderColor =
+                                        "var(--action-blue-border)";
+                                    e.currentTarget.style.color =
+                                        "var(--action-blue-text)";
+                                }}
                             >
                                 <Navigation
                                     className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
@@ -831,7 +852,28 @@ export function PinoryDetailsView({
                             <Button
                                 variant="outline"
                                 onClick={() => setShowShareDialog(true)}
-                                className="flex-1 h-11 bg-green-900/50 hover:bg-green-800/60 border-green-700/50 text-green-300 font-semibold text-sm rounded-xl"
+                                className="flex-1 h-11 font-semibold text-sm rounded-xl"
+                                style={{
+                                    backgroundColor: "var(--action-green-bg)",
+                                    borderColor: "var(--action-green-border)",
+                                    color: "var(--action-green-text)",
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--action-green-bg-hover)";
+                                    e.currentTarget.style.borderColor =
+                                        "var(--action-green-border-hover)";
+                                    e.currentTarget.style.color =
+                                        "var(--action-green-text-hover)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--action-green-bg)";
+                                    e.currentTarget.style.borderColor =
+                                        "var(--action-green-border)";
+                                    e.currentTarget.style.color =
+                                        "var(--action-green-text)";
+                                }}
                             >
                                 <Share2 className="h-4 w-4 mr-1.5" />
                                 Share
@@ -1119,7 +1161,28 @@ export function PinoryDetailsView({
                             variant="outline"
                             onClick={handleGetDirections}
                             disabled={isGettingDirections}
-                            className="flex-1 h-11 bg-blue-600/20 hover:bg-blue-600/30 border-blue-600/40 hover:border-blue-600/60 text-blue-300 hover:text-blue-200 font-semibold rounded-lg transition-all"
+                            className="flex-1 h-11 font-semibold rounded-lg transition-all"
+                            style={{
+                                backgroundColor: "var(--action-blue-bg)",
+                                borderColor: "var(--action-blue-border)",
+                                color: "var(--action-blue-text)",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    "var(--action-blue-bg-hover)";
+                                e.currentTarget.style.borderColor =
+                                    "var(--action-blue-border-hover)";
+                                e.currentTarget.style.color =
+                                    "var(--action-blue-text-hover)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    "var(--action-blue-bg)";
+                                e.currentTarget.style.borderColor =
+                                    "var(--action-blue-border)";
+                                e.currentTarget.style.color =
+                                    "var(--action-blue-text)";
+                            }}
                         >
                             <Navigation
                                 className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
@@ -1129,7 +1192,28 @@ export function PinoryDetailsView({
                         <Button
                             variant="outline"
                             onClick={() => setShowShareDialog(true)}
-                            className="flex-1 h-11 bg-green-600/20 hover:bg-green-600/30 border-green-600/40 hover:border-green-600/60 text-green-300 hover:text-green-200 font-semibold rounded-lg transition-all"
+                            className="flex-1 h-11 font-semibold rounded-lg transition-all"
+                            style={{
+                                backgroundColor: "var(--action-green-bg)",
+                                borderColor: "var(--action-green-border)",
+                                color: "var(--action-green-text)",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    "var(--action-green-bg-hover)";
+                                e.currentTarget.style.borderColor =
+                                    "var(--action-green-border-hover)";
+                                e.currentTarget.style.color =
+                                    "var(--action-green-text-hover)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    "var(--action-green-bg)";
+                                e.currentTarget.style.borderColor =
+                                    "var(--action-green-border)";
+                                e.currentTarget.style.color =
+                                    "var(--action-green-text)";
+                            }}
                         >
                             <Share2 className="h-4 w-4 mr-1.5" />
                             Share

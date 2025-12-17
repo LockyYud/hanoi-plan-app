@@ -229,7 +229,7 @@ function PanelContent({
             const date = pinory.createdAt
                 ? new Date(pinory.createdAt)
                 : new Date();
-            const monthYear = `${date.toLocaleString("vi-VN", { month: "long" })} ${date.getFullYear()}`;
+            const monthYear = `${date.toLocaleString("en-US", { month: "long" })} ${date.getFullYear()}`;
 
             if (!acc[monthYear]) {
                 acc[monthYear] = [];
@@ -243,7 +243,7 @@ function PanelContent({
     const formatDate = (date: Date | undefined) => {
         if (!date) return "";
         const d = new Date(date);
-        return d.toLocaleString("vi-VN", {
+        return d.toLocaleString("en-US", {
             weekday: "short",
             day: "numeric",
             month: "short",
@@ -424,10 +424,10 @@ function PanelContent({
                         <div className="text-center py-12">
                             <MapPin className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
                             <p className="text-base mb-1 text-foreground">
-                                Chưa có kỷ niệm nào
+                                No pinories yet
                             </p>
                             <p className="text-sm text-muted-foreground">
-                                Hãy bắt đầu ghi lại những khoảnh khắc đáng nhớ
+                                Start capturing your memorable moments
                             </p>
                         </div>
                     )}
