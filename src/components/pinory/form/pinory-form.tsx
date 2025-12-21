@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -79,10 +80,24 @@ export function PinoryForm({
     onSubmit,
 }: PinoryFormProps) {
     const { data: session } = useSession();
-    
+
     // Tutorial state - check if tour is active
     const { currentTour } = useTutorial();
-    const isTourActive = currentTour === 'first-pinory';
+    const isTourActive = currentTour === "first-pinory";
+
+    // Detect mobile screen
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768); // md breakpoint
+        };
+
+        checkMobile();
+        window.addEventListener("resize", checkMobile);
+
+        return () => window.removeEventListener("resize", checkMobile);
+    }, []);
 
     // Form state
     const [selectedCategory, setSelectedCategory] = useState<string>(
@@ -135,7 +150,7 @@ export function PinoryForm({
     useEffect(() => {
         if (isOpen && !existingPinory) {
             // Dispatch event for tutorial system
-            window.dispatchEvent(new CustomEvent('pinoryFormOpened'));
+            window.dispatchEvent(new CustomEvent("pinoryFormOpened"));
         }
     }, [isOpen, existingPinory]);
 
@@ -623,265 +638,179 @@ export function PinoryForm({
     const totalImages = existingImageUrls.length + images.length;
     const allImages = [...existingImageUrls, ...previewUrls];
 
-    return (
+    // Form content component to be reused in both Dialog and Drawer
+    const formContent = (
         <>
-            <Dialog 
-                open={isOpen} 
-                onOpenChange={handleClose}
-                modal={!isTourActive}
+            {/* Enhanced Header */}
+            <div
+                className={`bg-card border-b border-border flex-shrink-0 ${
+                    isMobile ? "px-5 pt-2 pb-4" : "px-7 py-6"
+                }`}
             >
-                <DialogContent 
-                    className="max-w-[720px] h-[80vh] overflow-hidden p-0 bg-[var(--background)] border-border rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] flex flex-col [&>button]:hidden"
-                    data-tour="pinory-form"
-                    onInteractOutside={(e) => {
-                        // Prevent closing dialog when tour is active
-                        if (isTourActive) {
-                            e.preventDefault();
-                        }
-                    }}
-                    onEscapeKeyDown={(e) => {
-                        // Prevent ESC key from closing dialog when tour is active
-                        if (isTourActive) {
-                            e.preventDefault();
-                        }
-                    }}
-                >
-                    {/* Enhanced Header */}
-                    <div className="bg-card border-b border-border px-7 py-6 flex-shrink-0">
-                        <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                                <DialogTitle asChild>
-                                    <div className="relative">
-                                        <Input
-                                            {...register("placeName")}
-                                            placeholder="Place name"
-                                            className="text-xl font-semibold text-[var(--foreground)] mb-2 h-auto py-2 px-3 pr-10 bg-transparent border-transparent hover:border-border focus:border-[var(--color-primary-500)] focus:bg-secondary rounded-lg transition-all"
-                                            data-tour="place-name"
-                                        />
-                                        {watch("placeName") && (
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() =>
-                                                    setValue("placeName", "")
-                                                }
-                                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent/50 rounded-full mb-1"
-                                                title="Clear"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                </DialogTitle>
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <span className="text-sm text-muted-foreground truncate">
-                                        {location.address ||
-                                            "Address not available"}
-                                    </span>
+                <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                        {isMobile ? (
+                            <DrawerTitle asChild>
+                                <div className="relative">
+                                    <Input
+                                        {...register("placeName")}
+                                        placeholder="Place name"
+                                        className="text-xl font-semibold text-[var(--foreground)] mb-2 h-auto py-2 px-3 pr-10 bg-transparent border-transparent hover:border-border focus:border-[var(--color-primary-500)] focus:bg-secondary rounded-lg transition-all"
+                                        data-tour="place-name"
+                                    />
+                                    {watch("placeName") && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                setValue("placeName", "")
+                                            }
+                                            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent/50 rounded-full mb-1"
+                                            title="Clear"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    )}
                                 </div>
-                            </div>
+                            </DrawerTitle>
+                        ) : (
+                            <DialogTitle asChild>
+                                <div className="relative">
+                                    <Input
+                                        {...register("placeName")}
+                                        placeholder="Place name"
+                                        className="text-xl font-semibold text-[var(--foreground)] mb-2 h-auto py-2 px-3 pr-10 bg-transparent border-transparent hover:border-border focus:border-[var(--color-primary-500)] focus:bg-secondary rounded-lg transition-all"
+                                        data-tour="place-name"
+                                    />
+                                    {watch("placeName") && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                setValue("placeName", "")
+                                            }
+                                            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent/50 rounded-full mb-1"
+                                            title="Clear"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </DialogTitle>
+                        )}
+                        <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-sm text-muted-foreground truncate">
+                                {location.address || "Address not available"}
+                            </span>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div className="flex flex-col flex-1 overflow-hidden">
-                        {/* Main Content - Scrollable */}
-                        <div className="flex-1 overflow-y-auto px-7 py-6 space-y-4 custom-scrollbar">
-                            {/* TEXT INPUT - Facebook style */}
-                            <div className="space-y-3">
-                                <div className="relative">
-                                    <Textarea
-                                        {...contentRegisterRest}
-                                        ref={(e) => {
-                                            contentRegisterRef(e);
-                                            textareaRef.current = e;
-                                            // Auto-resize textarea
-                                            if (e) {
-                                                e.style.height = "auto";
-                                                e.style.height =
-                                                    e.scrollHeight + "px";
-                                            }
-                                        }}
-                                        placeholder="What do you think about this place?"
-                                        onInput={(e) => {
-                                            const target =
-                                                e.target as HTMLTextAreaElement;
-                                            target.style.height = "auto";
-                                            target.style.height =
-                                                target.scrollHeight + "px";
-                                        }}
-                                        className="resize-none bg-transparent border-0 border-none text-[var(--foreground)] placeholder-muted-foreground text-lg leading-relaxed transition-colors focus:outline-none focus:ring-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[60px] pr-16 w-full overflow-hidden"
-                                        data-tour="content"
-                                    />
-                                    <div className="absolute bottom-2 right-2 text-xs text-muted-foreground pointer-events-none">
-                                        {contentValue.length}/280
-                                    </div>
-                                </div>
-                                {errors.content && (
-                                    <p className="text-sm text-red-400 flex items-center gap-1">
-                                        <span>⚠️</span>
-                                        {errors.content.message}
-                                    </p>
-                                )}
+            <div className="flex flex-col flex-1 overflow-hidden">
+                {/* Main Content - Scrollable */}
+                <div
+                    className={`flex-1 overflow-y-auto space-y-4 custom-scrollbar ${
+                        isMobile ? "px-5 py-4" : "px-7 py-6"
+                    }`}
+                >
+                    {/* TEXT INPUT - Facebook style */}
+                    <div className="space-y-3">
+                        <div className="relative">
+                            <Textarea
+                                {...contentRegisterRest}
+                                ref={(e) => {
+                                    contentRegisterRef(e);
+                                    textareaRef.current = e;
+                                    // Auto-resize textarea
+                                    if (e) {
+                                        e.style.height = "auto";
+                                        e.style.height = e.scrollHeight + "px";
+                                    }
+                                }}
+                                placeholder="What do you think about this place?"
+                                onInput={(e) => {
+                                    const target =
+                                        e.target as HTMLTextAreaElement;
+                                    target.style.height = "auto";
+                                    target.style.height =
+                                        target.scrollHeight + "px";
+                                }}
+                                className="resize-none bg-transparent border-0 border-none text-[var(--foreground)] placeholder-muted-foreground text-lg leading-relaxed transition-colors focus:outline-none focus:ring-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[60px] pr-16 w-full overflow-hidden"
+                                data-tour="content"
+                            />
+                            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground pointer-events-none">
+                                {contentValue.length}/280
                             </div>
+                        </div>
+                        {errors.content && (
+                            <p className="text-sm text-red-400 flex items-center gap-1">
+                                <span>⚠️</span>
+                                {errors.content.message}
+                            </p>
+                        )}
+                    </div>
 
-                            {/* IMAGES - Facebook style */}
+                    {/* IMAGES - Facebook style */}
+                    <div className="space-y-3">
+                        <input
+                            type="file"
+                            id="images"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                        />
+
+                        {/* Image Grid - Facebook style */}
+                        {totalImages > 0 && (
                             <div className="space-y-3">
-                                <input
-                                    type="file"
-                                    id="images"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={handleImageUpload}
-                                    className="hidden"
-                                />
-
-                                {/* Image Grid - Facebook style */}
-                                {totalImages > 0 && (
-                                    <div className="space-y-3">
+                                <div
+                                    className={`grid gap-2 rounded-lg overflow-hidden ${
+                                        totalImages === 1
+                                            ? "grid-cols-1"
+                                            : totalImages === 2
+                                              ? "grid-cols-2"
+                                              : "grid-cols-2 grid-rows-2"
+                                    }`}
+                                >
+                                    {/* Existing images */}
+                                    {existingImageUrls.map((url, index) => (
                                         <div
-                                            className={`grid gap-2 rounded-lg overflow-hidden ${
+                                            key={`existing-image-${existingPinory?.id || "new"}-${index}`}
+                                            className={`group relative bg-card overflow-hidden ${
                                                 totalImages === 1
-                                                    ? "grid-cols-1"
-                                                    : totalImages === 2
-                                                      ? "grid-cols-2"
-                                                      : "grid-cols-2 grid-rows-2"
+                                                    ? "aspect-[4/3]"
+                                                    : totalImages === 3 &&
+                                                        index === 0
+                                                      ? "row-span-2 aspect-square"
+                                                      : "aspect-square"
                                             }`}
                                         >
-                                            {/* Existing images */}
-                                            {existingImageUrls.map(
-                                                (url, index) => (
-                                                    <div
-                                                        key={`existing-image-${existingPinory?.id || "new"}-${index}`}
-                                                        className={`group relative bg-card overflow-hidden ${
-                                                            totalImages === 1
-                                                                ? "aspect-[4/3]"
-                                                                : totalImages ===
-                                                                        3 &&
-                                                                    index === 0
-                                                                  ? "row-span-2 aspect-square"
-                                                                  : "aspect-square"
-                                                        }`}
-                                                    >
-                                                        {isValidImageUrl(
-                                                            url
-                                                        ) ? (
-                                                            <>
-                                                                <button
-                                                                    type="button"
-                                                                    className="w-full h-full cursor-pointer bg-muted"
-                                                                    onClick={() =>
-                                                                        openLightbox(
-                                                                            allImages,
-                                                                            index
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <ImageDisplay
-                                                                        src={
-                                                                            url
-                                                                        }
-                                                                        alt={`Photo ${index + 1}`}
-                                                                        className="w-full h-full object-contain"
-                                                                    />
-                                                                </button>
-                                                                {/* Cover badge */}
-                                                                {coverImageIndex ===
-                                                                    index && (
-                                                                    <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md font-medium flex items-center gap-1">
-                                                                        <Star className="h-3 w-3" />
-                                                                        Cover
-                                                                    </div>
-                                                                )}
-                                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all">
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="destructive"
-                                                                        size="sm"
-                                                                        className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 bg-red-500/90 hover:bg-red-500"
-                                                                        onClick={() =>
-                                                                            removeExistingImage(
-                                                                                index
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <X className="h-3 w-3" />
-                                                                    </Button>
-                                                                    {coverImageIndex !==
-                                                                        index && (
-                                                                        <Button
-                                                                            type="button"
-                                                                            variant="secondary"
-                                                                            size="sm"
-                                                                            className="absolute bottom-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 bg-white/20 hover:bg-white/30 text-white border-0"
-                                                                            onClick={() =>
-                                                                                setCoverImage(
-                                                                                    index,
-                                                                                    true
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <Star className="h-3 w-3" />
-                                                                        </Button>
-                                                                    )}
-                                                                </div>
-                                                            </>
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                                                <div className="text-center">
-                                                                    <div className="text-xl mb-1">
-                                                                        📷
-                                                                    </div>
-                                                                    <div className="text-xs">
-                                                                        Image
-                                                                        error
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )
-                                            )}
-
-                                            {/* New images */}
-                                            {previewUrls.map((url, index) => (
-                                                <div
-                                                    key={`new-image-${url.slice(-10)}-${index}`}
-                                                    className={`group relative bg-card overflow-hidden ${
-                                                        totalImages === 1
-                                                            ? "aspect-[4/3]"
-                                                            : totalImages ===
-                                                                    3 &&
-                                                                existingImageUrls.length +
-                                                                    index ===
-                                                                    0
-                                                              ? "row-span-2 aspect-square"
-                                                              : "aspect-square"
-                                                    }`}
-                                                >
+                                            {isValidImageUrl(url) ? (
+                                                <>
                                                     <button
                                                         type="button"
                                                         className="w-full h-full cursor-pointer bg-muted"
                                                         onClick={() =>
                                                             openLightbox(
                                                                 allImages,
-                                                                existingImageUrls.length +
-                                                                    index
+                                                                index
                                                             )
                                                         }
                                                     >
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img
+                                                        <ImageDisplay
                                                             src={url}
-                                                            alt={`New photo ${index + 1}`}
+                                                            alt={`Photo ${index + 1}`}
                                                             className="w-full h-full object-contain"
                                                         />
                                                     </button>
                                                     {/* Cover badge */}
                                                     {coverImageIndex ===
-                                                        existingImageUrls.length +
-                                                            index && (
+                                                        index && (
                                                         <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md font-medium flex items-center gap-1">
                                                             <Star className="h-3 w-3" />
                                                             Cover
@@ -894,7 +823,7 @@ export function PinoryForm({
                                                             size="sm"
                                                             className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 bg-red-500/90 hover:bg-red-500"
                                                             onClick={() =>
-                                                                removeNewImage(
+                                                                removeExistingImage(
                                                                     index
                                                                 )
                                                             }
@@ -902,8 +831,7 @@ export function PinoryForm({
                                                             <X className="h-3 w-3" />
                                                         </Button>
                                                         {coverImageIndex !==
-                                                            existingImageUrls.length +
-                                                                index && (
+                                                            index && (
                                                             <Button
                                                                 type="button"
                                                                 variant="secondary"
@@ -912,7 +840,7 @@ export function PinoryForm({
                                                                 onClick={() =>
                                                                     setCoverImage(
                                                                         index,
-                                                                        false
+                                                                        true
                                                                     )
                                                                 }
                                                             >
@@ -920,382 +848,478 @@ export function PinoryForm({
                                                             </Button>
                                                         )}
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Add more button - Facebook style */}
-                                        <div className="flex items-center justify-center border-t border-border pt-3 mt-3">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                    document
-                                                        .getElementById(
-                                                            "images"
-                                                        )
-                                                        ?.click()
-                                                }
-                                                className="text-muted-foreground hover:text-[var(--foreground)] hover:bg-secondary h-10"
-                                            >
-                                                <Plus className="h-4 w-4 mr-2" />
-                                                Add photos
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Add to post - Facebook style actions bar */}
-                    <div className="flex items-center justify-between px-7 py-3 border-t border-border bg-[var(--background)] flex-shrink-0">
-                        <span className="text-sm font-medium text-[var(--foreground)]">
-                            Add to your post
-                        </span>
-                        <div className="flex items-center gap-1">
-                            {/* Image Button */}
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                    document.getElementById("images")?.click()
-                                }
-                                className="h-9 w-9 rounded-full hover:bg-secondary text-green-500"
-                                title="Add photos"
-                                data-tour="photo-upload"
-                            >
-                                <ImageIcon className="h-5 w-5" />
-                            </Button>
-
-                            {/* Category Button with Dropdown */}
-                            <div className="relative">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                        setShowCategoryMenu(!showCategoryMenu);
-                                        setShowVisibilityMenu(false);
-                                        setShowTimeMenu(false);
-                                    }}
-                                    className={`h-9 w-9 rounded-full hover:bg-secondary ${selectedCategory ? "text-purple-500" : "text-muted-foreground"}`}
-                                    title="Select category"
-                                    data-tour="category"
-                                >
-                                    <Tag className="h-5 w-5" />
-                                </Button>
-
-                                {/* Category Dropdown Menu */}
-                                {showCategoryMenu && (
-                                    <div className="absolute bottom-full right-0 mb-2 w-72 bg-card border border-border rounded-lg shadow-xl z-50 p-3">
-                                        <div className="space-y-3">
-                                            <div className="text-sm font-medium text-[var(--foreground)]">
-                                                Category
-                                            </div>
-
-                                            {isLoadingCategories ? (
-                                                <div className="flex items-center py-2">
-                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary-500)]"></div>
-                                                    <span className="ml-2 text-sm text-muted-foreground">
-                                                        Loading...
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    {/* Category Select */}
-                                                    <select
-                                                        value={selectedCategory}
-                                                        onChange={(e) => {
-                                                            selectCategory(
-                                                                e.target.value
-                                                            );
-                                                        }}
-                                                        className="w-full h-10 px-3 bg-secondary border border-border text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-colors appearance-none cursor-pointer text-sm"
-                                                        style={{
-                                                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                                            backgroundPosition:
-                                                                "right 0.5rem center",
-                                                            backgroundRepeat:
-                                                                "no-repeat",
-                                                            backgroundSize:
-                                                                "1rem",
-                                                        }}
-                                                    >
-                                                        <option value="">
-                                                            None
-                                                        </option>
-                                                        {categories.map(
-                                                            (category) => (
-                                                                <option
-                                                                    key={
-                                                                        category.id
-                                                                    }
-                                                                    value={
-                                                                        category.id
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        category.icon
-                                                                    }{" "}
-                                                                    {
-                                                                        category.name
-                                                                    }
-                                                                </option>
-                                                            )
-                                                        )}
-                                                    </select>
-
-                                                    {/* Create new category */}
-                                                    <div className="flex gap-2 pt-2 border-t border-border">
-                                                        <Input
-                                                            value={
-                                                                customCategoryName
-                                                            }
-                                                            onChange={(e) =>
-                                                                setCustomCategoryName(
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                            placeholder="Create new..."
-                                                            className="flex-1 h-9 text-sm bg-secondary border-border text-[var(--foreground)] placeholder-muted-foreground rounded-lg"
-                                                            onKeyDown={(e) => {
-                                                                if (
-                                                                    e.key ===
-                                                                    "Enter"
-                                                                ) {
-                                                                    e.preventDefault();
-                                                                    addCustomCategory();
-                                                                }
-                                                            }}
-                                                        />
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={
-                                                                addCustomCategory
-                                                            }
-                                                            disabled={
-                                                                !customCategoryName.trim()
-                                                            }
-                                                            className="h-9 px-2 border-border hover:bg-accent"
-                                                        >
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
                                                 </>
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                                    <div className="text-center">
+                                                        <div className="text-xl mb-1">
+                                                            📷
+                                                        </div>
+                                                        <div className="text-xs">
+                                                            Image error
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
-                                )}
-                            </div>
+                                    ))}
 
-                            {/* Time Button with Dropdown */}
-                            <div className="relative">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                        setShowTimeMenu(!showTimeMenu);
-                                        setShowVisibilityMenu(false);
-                                        setShowCategoryMenu(false);
-                                    }}
-                                    className="h-9 w-9 rounded-full hover:bg-secondary text-orange-500"
-                                    title="Visit time"
-                                    data-tour="visit-time"
-                                >
-                                    <Clock className="h-5 w-5" />
-                                </Button>
-
-                                {/* Time Dropdown Menu */}
-                                {showTimeMenu && (
-                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-card border border-border rounded-lg shadow-xl z-50 p-3">
-                                        <div className="space-y-2">
-                                            <div className="text-sm font-medium text-[var(--foreground)]">
-                                                Visit time
+                                    {/* New images */}
+                                    {previewUrls.map((url, index) => (
+                                        <div
+                                            key={`new-image-${url.slice(-10)}-${index}`}
+                                            className={`group relative bg-card overflow-hidden ${
+                                                totalImages === 1
+                                                    ? "aspect-[4/3]"
+                                                    : totalImages === 3 &&
+                                                        existingImageUrls.length +
+                                                            index ===
+                                                            0
+                                                      ? "row-span-2 aspect-square"
+                                                      : "aspect-square"
+                                            }`}
+                                        >
+                                            <button
+                                                type="button"
+                                                className="w-full h-full cursor-pointer bg-muted"
+                                                onClick={() =>
+                                                    openLightbox(
+                                                        allImages,
+                                                        existingImageUrls.length +
+                                                            index
+                                                    )
+                                                }
+                                            >
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                    src={url}
+                                                    alt={`New photo ${index + 1}`}
+                                                    className="w-full h-full object-contain"
+                                                />
+                                            </button>
+                                            {/* Cover badge */}
+                                            {coverImageIndex ===
+                                                existingImageUrls.length +
+                                                    index && (
+                                                <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md font-medium flex items-center gap-1">
+                                                    <Star className="h-3 w-3" />
+                                                    Cover
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all">
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 bg-red-500/90 hover:bg-red-500"
+                                                    onClick={() =>
+                                                        removeNewImage(index)
+                                                    }
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </Button>
+                                                {coverImageIndex !==
+                                                    existingImageUrls.length +
+                                                        index && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        className="absolute bottom-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 bg-white/20 hover:bg-white/30 text-white border-0"
+                                                        onClick={() =>
+                                                            setCoverImage(
+                                                                index,
+                                                                false
+                                                            )
+                                                        }
+                                                    >
+                                                        <Star className="h-3 w-3" />
+                                                    </Button>
+                                                )}
                                             </div>
-                                            <Input
-                                                type="datetime-local"
-                                                {...register("visitTime")}
-                                                className="h-10 bg-secondary border-border text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 text-sm"
-                                            />
                                         </div>
-                                    </div>
-                                )}
+                                    ))}
+                                </div>
+
+                                {/* Add more button - Facebook style */}
+                                <div className="flex items-center justify-center border-t border-border pt-3 mt-3">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            document
+                                                .getElementById("images")
+                                                ?.click()
+                                        }
+                                        className="text-muted-foreground hover:text-[var(--foreground)] hover:bg-secondary h-10"
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add photos
+                                    </Button>
+                                </div>
                             </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
-                            {/* Visibility Button with Dropdown */}
-                            <div className="relative visibility-menu-container">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                        setShowVisibilityMenu(
-                                            !showVisibilityMenu
-                                        );
-                                        setShowCategoryMenu(false);
-                                        setShowTimeMenu(false);
-                                    }}
-                                    className="h-9 w-9 rounded-full hover:bg-secondary text-blue-500"
-                                    title="Who can see?"
-                                    data-tour="visibility"
-                                >
-                                    {watch("visibility") === "private" && (
-                                        <Lock className="h-5 w-5" />
-                                    )}
-                                    {watch("visibility") === "friends" && (
-                                        <Users className="h-5 w-5" />
-                                    )}
-                                    {watch("visibility") === "public" && (
-                                        <Globe className="h-5 w-5" />
-                                    )}
-                                </Button>
+            {/* Add to post - Facebook style actions bar */}
+            <div
+                className={`flex items-center justify-between py-3 border-t border-border bg-[var(--background)] flex-shrink-0 ${
+                    isMobile ? "px-5" : "px-7"
+                }`}
+            >
+                <span className="text-sm font-medium text-[var(--foreground)]">
+                    Add to your post
+                </span>
+                <div className="flex items-center gap-1">
+                    {/* Image Button */}
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                            document.getElementById("images")?.click()
+                        }
+                        className="h-9 w-9 rounded-full hover:bg-secondary text-green-500"
+                        title="Add photos"
+                        data-tour="photo-upload"
+                    >
+                        <ImageIcon className="h-5 w-5" />
+                    </Button>
 
-                                {/* Visibility Dropdown Menu */}
-                                {showVisibilityMenu && (
-                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-card border border-border rounded-lg shadow-xl z-50 p-2">
-                                        <div className="space-y-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setValue(
-                                                        "visibility",
-                                                        "private"
-                                                    );
-                                                    setShowVisibilityMenu(
-                                                        false
-                                                    );
-                                                }}
-                                                className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
-                                                    watch("visibility") ===
-                                                    "private"
-                                                        ? "bg-blue-500/20 border border-blue-500"
-                                                        : "hover:bg-secondary"
-                                                }`}
-                                            >
-                                                <Lock className="h-5 w-5 flex-shrink-0" />
-                                                <div className="flex-1">
-                                                    <div className="font-medium text-sm">
-                                                        Private
-                                                    </div>
-                                                    <div className="text-xs text-muted-foreground">
-                                                        Only you can see
-                                                    </div>
-                                                </div>
-                                            </button>
+                    {/* Category Button with Dropdown */}
+                    <div className="relative">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                                setShowCategoryMenu(!showCategoryMenu);
+                                setShowVisibilityMenu(false);
+                                setShowTimeMenu(false);
+                            }}
+                            className={`h-9 w-9 rounded-full hover:bg-secondary ${selectedCategory ? "text-purple-500" : "text-muted-foreground"}`}
+                            title="Select category"
+                            data-tour="category"
+                        >
+                            <Tag className="h-5 w-5" />
+                        </Button>
 
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setValue(
-                                                        "visibility",
-                                                        "friends"
-                                                    );
-                                                    setShowVisibilityMenu(
-                                                        false
-                                                    );
-                                                }}
-                                                className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
-                                                    watch("visibility") ===
-                                                    "friends"
-                                                        ? "bg-blue-500/20 border border-blue-500"
-                                                        : "hover:bg-secondary"
-                                                }`}
-                                            >
-                                                <Users className="h-5 w-5 flex-shrink-0" />
-                                                <div className="flex-1">
-                                                    <div className="font-medium text-sm">
-                                                        Friends
-                                                    </div>
-                                                    <div className="text-xs text-muted-foreground">
-                                                        Your friends can see
-                                                    </div>
-                                                </div>
-                                            </button>
+                        {/* Category Dropdown Menu */}
+                        {showCategoryMenu && (
+                            <div className="absolute bottom-full right-0 mb-2 w-72 bg-card border border-border rounded-lg shadow-xl z-50 p-3">
+                                <div className="space-y-3">
+                                    <div className="text-sm font-medium text-[var(--foreground)]">
+                                        Category
+                                    </div>
 
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setValue(
-                                                        "visibility",
-                                                        "public"
-                                                    );
-                                                    setShowVisibilityMenu(
-                                                        false
-                                                    );
-                                                }}
-                                                className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
-                                                    watch("visibility") ===
-                                                    "public"
-                                                        ? "bg-blue-500/20 border border-blue-500"
-                                                        : "hover:bg-secondary"
-                                                }`}
-                                            >
-                                                <Globe className="h-5 w-5 flex-shrink-0" />
-                                                <div className="flex-1">
-                                                    <div className="font-medium text-sm">
-                                                        Public
-                                                    </div>
-                                                    <div className="text-xs text-muted-foreground">
-                                                        Everyone can see
-                                                    </div>
-                                                </div>
-                                            </button>
+                                    {isLoadingCategories ? (
+                                        <div className="flex items-center py-2">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary-500)]"></div>
+                                            <span className="ml-2 text-sm text-muted-foreground">
+                                                Loading...
+                                            </span>
                                         </div>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <>
+                                            {/* Category Select */}
+                                            <select
+                                                value={selectedCategory}
+                                                onChange={(e) => {
+                                                    selectCategory(
+                                                        e.target.value
+                                                    );
+                                                }}
+                                                className="w-full h-10 px-3 bg-secondary border border-border text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-colors appearance-none cursor-pointer text-sm"
+                                                style={{
+                                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                                    backgroundPosition:
+                                                        "right 0.5rem center",
+                                                    backgroundRepeat:
+                                                        "no-repeat",
+                                                    backgroundSize: "1rem",
+                                                }}
+                                            >
+                                                <option value="">None</option>
+                                                {categories.map((category) => (
+                                                    <option
+                                                        key={category.id}
+                                                        value={category.id}
+                                                    >
+                                                        {category.icon}{" "}
+                                                        {category.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+
+                                            {/* Create new category */}
+                                            <div className="flex gap-2 pt-2 border-t border-border">
+                                                <Input
+                                                    value={customCategoryName}
+                                                    onChange={(e) =>
+                                                        setCustomCategoryName(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Create new..."
+                                                    className="flex-1 h-9 text-sm bg-secondary border-border text-[var(--foreground)] placeholder-muted-foreground rounded-lg"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") {
+                                                            e.preventDefault();
+                                                            addCustomCategory();
+                                                        }
+                                                    }}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={addCustomCategory}
+                                                    disabled={
+                                                        !customCategoryName.trim()
+                                                    }
+                                                    className="h-9 px-2 border-border hover:bg-accent"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
-                    {/* FIXED FOOTER */}
-                    <form
-                        onSubmit={handleSubmit(onFormSubmit)}
-                        className="border-t border-border/50 bg-[var(--background)] px-7 py-4 flex-shrink-0"
+                    {/* Time Button with Dropdown */}
+                    <div className="relative">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                                setShowTimeMenu(!showTimeMenu);
+                                setShowVisibilityMenu(false);
+                                setShowCategoryMenu(false);
+                            }}
+                            className="h-9 w-9 rounded-full hover:bg-secondary text-orange-500"
+                            title="Visit time"
+                            data-tour="visit-time"
+                        >
+                            <Clock className="h-5 w-5" />
+                        </Button>
+
+                        {/* Time Dropdown Menu */}
+                        {showTimeMenu && (
+                            <div className="absolute bottom-full right-0 mb-2 w-64 bg-card border border-border rounded-lg shadow-xl z-50 p-3">
+                                <div className="space-y-2">
+                                    <div className="text-sm font-medium text-[var(--foreground)]">
+                                        Visit time
+                                    </div>
+                                    <Input
+                                        type="datetime-local"
+                                        {...register("visitTime")}
+                                        className="h-10 bg-secondary border-border text-[var(--foreground)] rounded-lg focus:ring-2 focus:ring-blue-500/20 text-sm"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Visibility Button with Dropdown */}
+                    <div className="relative visibility-menu-container">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                                setShowVisibilityMenu(!showVisibilityMenu);
+                                setShowCategoryMenu(false);
+                                setShowTimeMenu(false);
+                            }}
+                            className="h-9 w-9 rounded-full hover:bg-secondary text-blue-500"
+                            title="Who can see?"
+                            data-tour="visibility"
+                        >
+                            {watch("visibility") === "private" && (
+                                <Lock className="h-5 w-5" />
+                            )}
+                            {watch("visibility") === "friends" && (
+                                <Users className="h-5 w-5" />
+                            )}
+                            {watch("visibility") === "public" && (
+                                <Globe className="h-5 w-5" />
+                            )}
+                        </Button>
+
+                        {/* Visibility Dropdown Menu */}
+                        {showVisibilityMenu && (
+                            <div className="absolute bottom-full right-0 mb-2 w-64 bg-card border border-border rounded-lg shadow-xl z-50 p-2">
+                                <div className="space-y-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setValue("visibility", "private");
+                                            setShowVisibilityMenu(false);
+                                        }}
+                                        className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
+                                            watch("visibility") === "private"
+                                                ? "bg-blue-500/20 border border-blue-500"
+                                                : "hover:bg-secondary"
+                                        }`}
+                                    >
+                                        <Lock className="h-5 w-5 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <div className="font-medium text-sm">
+                                                Private
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Only you can see
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setValue("visibility", "friends");
+                                            setShowVisibilityMenu(false);
+                                        }}
+                                        className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
+                                            watch("visibility") === "friends"
+                                                ? "bg-blue-500/20 border border-blue-500"
+                                                : "hover:bg-secondary"
+                                        }`}
+                                    >
+                                        <Users className="h-5 w-5 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <div className="font-medium text-sm">
+                                                Friends
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Your friends can see
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setValue("visibility", "public");
+                                            setShowVisibilityMenu(false);
+                                        }}
+                                        className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
+                                            watch("visibility") === "public"
+                                                ? "bg-blue-500/20 border border-blue-500"
+                                                : "hover:bg-secondary"
+                                        }`}
+                                    >
+                                        <Globe className="h-5 w-5 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <div className="font-medium text-sm">
+                                                Public
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Everyone can see
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* FIXED FOOTER */}
+            <form
+                onSubmit={handleSubmit(onFormSubmit)}
+                className={`border-t border-border/50 bg-[var(--background)] py-4 flex-shrink-0 ${
+                    isMobile ? "px-5" : "px-7"
+                }`}
+            >
+                <div className="flex justify-end gap-2.5 sm:gap-3">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleClose}
+                        className="min-h-[44px] px-6 text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent/50 rounded-lg transition-all"
                     >
-                        <div className="flex justify-end gap-2.5 sm:gap-3">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={handleClose}
-                                className="min-h-[44px] px-6 text-muted-foreground hover:text-[var(--foreground)] hover:bg-accent/50 rounded-lg transition-all"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting || isUploadingImages}
-                                className="min-h-[44px] px-8 bg-blue-600 hover:bg-blue-700 text-white border-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
-                                data-tour="save-button"
-                            >
-                                {isUploadingImages ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        {uploadProgress || "Processing..."}
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="h-4 w-4 mr-2" />
-                                        {isSubmitting && "Saving..."}
-                                        {!isSubmitting &&
-                                            existingPinory &&
-                                            "Update Pinory"}
-                                        {!isSubmitting &&
-                                            !existingPinory &&
-                                            "Save Pinory"}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting || isUploadingImages}
+                        className="min-h-[44px] px-8 bg-blue-600 hover:bg-blue-700 text-white border-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+                        data-tour="save-button"
+                    >
+                        {isUploadingImages ? (
+                            <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                {uploadProgress || "Processing..."}
+                            </>
+                        ) : (
+                            <>
+                                <Save className="h-4 w-4 mr-2" />
+                                {isSubmitting && "Saving..."}
+                                {!isSubmitting &&
+                                    existingPinory &&
+                                    "Update Pinory"}
+                                {!isSubmitting &&
+                                    !existingPinory &&
+                                    "Save Pinory"}
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </form>
+        </>
+    );
+
+    return (
+        <>
+            {isMobile ? (
+                <Drawer open={isOpen} onOpenChange={handleClose}>
+                    <DrawerContent
+                        className="overflow-hidden p-0 bg-[var(--background)] border-t-2 flex flex-col"
+                        style={{
+                            height: "85vh",
+                            maxHeight: "90vh",
+                            borderColor: "var(--border)",
+                            boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.15)",
+                        }}
+                        data-tour="pinory-form"
+                    >
+                        {formContent}
+                    </DrawerContent>
+                </Drawer>
+            ) : (
+                <Dialog
+                    open={isOpen}
+                    onOpenChange={handleClose}
+                    modal={!isTourActive}
+                >
+                    <DialogContent
+                        className="max-w-[720px] h-[80vh] overflow-hidden p-0 bg-[var(--background)] border-border rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] flex flex-col [&>button]:hidden"
+                        data-tour="pinory-form"
+                        onInteractOutside={(e) => {
+                            // Prevent closing dialog when tour is active
+                            if (isTourActive) {
+                                e.preventDefault();
+                            }
+                        }}
+                        onEscapeKeyDown={(e) => {
+                            // Prevent ESC key from closing dialog when tour is active
+                            if (isTourActive) {
+                                e.preventDefault();
+                            }
+                        }}
+                    >
+                        {formContent}
+                    </DialogContent>
+                </Dialog>
+            )}
 
             {/* Image Lightbox */}
             <ImageLightbox
