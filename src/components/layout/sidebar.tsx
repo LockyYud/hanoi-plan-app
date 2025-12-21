@@ -441,6 +441,7 @@ export function Sidebar() {
                                         ? "translateY(-1px)"
                                         : "translateY(0)",
                                 }}
+                                data-tour={`${tab.id}-tab`}
                             >
                                 {isActive && (
                                     <div className="absolute inset-0 bg-neutral-800/60" />

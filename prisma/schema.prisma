@@ -33,6 +33,7 @@ model User {
   sentRecommendations     Recommendation[]             @relation("SentRecommendations")
   receivedRecommendations Recommendation[]             @relation("ReceivedRecommendations")
   sessions                Session[]
+  onboarding              UserOnboarding?
 
   @@map("users")
 }
@@ -476,4 +477,35 @@ enum ItineraryStatus {
 enum MediaType {
   image
   video
+}
+
+// Onboarding model to track user onboarding progress
+model UserOnboarding {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  
+  // Tour status
+  welcomeSeen     Boolean @default(false) @map("welcome_seen")
+  tourStarted     Boolean @default(false) @map("tour_started")
+  tourCompleted   Boolean @default(false) @map("tour_completed")
+  tourSkipped     Boolean @default(false) @map("tour_skipped")
+  
+  // Feature discovery
+  fabTooltipSeen          Boolean @default(false) @map("fab_tooltip_seen")
+  pinoriesButtonSeen      Boolean @default(false) @map("pinories_button_seen")
+  friendsButtonSeen       Boolean @default(false) @map("friends_button_seen")
+  
+  // Milestones
+  firstPinoryCreated  Boolean @default(false) @map("first_pinory_created")
+  firstPhotoAdded     Boolean @default(false) @map("first_photo_added")
+  viewedPinoriesList  Boolean @default(false) @map("viewed_pinories_list")
+  profileCompleted    Boolean @default(false) @map("profile_completed")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@map("user_onboarding")
 }

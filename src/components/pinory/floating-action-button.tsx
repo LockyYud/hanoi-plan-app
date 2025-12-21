@@ -151,6 +151,7 @@ export function FloatingActionButton({
             <div
                 ref={containerRef}
                 className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-2 sm:gap-3"
+                data-tour="fab"
             >
                 {/* Speed Dial Options */}
                 <div

@@ -703,6 +703,7 @@ export function PinoriesLayerControl() {
                                     backgroundColor: "var(--card)",
                                     color: "var(--foreground)",
                                 }}
+                                data-tour="sidebar-toggle"
                             >
                                 <MapPin
                                     className="w-5 h-5 mr-2"

@@ -2,6 +2,7 @@
 
 import { MapContainer } from "@/components/map/core/map-container";
 import { LandingPage } from "@/components/landing/landing-page";
+import { TutorialOrchestrator } from "@/components/tutorial";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
@@ -33,6 +34,7 @@ export default function Home() {
     return (
         <div className="h-svh w-full overflow-hidden" suppressHydrationWarning>
             <MapContainer className="h-full w-full" />
+            <TutorialOrchestrator />
         </div>
     );
 }

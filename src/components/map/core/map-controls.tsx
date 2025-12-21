@@ -108,6 +108,7 @@ export function MapControls({ mapRef }: MapControlsProps) {
                     disabled={isLocating}
                     className="h-10 w-10 p-0 rounded-xl shadow-lg bg-background/95 hover:bg-accent backdrop-blur-sm border border-border"
                     title="My location"
+                    data-tour="user-location"
                 >
                     <Navigation
                         className={cn(

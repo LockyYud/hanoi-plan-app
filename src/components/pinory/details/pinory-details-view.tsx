@@ -948,304 +948,332 @@ export function PinoryDetailsView({
 
     // DESKTOP: Original Dialog
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0 bg-background border border-border shadow-2xl flex flex-col rounded-2xl">
-                {/* Accessible title for screen readers */}
-                <DialogTitle className="sr-only">
-                    Pinory details:{" "}
-                    {displayPinory.placeName ||
-                        displayPinory.content?.slice(0, 50) ||
-                        "Location pinory"}
-                </DialogTitle>
+        <>
+            <Dialog
+                open={isOpen}
+                onOpenChange={onClose}
+                modal={!showLightbox && !showShareDialog}
+            >
+                <DialogContent
+                    className="max-w-3xl max-h-[90vh] overflow-hidden p-0 bg-background border border-border shadow-2xl flex flex-col rounded-2xl"
+                    onInteractOutside={(e) => {
+                        // Prevent closing when lightbox or share dialog is open
+                        if (showLightbox || showShareDialog) {
+                            e.preventDefault();
+                        }
+                    }}
+                    onEscapeKeyDown={(e) => {
+                        // Prevent ESC from closing details dialog when lightbox or share dialog is open
+                        if (showLightbox || showShareDialog) {
+                            e.preventDefault();
+                        }
+                    }}
+                >
+                    {/* Accessible title for screen readers */}
+                    <DialogTitle className="sr-only">
+                        Pinory details:{" "}
+                        {displayPinory.placeName ||
+                            displayPinory.content?.slice(0, 50) ||
+                            "Location pinory"}
+                    </DialogTitle>
 
-                {/* Modern Header */}
-                <div className="relative bg-card/80 border-b border-border/50 px-6 py-5 flex-shrink-0">
-                    <div className="flex items-center justify-between">
-                        {/* Title with emoji */}
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-lg">
-                                <span className="text-xl">
-                                    {displayPinory.mood || "📍"}
-                                </span>
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-bold text-foreground">
-                                    {displayPinory.placeName ||
-                                        "Location pinory"}
-                                </h2>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                                    <MapPin className="h-3 w-3 flex-shrink-0" />
-                                    <span className="line-clamp-1">
-                                        {pinory.address}
+                    {/* Modern Header */}
+                    <div className="relative bg-card/80 border-b border-border/50 px-6 py-5 flex-shrink-0">
+                        <div className="flex items-center justify-between">
+                            {/* Title with emoji */}
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-lg">
+                                    <span className="text-xl">
+                                        {displayPinory.mood || "📍"}
                                     </span>
-                                </p>
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-foreground">
+                                        {displayPinory.placeName ||
+                                            "Location pinory"}
+                                    </h2>
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                                        <span className="line-clamp-1">
+                                            {pinory.address}
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Scrollable content area */}
-                <div className="flex-1 overflow-y-auto bg-background custom-scrollbar">
-                    <div className="space-y-5 p-6">
-                        {/* Content Section - Facebook Post Style */}
-                        {(displayPinory.hasImages ||
-                            (displayPinory.images &&
-                                displayPinory.images.length > 0)) && (
-                            <>
-                                {(() => {
-                                    if (loadError) {
-                                        return (
-                                            <div className="flex flex-col items-center justify-center py-10 text-red-400">
-                                                <div className="w-14 h-14 bg-red-900/20 rounded-xl flex items-center justify-center mb-3 border border-red-800/50">
-                                                    <div className="text-2xl">
-                                                        ⚠️
+                    {/* Scrollable content area */}
+                    <div className="flex-1 overflow-y-auto bg-background custom-scrollbar">
+                        <div className="space-y-5 p-6">
+                            {/* Content Section - Facebook Post Style */}
+                            {(displayPinory.hasImages ||
+                                (displayPinory.images &&
+                                    displayPinory.images.length > 0)) && (
+                                <>
+                                    {(() => {
+                                        if (loadError) {
+                                            return (
+                                                <div className="flex flex-col items-center justify-center py-10 text-red-400">
+                                                    <div className="w-14 h-14 bg-red-900/20 rounded-xl flex items-center justify-center mb-3 border border-red-800/50">
+                                                        <div className="text-2xl">
+                                                            ⚠️
+                                                        </div>
                                                     </div>
+                                                    <span className="text-sm font-medium mb-3">
+                                                        {loadError}
+                                                    </span>
+                                                    <Button
+                                                        onClick={loadFullPinory}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="bg-red-900/20 hover:bg-red-900/30 text-red-400 border-red-800/50 rounded-lg"
+                                                    >
+                                                        Thử lại
+                                                    </Button>
                                                 </div>
-                                                <span className="text-sm font-medium mb-3">
-                                                    {loadError}
-                                                </span>
-                                                <Button
-                                                    onClick={loadFullPinory}
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="bg-red-900/20 hover:bg-red-900/30 text-red-400 border-red-800/50 rounded-lg"
-                                                >
-                                                    Thử lại
-                                                </Button>
-                                            </div>
-                                        );
-                                    }
+                                            );
+                                        }
 
-                                    if (isLoadingImages) {
-                                        return (
-                                            <div className="flex flex-col items-center justify-center py-10">
-                                                <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-                                                <span className="text-sm font-medium text-foreground mb-1">
-                                                    Loading images...
-                                                </span>
-                                                <span className="text-xs text-muted-foreground">
-                                                    Please wait a moment
-                                                </span>
-                                            </div>
-                                        );
-                                    }
+                                        if (isLoadingImages) {
+                                            return (
+                                                <div className="flex flex-col items-center justify-center py-10">
+                                                    <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                                                    <span className="text-sm font-medium text-foreground mb-1">
+                                                        Loading images...
+                                                    </span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        Please wait a moment
+                                                    </span>
+                                                </div>
+                                            );
+                                        }
 
-                                    if (
-                                        displayPinory.images &&
-                                        displayPinory.images.length > 0
-                                    ) {
-                                        return (
-                                            <>
-                                                {displayPinory.images.length >
-                                                    0 && (
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <span className="text-xs text-muted-foreground">
-                                                            {
-                                                                displayPinory
-                                                                    .images
-                                                                    .length
-                                                            }{" "}
-                                                            photos
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {/* Smart Adaptive Layout Gallery */}
-                                                <SmartImageGallery
-                                                    images={
-                                                        displayPinory.images
-                                                    }
-                                                    pinoryId={displayPinory.id}
-                                                    onImageClick={(index) => {
-                                                        setCurrentImageIndex(
+                                        if (
+                                            displayPinory.images &&
+                                            displayPinory.images.length > 0
+                                        ) {
+                                            return (
+                                                <>
+                                                    {displayPinory.images
+                                                        .length > 0 && (
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {
+                                                                    displayPinory
+                                                                        .images
+                                                                        .length
+                                                                }{" "}
+                                                                photos
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    {/* Smart Adaptive Layout Gallery */}
+                                                    <SmartImageGallery
+                                                        images={
+                                                            displayPinory.images
+                                                        }
+                                                        pinoryId={
+                                                            displayPinory.id
+                                                        }
+                                                        onImageClick={(
                                                             index
-                                                        );
-                                                        setShowLightbox(true);
-                                                    }}
-                                                    className="mb-4"
-                                                />
-                                            </>
-                                        );
-                                    }
-                                    if (displayPinory.hasImages) {
-                                        return (
-                                            <div className="text-center py-8 text-muted-foreground">
-                                                <Eye className="h-8 w-8 mx-auto mb-2" />
-                                                <div className="text-sm">
-                                                    Has images but failed to
-                                                    load
+                                                        ) => {
+                                                            setCurrentImageIndex(
+                                                                index
+                                                            );
+                                                            setShowLightbox(
+                                                                true
+                                                            );
+                                                        }}
+                                                        className="mb-4"
+                                                    />
+                                                </>
+                                            );
+                                        }
+                                        if (displayPinory.hasImages) {
+                                            return (
+                                                <div className="text-center py-8 text-muted-foreground">
+                                                    <Eye className="h-8 w-8 mx-auto mb-2" />
+                                                    <div className="text-sm">
+                                                        Has images but failed to
+                                                        load
+                                                    </div>
                                                 </div>
+                                            );
+                                        }
+
+                                        return null;
+                                    })()}
+                                </>
+                            )}
+
+                            {/* Text Content Below Images */}
+                            {displayPinory.content && (
+                                <div className="relative pt-2 border-t border-border/50">
+                                    <p className="text-foreground whitespace-pre-wrap leading-relaxed text-base">
+                                        {displayPinory.content}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Metadata Tags */}
+                            {(displayPinory.categoryName ||
+                                displayPinory.visitTime) && (
+                                <div className="space-y-3 p-5 bg-card/50 rounded-xl border border-border/50">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                                        <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                                            <Tag className="h-4 w-4" />
+                                            Information
+                                        </h3>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {/* Category */}
+                                        {displayPinory.categoryName && (
+                                            <div className="flex items-center gap-1.5 bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded-lg border border-blue-500/30 text-sm">
+                                                <Tag className="h-3.5 w-3.5" />
+                                                <span>
+                                                    {displayPinory.categoryName}
+                                                </span>
                                             </div>
-                                        );
-                                    }
+                                        )}
 
-                                    return null;
-                                })()}
-                            </>
-                        )}
+                                        {/* Visit Time */}
+                                        {displayPinory.visitTime && (
+                                            <div className="flex items-center gap-1.5 bg-secondary text-muted-foreground px-3 py-1.5 rounded-lg border border-border text-sm">
+                                                <CalendarDays className="h-3.5 w-3.5" />
+                                                <span>
+                                                    {formatVisitTime(
+                                                        displayPinory.visitTime
+                                                    )}
+                                                </span>
+                                            </div>
+                                        )}
 
-                        {/* Text Content Below Images */}
-                        {displayPinory.content && (
-                            <div className="relative pt-2 border-t border-border/50">
-                                <p className="text-foreground whitespace-pre-wrap leading-relaxed text-base">
-                                    {displayPinory.content}
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Metadata Tags */}
-                        {(displayPinory.categoryName ||
-                            displayPinory.visitTime) && (
-                            <div className="space-y-3 p-5 bg-card/50 rounded-xl border border-border/50">
-                                <div className="flex items-center gap-2">
-                                    <div className="h-1 w-1 rounded-full bg-blue-500"></div>
-                                    <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-                                        <Tag className="h-4 w-4" />
-                                        Information
-                                    </h3>
+                                        {/* Mood */}
+                                        {pinory.mood && (
+                                            <div className="flex items-center gap-1.5 bg-secondary text-muted-foreground px-3 py-1.5 rounded-lg border border-border text-sm">
+                                                <span className="text-base">
+                                                    {pinory.mood}
+                                                </span>
+                                                <span>
+                                                    {moodLabels[pinory.mood] ||
+                                                        "Other"}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {/* Category */}
-                                    {displayPinory.categoryName && (
-                                        <div className="flex items-center gap-1.5 bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded-lg border border-blue-500/30 text-sm">
-                                            <Tag className="h-3.5 w-3.5" />
-                                            <span>
-                                                {displayPinory.categoryName}
-                                            </span>
-                                        </div>
-                                    )}
+                            )}
 
-                                    {/* Visit Time */}
-                                    {displayPinory.visitTime && (
-                                        <div className="flex items-center gap-1.5 bg-secondary text-muted-foreground px-3 py-1.5 rounded-lg border border-border text-sm">
-                                            <CalendarDays className="h-3.5 w-3.5" />
-                                            <span>
-                                                {formatVisitTime(
-                                                    displayPinory.visitTime
-                                                )}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {/* Mood */}
-                                    {pinory.mood && (
-                                        <div className="flex items-center gap-1.5 bg-secondary text-muted-foreground px-3 py-1.5 rounded-lg border border-border text-sm">
-                                            <span className="text-base">
-                                                {pinory.mood}
-                                            </span>
-                                            <span>
-                                                {moodLabels[pinory.mood] ||
-                                                    "Other"}
-                                            </span>
-                                        </div>
-                                    )}
+                            {/* Timestamp */}
+                            <div className="p-4 bg-card/30 rounded-lg border border-border/50">
+                                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                                    <Clock className="h-4 w-4" />
+                                    <span>
+                                        Created{" "}
+                                        {formatDateTime(pinory.timestamp)}
+                                    </span>
                                 </div>
-                            </div>
-                        )}
-
-                        {/* Timestamp */}
-                        <div className="p-4 bg-card/30 rounded-lg border border-border/50">
-                            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                                <Clock className="h-4 w-4" />
-                                <span>
-                                    Created {formatDateTime(pinory.timestamp)}
-                                </span>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Action Buttons Footer */}
-                <div className="sticky bottom-0 bg-card/80 backdrop-blur-xl border-t border-border/50 p-4 flex-shrink-0">
-                    <div className="flex gap-2.5">
-                        <Button
-                            variant="outline"
-                            onClick={handleGetDirections}
-                            disabled={isGettingDirections}
-                            className="flex-1 h-11 font-semibold rounded-lg transition-all"
-                            style={{
-                                backgroundColor: "var(--action-blue-bg)",
-                                borderColor: "var(--action-blue-border)",
-                                color: "var(--action-blue-text)",
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                    "var(--action-blue-bg-hover)";
-                                e.currentTarget.style.borderColor =
-                                    "var(--action-blue-border-hover)";
-                                e.currentTarget.style.color =
-                                    "var(--action-blue-text-hover)";
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                    "var(--action-blue-bg)";
-                                e.currentTarget.style.borderColor =
-                                    "var(--action-blue-border)";
-                                e.currentTarget.style.color =
-                                    "var(--action-blue-text)";
-                            }}
-                        >
-                            <Navigation
-                                className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
-                            />
-                            Directions
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowShareDialog(true)}
-                            className="flex-1 h-11 font-semibold rounded-lg transition-all"
-                            style={{
-                                backgroundColor: "var(--action-green-bg)",
-                                borderColor: "var(--action-green-border)",
-                                color: "var(--action-green-text)",
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                    "var(--action-green-bg-hover)";
-                                e.currentTarget.style.borderColor =
-                                    "var(--action-green-border-hover)";
-                                e.currentTarget.style.color =
-                                    "var(--action-green-text-hover)";
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                    "var(--action-green-bg)";
-                                e.currentTarget.style.borderColor =
-                                    "var(--action-green-border)";
-                                e.currentTarget.style.color =
-                                    "var(--action-green-text)";
-                            }}
-                        >
-                            <Share2 className="h-4 w-4 mr-1.5" />
-                            Share
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={onEdit}
-                            className="h-11 px-4 bg-secondary/80 hover:bg-accent border-border hover:border-border text-foreground font-semibold rounded-lg transition-all"
-                            title="Edit"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={() => {
-                                if (
-                                    globalThis.confirm(
-                                        "Are you sure you want to delete this pinory?"
-                                    )
-                                ) {
-                                    onDelete?.();
-                                }
-                            }}
-                            className="h-11 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all"
-                            title="Delete"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                    {/* Action Buttons Footer */}
+                    <div className="sticky bottom-0 bg-card/80 backdrop-blur-xl border-t border-border/50 p-4 flex-shrink-0">
+                        <div className="flex gap-2.5">
+                            <Button
+                                variant="outline"
+                                onClick={handleGetDirections}
+                                disabled={isGettingDirections}
+                                className="flex-1 h-11 font-semibold rounded-lg transition-all"
+                                style={{
+                                    backgroundColor: "var(--action-blue-bg)",
+                                    borderColor: "var(--action-blue-border)",
+                                    color: "var(--action-blue-text)",
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--action-blue-bg-hover)";
+                                    e.currentTarget.style.borderColor =
+                                        "var(--action-blue-border-hover)";
+                                    e.currentTarget.style.color =
+                                        "var(--action-blue-text-hover)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--action-blue-bg)";
+                                    e.currentTarget.style.borderColor =
+                                        "var(--action-blue-border)";
+                                    e.currentTarget.style.color =
+                                        "var(--action-blue-text)";
+                                }}
+                            >
+                                <Navigation
+                                    className={`h-4 w-4 mr-1.5 ${isGettingDirections ? "animate-spin" : ""}`}
+                                />
+                                Directions
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowShareDialog(true)}
+                                className="flex-1 h-11 font-semibold rounded-lg transition-all"
+                                style={{
+                                    backgroundColor: "var(--action-green-bg)",
+                                    borderColor: "var(--action-green-border)",
+                                    color: "var(--action-green-text)",
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--action-green-bg-hover)";
+                                    e.currentTarget.style.borderColor =
+                                        "var(--action-green-border-hover)";
+                                    e.currentTarget.style.color =
+                                        "var(--action-green-text-hover)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--action-green-bg)";
+                                    e.currentTarget.style.borderColor =
+                                        "var(--action-green-border)";
+                                    e.currentTarget.style.color =
+                                        "var(--action-green-text)";
+                                }}
+                            >
+                                <Share2 className="h-4 w-4 mr-1.5" />
+                                Share
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={onEdit}
+                                className="h-11 px-4 bg-secondary/80 hover:bg-accent border-border hover:border-border text-foreground font-semibold rounded-lg transition-all"
+                                title="Edit"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    if (
+                                        globalThis.confirm(
+                                            "Are you sure you want to delete this pinory?"
+                                        )
+                                    ) {
+                                        onDelete?.();
+                                    }
+                                }}
+                                className="h-11 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all"
+                                title="Delete"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            </DialogContent>
+                </DialogContent>
+            </Dialog>
 
+            {/* Render outside Dialog to avoid focus trap */}
             <ImageLightbox
                 images={displayPinory.images || []}
                 currentIndex={currentImageIndex}
@@ -1268,7 +1296,7 @@ export function PinoryDetailsView({
                 title={displayPinory.name}
             />
 
-            {/* Share Dialog */}
+            {/* Share Dialog - outside main Dialog */}
             <SharePinoryDialog
                 open={showShareDialog}
                 onOpenChange={setShowShareDialog}
@@ -1281,6 +1309,6 @@ export function PinoryDetailsView({
                     address: displayPinory.address,
                 }}
             />
-        </Dialog>
+        </>
     );
 }

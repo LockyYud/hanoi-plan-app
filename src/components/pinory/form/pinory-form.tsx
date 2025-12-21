@@ -28,6 +28,7 @@ import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { useCategoryStore } from "@/lib/store";
 import { useCategoryAPI } from "@/lib/hooks";
 import { useSession } from "next-auth/react";
+import { useTutorial } from "@/lib/tutorial";
 
 const PinorySchema = z.object({
     category: z.string().optional(), // Category is optional now
@@ -78,6 +79,10 @@ export function PinoryForm({
     onSubmit,
 }: PinoryFormProps) {
     const { data: session } = useSession();
+    
+    // Tutorial state - check if tour is active
+    const { currentTour } = useTutorial();
+    const isTourActive = currentTour === 'first-pinory';
 
     // Form state
     const [selectedCategory, setSelectedCategory] = useState<string>(
@@ -125,6 +130,14 @@ export function PinoryForm({
             }, 100);
         }
     }, [isOpen]);
+
+    // Dispatch event when form opens for tutorial
+    useEffect(() => {
+        if (isOpen && !existingPinory) {
+            // Dispatch event for tutorial system
+            window.dispatchEvent(new CustomEvent('pinoryFormOpened'));
+        }
+    }, [isOpen, existingPinory]);
 
     // Fetch categories when form opens
     useEffect(() => {
@@ -612,8 +625,27 @@ export function PinoryForm({
 
     return (
         <>
-            <Dialog open={isOpen} onOpenChange={handleClose}>
-                <DialogContent className="max-w-[720px] h-[80vh] overflow-hidden p-0 bg-[var(--background)] border-border rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] flex flex-col [&>button]:hidden">
+            <Dialog 
+                open={isOpen} 
+                onOpenChange={handleClose}
+                modal={!isTourActive}
+            >
+                <DialogContent 
+                    className="max-w-[720px] h-[80vh] overflow-hidden p-0 bg-[var(--background)] border-border rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] flex flex-col [&>button]:hidden"
+                    data-tour="pinory-form"
+                    onInteractOutside={(e) => {
+                        // Prevent closing dialog when tour is active
+                        if (isTourActive) {
+                            e.preventDefault();
+                        }
+                    }}
+                    onEscapeKeyDown={(e) => {
+                        // Prevent ESC key from closing dialog when tour is active
+                        if (isTourActive) {
+                            e.preventDefault();
+                        }
+                    }}
+                >
                     {/* Enhanced Header */}
                     <div className="bg-card border-b border-border px-7 py-6 flex-shrink-0">
                         <div className="flex items-start justify-between">
@@ -624,6 +656,7 @@ export function PinoryForm({
                                             {...register("placeName")}
                                             placeholder="Place name"
                                             className="text-xl font-semibold text-[var(--foreground)] mb-2 h-auto py-2 px-3 pr-10 bg-transparent border-transparent hover:border-border focus:border-[var(--color-primary-500)] focus:bg-secondary rounded-lg transition-all"
+                                            data-tour="place-name"
                                         />
                                         {watch("placeName") && (
                                             <Button
@@ -679,6 +712,7 @@ export function PinoryForm({
                                                 target.scrollHeight + "px";
                                         }}
                                         className="resize-none bg-transparent border-0 border-none text-[var(--foreground)] placeholder-muted-foreground text-lg leading-relaxed transition-colors focus:outline-none focus:ring-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[60px] pr-16 w-full overflow-hidden"
+                                        data-tour="content"
                                     />
                                     <div className="absolute bottom-2 right-2 text-xs text-muted-foreground pointer-events-none">
                                         {contentValue.length}/280
@@ -931,6 +965,7 @@ export function PinoryForm({
                                 }
                                 className="h-9 w-9 rounded-full hover:bg-secondary text-green-500"
                                 title="Add photos"
+                                data-tour="photo-upload"
                             >
                                 <ImageIcon className="h-5 w-5" />
                             </Button>
@@ -948,6 +983,7 @@ export function PinoryForm({
                                     }}
                                     className={`h-9 w-9 rounded-full hover:bg-secondary ${selectedCategory ? "text-purple-500" : "text-muted-foreground"}`}
                                     title="Select category"
+                                    data-tour="category"
                                 >
                                     <Tag className="h-5 w-5" />
                                 </Button>
@@ -1071,6 +1107,7 @@ export function PinoryForm({
                                     }}
                                     className="h-9 w-9 rounded-full hover:bg-secondary text-orange-500"
                                     title="Visit time"
+                                    data-tour="visit-time"
                                 >
                                     <Clock className="h-5 w-5" />
                                 </Button>
@@ -1107,6 +1144,7 @@ export function PinoryForm({
                                     }}
                                     className="h-9 w-9 rounded-full hover:bg-secondary text-blue-500"
                                     title="Who can see?"
+                                    data-tour="visibility"
                                 >
                                     {watch("visibility") === "private" && (
                                         <Lock className="h-5 w-5" />
@@ -1234,6 +1272,7 @@ export function PinoryForm({
                                 type="submit"
                                 disabled={isSubmitting || isUploadingImages}
                                 className="min-h-[44px] px-8 bg-blue-600 hover:bg-blue-700 text-white border-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+                                data-tour="save-button"
                             >
                                 {isUploadingImages ? (
                                     <>
