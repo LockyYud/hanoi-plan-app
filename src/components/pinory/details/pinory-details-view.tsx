@@ -671,24 +671,6 @@ export function PinoryDetailsView({
                         onTouchMove={handleDragMove}
                         onTouchEnd={handleDragEnd}
                     >
-                        {/* Close button khi không có ảnh hoặc 2+ ảnh & expanded */}
-                        {/* {(!displayPinory.images ||
-                            displayPinory.images.length === 0 ||
-                            (displayPinory.images.length >= 2 &&
-                                isExpanded)) && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onClose();
-                                }}
-                                className="absolute top-3 right-3 text-muted-foreground hover:text-white bg-secondary/80 hover:bg-accent rounded-full w-8 h-8 p-0 z-10"
-                            >
-                                <X className="h-4 w-4" strokeWidth={2.5} />
-                            </Button>
-                        )} */}
-
                         <div className="flex items-start gap-2.5">
                             <div className="flex-1 min-w-0 pr-10">
                                 {/* Hiển thị nội dung trước */}

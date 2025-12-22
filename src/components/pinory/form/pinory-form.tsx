@@ -85,19 +85,42 @@ export function PinoryForm({
     const { currentTour } = useTutorial();
     const isTourActive = currentTour === "first-pinory";
 
-    // Detect mobile screen
-    const [isMobile, setIsMobile] = useState(false);
+    // Detect mobile screen - Lazy initialization để tránh race condition
+    const [isMobile, setIsMobile] = useState(() => {
+        // Khởi tạo với giá trị đúng ngay từ đầu
+        if (typeof window !== "undefined") {
+            return window.innerWidth < 768; // md breakpoint
+        }
+        return false; // SSR fallback
+    });
 
     useEffect(() => {
         const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768); // md breakpoint
+            const newIsMobile = window.innerWidth < 768;
+            // Chỉ update nếu thay đổi để tránh unnecessary re-render
+            setIsMobile((prev) => {
+                if (prev !== newIsMobile) {
+                    return newIsMobile;
+                }
+                return prev;
+            });
         };
 
-        checkMobile();
+        // Không cần gọi checkMobile() nữa vì đã init đúng
         window.addEventListener("resize", checkMobile);
 
         return () => window.removeEventListener("resize", checkMobile);
     }, []);
+
+    // Cleanup khi chuyển đổi giữa mobile/desktop mode
+    useEffect(() => {
+        // Đóng tất cả dropdown menus khi chuyển mode
+        if (isOpen) {
+            setShowCategoryMenu(false);
+            setShowTimeMenu(false);
+            setShowVisibilityMenu(false);
+        }
+    }, [isMobile, isOpen]);
 
     // Form state
     const [selectedCategory, setSelectedCategory] = useState<string>(
@@ -621,6 +644,12 @@ export function PinoryForm({
             localStorage.setItem(draftKey, JSON.stringify(formData));
         }
 
+        // Cleanup tất cả menus trước
+        setShowCategoryMenu(false);
+        setShowTimeMenu(false);
+        setShowVisibilityMenu(false);
+
+        // Cleanup form state
         reset();
         setImages([]);
         previewUrls.forEach((url) => URL.revokeObjectURL(url));
@@ -629,9 +658,9 @@ export function PinoryForm({
         setSelectedCategory("");
         setCoverImageIndex(0);
         setCustomCategoryName("");
-        setShowCategoryMenu(false);
-        setShowTimeMenu(false);
         setHasUnsavedChanges(false);
+
+        // Call onClose sau cùng để component unmount sạch sẽ
         onClose();
     };
 
@@ -1279,23 +1308,43 @@ export function PinoryForm({
 
     return (
         <>
-            {isMobile ? (
-                <Drawer open={isOpen} onOpenChange={handleClose}>
+            {/* Mobile: Drawer (Radix Dialog styled as bottom sheet) */}
+            {isMobile && isOpen && (
+                <Drawer
+                    key="mobile-drawer"
+                    open={isOpen}
+                    onOpenChange={handleClose}
+                    modal={!isTourActive}
+                >
                     <DrawerContent
-                        className="overflow-hidden p-0 bg-[var(--background)] border-t-2 flex flex-col"
+                        className="overflow-hidden p-0 bg-[var(--background)] flex flex-col"
                         style={{
                             height: "85vh",
                             maxHeight: "90vh",
-                            borderColor: "var(--border)",
-                            boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.15)",
                         }}
                         data-tour="pinory-form"
+                        onInteractOutside={(e) => {
+                            // Prevent closing drawer when tour is active
+                            if (isTourActive) {
+                                e.preventDefault();
+                            }
+                        }}
+                        onEscapeKeyDown={(e) => {
+                            // Prevent ESC key from closing drawer when tour is active
+                            if (isTourActive) {
+                                e.preventDefault();
+                            }
+                        }}
                     >
                         {formContent}
                     </DrawerContent>
                 </Drawer>
-            ) : (
+            )}
+
+            {/* Desktop: Dialog - Key prop để force unmount hoàn toàn */}
+            {!isMobile && isOpen && (
                 <Dialog
+                    key="desktop-dialog"
                     open={isOpen}
                     onOpenChange={handleClose}
                     modal={!isTourActive}
